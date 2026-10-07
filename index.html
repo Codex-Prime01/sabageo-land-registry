@@ -689,6 +689,30 @@
         list-style: none;
       }
 
+      .verdict-marker {
+        background: none;
+        border: 0;
+      }
+      .vm {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        border: 3px solid #fff;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+        animation: stamp 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
+      }
+      .vm.ok {
+        background: #00c853;
+      }
+      .vm.bad {
+        background: #ff1a3c;
+      }
+      .vm svg {
+        stroke: #fff;
+      }
+
       /* light theme */
       [data-theme="light"] {
         --glass: rgba(255, 255, 255, 0.9);
@@ -1061,6 +1085,74 @@
         *::after {
           animation: none !important;
           transition-duration: 0.01ms !important;
+        }
+      }
+
+      /* sleek open and close */
+      @keyframes itemIn {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+      }
+      .panel:not(.collapsed) .content > * {
+        animation: itemIn 0.5s var(--ease) backwards;
+        animation-delay: calc(var(--k, 0) * 45ms);
+      }
+      .drawer-body > * {
+        opacity: 0;
+        translate: -22px 0;
+        transition:
+          opacity 0.3s ease,
+          translate 0.5s var(--ease),
+          background 0.25s,
+          border-color 0.25s,
+          transform 0.3s var(--ease);
+      }
+      .drawer.open .drawer-body > * {
+        opacity: 1;
+        translate: 0 0;
+        transition-delay:
+          calc(var(--i, 0) * 50ms + 150ms), calc(var(--i, 0) * 50ms + 150ms),
+          0s, 0s, 0s;
+      }
+
+      /* scrolling and touch comfort */
+      .drawer-body,
+      .pop,
+      .inner {
+        overscroll-behavior: contain;
+      }
+      .drawer-body {
+        padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+      }
+      @media (hover: none) {
+        button.row:hover,
+        .plot-item:hover {
+          transform: none;
+        }
+        .chip:hover {
+          border-color: var(--line);
+        }
+      }
+
+      /* tablets and sideways phones */
+      @media (min-width: 801px) and (max-width: 1100px) {
+        .panel {
+          width: 360px;
+        }
+      }
+      @media (max-height: 480px) {
+        .panel {
+          max-height: calc(100dvh - 20px);
+        }
+        textarea {
+          height: 72px;
+        }
+        .intro,
+        .hint,
+        .foot {
+          display: none;
         }
       }
     </style>
@@ -1807,6 +1899,7 @@
               );
               showRegister(true);
             }
+            placeMark(isRed);
             setTimeout(() => flyTo(newLayer.getBounds()), 500);
           })
           .catch(() =>
@@ -2151,6 +2244,116 @@
             }
           });
       }
+
+      /* Green tick for 0 overlap, red X for overlap, shown on the map */
+      let mark = null;
+      function clearMark() {
+        if (mark) {
+          map.removeLayer(mark);
+          mark = null;
+        }
+      }
+      function placeMark(isRed) {
+        clearMark();
+        const icon = isRed
+          ? '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+          : '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+        mark = L.marker(newLayer.getBounds().getCenter(), {
+          icon: L.divIcon({
+            className: "verdict-marker",
+            html:
+              '<div class="vm ' +
+              (isRed ? "bad" : "ok") +
+              '">' +
+              icon +
+              "</div>",
+            iconSize: [46, 46],
+            iconAnchor: [23, 23],
+          }),
+          interactive: false,
+          keyboard: false,
+        }).addTo(map);
+      }
+      document.getElementById("corners").addEventListener("input", clearMark);
+      /* one thing open at a time: panel, plots list, menu */
+      let panelMemory = null;
+      function tuck() {
+        if (panelMemory === null)
+          panelMemory = !panel.classList.contains("collapsed");
+        setPanel(false);
+      }
+      function untuck(restore) {
+        if (restore && panelMemory) setPanel(true);
+        panelMemory = null;
+      }
+
+      function openMenu() {
+        const pop = document.getElementById("pop");
+        pop.classList.remove("open"); // close the plots list, but keep what the panel was doing
+        document
+          .getElementById("plotsChip")
+          .setAttribute("aria-expanded", "false");
+        tuck();
+        document.getElementById("drawer").classList.add("open");
+        document.getElementById("scrim").classList.add("open");
+      }
+      function closeMenu(restore = true) {
+        const d = document.getElementById("drawer");
+        if (!d.classList.contains("open")) return;
+        d.classList.remove("open");
+        document.getElementById("scrim").classList.remove("open");
+        untuck(restore);
+      }
+
+      function togglePop() {
+        const pop = document.getElementById("pop");
+        if (pop.classList.contains("open")) {
+          closePop(true);
+          return;
+        }
+        tuck();
+        pop.classList.add("open");
+        document
+          .getElementById("plotsChip")
+          .setAttribute("aria-expanded", "true");
+      }
+      function closePop(restore = false) {
+        const pop = document.getElementById("pop");
+        if (!pop.classList.contains("open")) return;
+        pop.classList.remove("open");
+        document
+          .getElementById("plotsChip")
+          .setAttribute("aria-expanded", "false");
+        untuck(restore);
+      }
+
+      /* items slide in one after another */
+      document
+        .querySelectorAll(".drawer-body > *")
+        .forEach((el, i) => el.style.setProperty("--i", i));
+      document
+        .querySelectorAll(".content > *")
+        .forEach((el, i) => el.style.setProperty("--k", i));
+
+      /* swipe the menu left to close it */
+      let sx = null;
+      const menuEl = document.getElementById("drawer");
+      menuEl.addEventListener(
+        "touchstart",
+        (e) => {
+          sx = e.touches[0].clientX;
+        },
+        { passive: true },
+      );
+      menuEl.addEventListener(
+        "touchend",
+        (e) => {
+          if (sx !== null && e.changedTouches[0].clientX - sx < -60)
+            closeMenu();
+          sx = null;
+        },
+        { passive: true },
+      );
     </script>
   </body>
 </html>
