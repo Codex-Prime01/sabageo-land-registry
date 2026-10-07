@@ -37,7 +37,10 @@ CREATE TABLE IF NOT EXISTS photos (
   lat         DOUBLE PRECISION,
   lon         DOUBLE PRECISION,
   distance_m  DOUBLE PRECISION,
-  uploaded_at TIMESTAMP DEFAULT NOW()
+  uploaded_at TIMESTAMP DEFAULT NOW(),
+  data        BYTEA,
+  content_type TEXT,
+
 );
 
 -- Ledger fingerprints posted on the Polygon Amoy test network

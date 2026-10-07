@@ -10,9 +10,9 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File,Header, HTTPException, UploadFile
 import secrets
 from web3 import  Web3
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
-from PIL import Image
+from PIL import Image, ImageOps 
 from psycopg.conninfo import make_conninfo
 from pydantic import BaseModel
 
@@ -27,12 +27,10 @@ DB = os.getenv("DATABASE_URL") or make_conninfo(
     password=os.getenv("DB_PASSWORD", ""),
 )
 
-UPLOAD_DIR = Path("uploads")
-UPLOAD_DIR.mkdir(exist_ok=True)
+
 MAX_PHOTO_BYTES = 10 * 1024 * 1024
 
-app = FastAPI()
-app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 
 class Corner(BaseModel):
@@ -99,6 +97,21 @@ def get_plots():
     ]
     return {"type": "FeatureCollection", "features": features}
 
+
+@app.get("/health")
+def health():
+    # a tiny route for the keep-awake pinger; it does not touch the database
+    return {"ok": True}
+
+
+@app.get("/photos/{photo_id}")
+def get_photo(photo_id: int):
+    with psycopg.connect(DB) as conn:
+        row = conn.execute("SELECT data, content_type FROM photos WHERE id = %s", (photo_id,)).fetchone()
+    if not row or row[0] is None:
+        raise HTTPException(status_code=404, detail="Photo not found.")
+    return Response(content=bytes(row[0]), media_type=row[1] or "image/jpeg",
+                    headers={"Cache-Control": "public, max-age=86400"})
 
 @app.post("/check")
 def check_overlap(plot: NewPlot):
@@ -227,31 +240,31 @@ def register_plot(plot: NewPlot):
 
     return {"status": "REGISTERED", "title_code": code, "area_m2": round(area, 2)}
  
-
 @app.post("/plots/{title_code}/photo", dependencies=[Depends(require_admin)])
 async def upload_photo(title_code: str, file: UploadFile = File(...)):
     if file.content_type not in ("image/jpeg", "image/png"):
         raise HTTPException(status_code=400, detail="Use a JPG or PNG photo.")
-    data = await file.read() 
+    data = await file.read()
     if len(data) > MAX_PHOTO_BYTES:
         raise HTTPException(status_code=400, detail="Photo is too big. Keep it under 10 MB.")
 
-    name = uuid.uuid4().hex + (".jpg" if file.content_type == "image/jpeg" else ".png")
-    path = UPLOAD_DIR / name
-    path.write_bytes(data)
-
     try:
-        Image.open(path).verify()
+        Image.open(io.BytesIO(data)).verify()
     except Exception:
-        path.unlink()
         raise HTTPException(status_code=400, detail="That file is not a real image.")
 
-    gps = read_gps(path)
+    # read the GPS tag first, because shrinking the photo removes it
+    gps = read_gps(io.BytesIO(data))
+
+    img = ImageOps.exif_transpose(Image.open(io.BytesIO(data))).convert("RGB")
+    img.thumbnail((1600, 1600))
+    out = io.BytesIO()
+    img.save(out, "JPEG", quality=82)
+    small = out.getvalue()
 
     with psycopg.connect(DB) as conn:
         exists = conn.execute("SELECT 1 FROM plots WHERE title_code = %s", (title_code,)).fetchone()
         if not exists:
-            path.unlink()
             raise HTTPException(status_code=404, detail="Plot not found.")
 
         lat = lon = distance = None
@@ -267,13 +280,16 @@ async def upload_photo(title_code: str, file: UploadFile = File(...)):
                 (lon, lat, title_code),
             ).fetchone()[0]
 
-        conn.execute(
-            "INSERT INTO photos (title_code, filename, lat, lon, distance_m) VALUES (%s, %s, %s, %s, %s)",
-            (title_code, name, lat, lon, distance),
-        )
+        photo_id = conn.execute(
+            """
+            INSERT INTO photos (title_code, filename, lat, lon, distance_m, data, content_type)
+            VALUES (%s, %s, %s, %s, %s, %s, 'image/jpeg') RETURNING id
+            """,
+            (title_code, uuid.uuid4().hex + ".jpg", lat, lon, distance, small),
+        ).fetchone()[0]
 
     return {
-        "filename": name,
+        "id": photo_id,
         "has_gps": gps is not None,
         "distance_m": round(distance, 1) if distance is not None else None,
     }
