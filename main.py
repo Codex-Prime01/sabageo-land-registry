@@ -11,6 +11,7 @@ import psycopg
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse, Response
+from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageOps
 from psycopg.conninfo import make_conninfo
 from pydantic import BaseModel
@@ -185,6 +186,9 @@ def read_gps(source):
         return None
 
 
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # ---------- Pages and reading data ----------
 @app.get("/")
 def home():
@@ -195,6 +199,16 @@ def home():
 def health():
     # tiny route for the keep-awake pinger; it does not touch the database
     return {"ok": True}
+
+
+@app.get("/about")
+def about_page():
+    return FileResponse("about.html")
+
+
+@app.get("/how-it-works")
+def how_it_works_page():
+    return FileResponse("how-it-works.html")
 
 
 @app.get("/regions")
@@ -222,7 +236,8 @@ def get_plots():
         rows = conn.execute(
             """
             SELECT p.title_code, p.region_code, p.source, p.label, ST_AsGeoJSON(p.geom),
-                   (SELECT COUNT(*) FROM photos ph WHERE ph.title_code = p.title_code)
+                   (SELECT COUNT(*) FROM photos ph WHERE ph.title_code = p.title_code),
+                   p.cluster_type, p.ref_lat, p.ref_lon
             FROM plots p JOIN regions r ON r.code = p.region_code
             WHERE p.geom IS NOT NULL
             ORDER BY r.sort_order, p.id
@@ -233,6 +248,7 @@ def get_plots():
             "type": "Feature",
             "properties": {
                 "title_code": r[0], "region": r[1], "source": r[2], "label": r[3], "photo_count": r[5],
+                "cluster_type": r[6], "ref_lat": r[7], "ref_lon": r[8],
             },
             "geometry": json.loads(r[4]),
         }
@@ -240,6 +256,44 @@ def get_plots():
     ]
     return {"type": "FeatureCollection", "features": features}
 
+
+@app.get("/plots/{title_code}/coordinates")
+def plot_coordinates(title_code: str, crs: str = "wgs84"):
+    srid = CRS_CHOICES.get(crs)
+    if srid is None:
+        raise HTTPException(status_code=400, detail="Unknown coordinate type.")
+    with psycopg.connect(DB) as conn:
+        row = conn.execute(
+            """
+            SELECT p.title_code, p.label, p.source, r.name, p.area_m2,
+                   ST_AsGeoJSON(ST_Transform(p.geom, %s::int), 8),
+                   (SELECT COUNT(*) FROM photos ph WHERE ph.title_code = p.title_code),
+                   p.cluster_type, p.ref_lat, p.ref_lon
+            FROM plots p JOIN regions r ON r.code = p.region_code
+            WHERE p.title_code = %s AND p.geom IS NOT NULL
+            """,
+            (srid, title_code),
+        ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Plot not found.")
+
+    ring = json.loads(row[5])["coordinates"][0][:-1]  # drop the repeated closing corner
+    if crs == "wgs84":
+        corners = [[round(y, 6), round(x, 6)] for x, y in ring]  # latitude, longitude
+    else:  
+        corners = [[round(x, 2), round(y, 2)] for x, y in ring]  # easting, northing
+    return {
+        "title_code": row[0],
+        "label": row[1],
+        "source": row[2],
+        "region": row[3],
+        "area_m2": round(row[4], 1) if row[4] is not None else None,
+        "photo_count": row[6],
+        "cluster_type": row[7],
+        "ref": [row[8], row[9]] if row[8] is not None else None,
+        "crs": crs,
+        "corners": corners,
+    }
 
 # ---------- Check and register ----------
 @app.post("/check")
@@ -498,6 +552,7 @@ def list_anchors():
                 "anchored_at": at.isoformat(),
                 "matches_ledger": current_hash == anchored_hash,
                 "matches_chain": on_chain,
-            }
+            } 
         ) 
+        
     return {"anchors": out}

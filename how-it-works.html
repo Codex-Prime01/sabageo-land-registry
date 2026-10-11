@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How it works | SABAGeo Land Registry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1628">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='8,12 34,7 37,32 11,37' fill='%23D9A441' fill-opacity='.4' stroke='%230A1628' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark"}catch(e){}</script>
+<style>
+:root{--bg:#0a1628;--text:#f4f6fa;--mute:#9fb0c8;--line:rgba(255,255,255,.12);--card:rgba(255,255,255,.05);--brass:#d9a441;--clear:#2bff88;--flag:#ff2d4d;--ease:cubic-bezier(.22,.8,.2,1)}
+[data-theme=light]{--bg:#f1f4f9;--text:#0a1628;--mute:#52627a;--line:rgba(10,22,40,.14);--card:rgba(10,22,40,.04)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.top{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:var(--bg);background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:"Fraunces",Georgia,serif;font-size:19px;font-weight:700}
+nav{margin-left:auto;display:flex;gap:4px;overflow-x:auto}
+nav a{padding:9px 12px;border-radius:10px;color:var(--mute);text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap;transition:background .3s,color .3s}
+nav a:hover{color:var(--text)}
+nav a.on{color:var(--text);background:var(--card)}
+.map-btn{flex:none;padding:9px 14px;border-radius:999px;background:var(--brass);color:#1a1204;text-decoration:none;font-size:14px;font-weight:600;transition:transform .3s var(--ease),box-shadow .3s}
+.map-btn:hover{box-shadow:0 8px 22px -8px rgba(217,164,65,.8)}
+.map-btn:active{transform:scale(.96)}
+main{max-width:760px;margin:0 auto;padding:44px 20px 72px}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+h1{margin:0;font-family:"Fraunces",Georgia,serif;font-size:clamp(28px,6vw,44px);line-height:1.12;letter-spacing:-.015em}
+.lead{margin:16px 0 0;font-size:17px;color:var(--mute)}
+.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .7s var(--ease) backwards;animation-delay:calc(var(--k,0)*80ms)}
+.card h2{margin:0 0 8px;font-family:"Fraunces",Georgia,serif;font-size:21px}
+.card p{margin:8px 0 0;color:var(--mute)}
+.card ul{margin:10px 0 0;padding-left:20px;color:var(--mute)}
+.card li{margin:4px 0}
+.card b{color:var(--text)}
+.steps{list-style:none;counter-reset:s;margin:20px 0 0;padding:0}
+.steps li{counter-increment:s;position:relative;margin-top:14px;padding:20px 20px 20px 70px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .7s var(--ease) backwards;animation-delay:calc(var(--k,0)*80ms)}
+.steps li::before{content:counter(s);position:absolute;left:20px;top:20px;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:var(--brass);color:#1a1204;font-weight:700}
+.steps h2{margin:0;font-family:"Fraunces",Georgia,serif;font-size:19px}
+.steps p{margin:6px 0 0;color:var(--mute)}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:8px;vertical-align:-1px}
+.note{margin-top:16px;padding:16px 18px;border-left:3px solid var(--brass);border-radius:0 12px 12px 0;background:var(--card);color:var(--mute);font-size:15px}
+.cta{display:inline-block;margin-top:26px;padding:14px 22px;border-radius:14px;background:var(--text);color:var(--bg);font-weight:600;text-decoration:none;transition:transform .3s var(--ease),box-shadow .3s}
+.cta:hover{box-shadow:0 12px 28px -12px rgba(0,0,0,.6)}
+.cta:active{transform:scale(.97)}
+footer{max-width:760px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-inset-bottom));color:var(--mute);font-size:13px}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+@media (max-width:560px){.brand span{display:none}main{padding-top:32px}.steps li{padding:18px 16px 18px 62px}.steps li::before{left:16px;top:18px}.card{padding:18px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/" aria-label="Back to the map">
+    <svg width="30" height="30" viewBox="0 0 44 44" aria-hidden="true"><polygon points="8,12 34,7 37,32 11,37" fill="rgba(217,164,65,.18)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8" cy="12" r="3.6" fill="#D9A441"/><circle cx="34" cy="7" r="3.6" fill="#D9A441"/><circle cx="37" cy="32" r="3.6" fill="#D9A441"/><circle cx="11" cy="37" r="3.6" fill="#D9A441"/></svg>
+    <span>SABAGeo</span>
+  </a>
+  <nav aria-label="Pages"><a href="/about" >About</a><a href="/how-it-works" class="on" aria-current="page">How it works</a></nav>
+  <a class="map-btn" href="/">Open map</a>
+</header>
+<main>
+<p class="eyebrow">How it works</p>
+<h1>From corner coordinates to a registered plot.</h1>
+<p class="lead">Six steps, from typing the corners to sealing the record.</p>
+
+<ol class="steps">
+  <li style="--k:1"><h2>Choose the coordinate type</h2><p>Pick latitude and longitude (from a GPS), or UTM metres (from a survey). Choose the same type your instrument exported. A wrong UTM zone is the easiest mistake to make, so the system warns you when a plot lands outside Nigeria.</p></li>
+  <li style="--k:2"><h2>Enter or upload the corners</h2><p>Type one corner per line, with at least three corners. Or upload a CSV file with the corners in the same order. Latitude comes first for lat/long, and easting comes first for UTM.</p></li>
+  <li style="--k:3"><h2>Check for overlap</h2><p>A <b>green tick</b> means 0 overlap, so the plot can be registered. A <b>red X</b> means it shares area with a registered plot. The result names that plot and the overlap in square metres. Plots that only touch along a shared boundary are not counted as overlapping.</p></li>
+  <li style="--k:4"><h2>Register the plot</h2><p>With the admin key, a clear plot gets a unique title code such as <b>SABA-NAUB-RES-001</b>. The first five real NAUB plots fill the reserved pilot slots in order, and the button asks you to tap twice so a slot is never used by accident.</p></li>
+  <li style="--k:5"><h2>Add a beacon photo</h2><p>Upload a photo taken at the beacon. The system reads its GPS tag and tells you how many metres from the plot it was taken. If it is far, check it was taken at the right place.</p></li>
+  <li style="--k:6"><h2>Seal it in the ledger</h2><p>Every registration joins a ledger in which each record carries the fingerprint of the one before it. <b>Check ledger</b> recalculates the chain and tells you if anything was changed or deleted. <b>Anchor to Polygon</b> posts the latest fingerprint on a public test network, so history cannot be quietly rewritten.</p></li>
+</ol>
+
+<section class="card" style="--k:7">
+  <h2>Reading the map</h2>
+  <ul>
+    <li><span class="dot" style="background:#00d1ff"></span>Bright cyan: a registered plot from field data.</li>
+    <li><span class="dot" style="background:#8fa8ff"></span>Soft blue: synthetic test data.</li>
+    <li><span class="dot" style="background:#2bff88"></span>Green with a tick: the plot you checked, with no overlap.</li>
+    <li><span class="dot" style="background:#ff2d4d"></span>Red with an X: the plot overlaps registered land.</li>
+  </ul>
+</section>
+
+<p class="note">Plots are stored as WGS84 latitude and longitude. Areas and overlaps are measured in metres, using each plot's own UTM zone.</p>
+
+<a class="cta" href="/">Open the map</a>
+</main>
+<footer>SABAGeo Land Registry. A research prototype from the Nigerian Army University Biu.</footer>
+</body>
+</html>

@@ -1,4 +1,4 @@
--- SABAGeo Land Registry: database setup (version 2)
+-- SABAGeo Land Registry: database setup (version 3)
 -- For a NEW, empty database. Plots are stored in WGS84 (EPSG:4326).
 -- Areas and overlaps are measured in metres by converting to the plot's local UTM zone.
 
@@ -13,16 +13,25 @@ CREATE TABLE regions (
 );
 
 INSERT INTO regions (code, name, sort_order, is_pilot) VALUES
-  ('NAUB', 'NAUB Pilot, Biu (real field data)', 0, TRUE),
-  ('LAG',  'Ikeja, Lagos State',                1, FALSE),
-  ('ABJ',  'Abuja, FCT',                        2, FALSE),
-  ('GMB',  'Gombe, Gombe State',                3, FALSE),
-  ('KAN',  'Kano, Kano State',                  4, FALSE),
-  ('MDG',  'Maiduguri, Borno State',            5, FALSE),
-  ('BIU',  'Biu Emirate, Borno State',          6, FALSE),
-  ('TST',  'Test area',                        99, FALSE);
+  ('NAUB', 'NAUB Pilot, Biu (real field data)', 0,  TRUE),
+  ('LAG',  'Ikeja, Lagos State',                1,  FALSE),
+  ('ABJ',  'Abuja, FCT',                        2,  FALSE),
+  ('GMB',  'Gombe, Gombe State',                3,  FALSE),
+  ('KAN',  'Kano, Kano State',                  4,  FALSE),
+  ('MDG',  'Maiduguri, Borno State',            5,  FALSE),
+  ('BIU',  'Borno-Biu Emirate, Borno State',    6,  FALSE),
+  ('IBD',  'Ibadan, Oyo State',                 7,  FALSE),
+  ('PHC',  'Port Harcourt, Rivers State',       8,  FALSE),
+  ('BEN',  'Benin City, Edo State',             9,  FALSE),
+  ('OWR',  'Owerri, Imo State',                 10, FALSE),
+  ('ILR',  'Ilorin, Kwara State',               11, FALSE),
+  ('TST',  'Test area',                         99, FALSE);
 
 -- Land plots. A "reserved" plot is an empty slot waiting for real measurements (geom is empty).
+-- cluster_type is the senior's notation for the localized dataset:
+--   DISJOINT_NODE      separate parcels
+--   ADJOINING_CLUSTER  parcels that touch along shared boundaries
+-- ref_lat / ref_lon is the coordinate the plot has in the dataset table.
 CREATE TABLE plots (
   id            SERIAL PRIMARY KEY,
   title_code    TEXT UNIQUE NOT NULL,
@@ -30,6 +39,9 @@ CREATE TABLE plots (
   source        TEXT NOT NULL DEFAULT 'field',        -- 'field' or 'synthetic'
   status        TEXT NOT NULL DEFAULT 'registered',   -- 'registered' or 'reserved'
   label         TEXT,
+  cluster_type  TEXT CHECK (cluster_type IN ('DISJOINT_NODE', 'ADJOINING_CLUSTER')),
+  ref_lat       DOUBLE PRECISION,
+  ref_lon       DOUBLE PRECISION,
   geom          geometry(Polygon, 4326),
   area_m2       DOUBLE PRECISION,
   registered_at TIMESTAMP DEFAULT NOW()
