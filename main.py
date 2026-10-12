@@ -210,6 +210,10 @@ def about_page():
 def how_it_works_page():
     return FileResponse("how-it-works.html")
 
+@app.get("/architecture")
+def architecture_page():
+    return FileResponse("architecture.html")
+
 
 @app.get("/regions")
 def get_regions():
@@ -293,6 +297,110 @@ def plot_coordinates(title_code: str, crs: str = "wgs84"):
         "ref": [row[8], row[9]] if row[8] is not None else None,
         "crs": crs,
         "corners": corners,
+    }
+    
+    
+    
+@app.get("/registry")
+def registry_page():
+    return FileResponse("registry.html")
+
+
+@app.get("/report")
+@app.get("/report/{title_code}")
+def report_page(title_code: str = ""):
+    return FileResponse("report.html")
+
+
+@app.get("/api/registry")
+def api_registry():
+    with psycopg.connect(DB) as conn:
+        rows = conn.execute(
+            """
+            SELECT p.title_code, p.region_code, r.name, p.source, p.status, p.label,
+                   p.cluster_type, p.ref_lat, p.ref_lon, p.area_m2,
+                   ST_Y(ST_Centroid(p.geom)), ST_X(ST_Centroid(p.geom)),
+                   (SELECT COUNT(*) FROM photos ph WHERE ph.title_code = p.title_code),
+                   p.registered_at
+            FROM plots p JOIN regions r ON r.code = p.region_code
+            ORDER BY r.sort_order, p.id
+            """
+        ).fetchall()
+    keys = ["code", "region", "region_name", "source", "status", "label", "cluster_type",
+            "ref_lat", "ref_lon", "area_m2", "lat", "lon", "photos", "registered_at"]
+    out = []
+    for row in rows:
+        item = dict(zip(keys, row))
+        item["registered_at"] = item["registered_at"].isoformat() if item["registered_at"] else None
+        out.append(item)
+    return out
+
+
+@app.get("/plots/{title_code}/report")
+def plot_report(title_code: str):
+    with psycopg.connect(DB) as conn:
+        row = conn.execute(
+            """
+            SELECT p.title_code, p.label, p.source, p.cluster_type, r.name, p.area_m2,
+                   ST_Perimeter(p.geom::geography),
+                   ST_Y(ST_Centroid(p.geom)), ST_X(ST_Centroid(p.geom)),
+                   ST_AsGeoJSON(p.geom, 8), p.registered_at
+            FROM plots p JOIN regions r ON r.code = p.region_code
+            WHERE p.title_code = %s AND p.geom IS NOT NULL
+            """,
+            (title_code,),
+        ).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Plot not found.")
+
+        lat, lon = row[7], row[8]
+        utm = 32600 + int((lon + 180) // 6) + 1  # the plot's own UTM zone
+        ring_utm = json.loads(
+            conn.execute(
+                "SELECT ST_AsGeoJSON(ST_Transform(geom, %s::int), 8) FROM plots WHERE title_code = %s",
+                (utm, title_code),
+            ).fetchone()[0]
+        )["coordinates"][0][:-1]
+        geometry = json.loads(row[9])
+        ring_wgs = geometry["coordinates"][0][:-1]
+
+        photos = conn.execute(
+            "SELECT id, distance_m FROM photos WHERE title_code = %s AND data IS NOT NULL ORDER BY id",
+            (title_code,),
+        ).fetchall()
+
+        ledger = anchor = None
+        rec = conn.execute(
+            "SELECT id, record_hash, created_at FROM ledger WHERE title_code = %s ORDER BY id DESC LIMIT 1",
+            (title_code,),
+        ).fetchone()
+        if rec:
+            ledger = {"record_id": rec[0], "hash": rec[1], "recorded_at": rec[2].isoformat()}
+            a = conn.execute(
+                "SELECT tx_hash, anchored_at FROM anchors WHERE ledger_id >= %s ORDER BY ledger_id LIMIT 1",
+                (rec[0],),
+            ).fetchone()
+            if a:
+                anchor = {"url": EXPLORER_TX + a[0], "anchored_at": a[1].isoformat()}
+
+    return {
+        "title_code": row[0],
+        "label": row[1],
+        "source": row[2],
+        "cluster_type": row[3],
+        "region": row[4],
+        "area_m2": row[5],
+        "perimeter_m": row[6],
+        "centroid": [lat, lon],
+        "utm_zone": f"{utm - 32600}N",
+        "utm_epsg": utm,
+        "geometry": geometry,
+        "corners_wgs": [[round(y, 6), round(x, 6)] for x, y in ring_wgs],  # latitude, longitude
+        "corners_utm": [[round(x, 2), round(y, 2)] for x, y in ring_utm],  # easting, northing
+        "registered_at": row[10].isoformat() if row[10] else None,
+        "photos": [{"id": p[0], "distance_m": p[1]} for p in photos],
+        "ledger": ledger,
+        "anchor": anchor,
     }
 
 # ---------- Check and register ----------
