@@ -1400,3 +1400,22 @@ function loadPlots(zoomToThem, focusCode) {
   }, 300);
   setTimeout(() => clearInterval(wait), 10000);
 })();
+
+/* Menu: Token payment and Payment receipt */
+(function () {
+  const rep = document.querySelector('.drawer-body > a.row[href="/report"]');
+  if (!rep) return;
+  const arrow =
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>';
+  const make = (name, href, i) => {
+    const a = document.createElement("a");
+    a.className = "row";
+    a.href = href;
+    a.style.setProperty("--i", i);
+    a.innerHTML = "<span>" + name + "</span>" + arrow;
+    return a;
+  };
+  const pay = make("Token payment", "/payments", 6);
+  rep.after(pay);
+  pay.after(make("Payment receipt", "/receipt", 7));
+})();

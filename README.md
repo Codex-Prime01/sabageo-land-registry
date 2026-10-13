@@ -56,7 +56,8 @@ venv\Scripts\activate          # on Windows
 pip install -r requirements.txt
 ```
 
-1. Create a database called `sabageo`, then run `schema.sql` on it.
+1. Create a database called `sabageo`, then run `schema.sql` and then `add_payments.sql` on it.
+   (Already have a database from before? Just run `add_payments.sql`. It's safe to run more than once.)
 2. Copy `.env.example` to `.env` and fill in your values.
 3. Start the server:
 

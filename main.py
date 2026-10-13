@@ -1,3 +1,8 @@
+import re
+import time
+from collections import defaultdict, deque
+from typing import Literal
+
 import base64
 import hashlib
 import io
@@ -14,7 +19,7 @@ from fastapi.responses import FileResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageOps
 from psycopg.conninfo import make_conninfo
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from web3 import Web3
 
 load_dotenv(override=True)
@@ -664,3 +669,287 @@ def list_anchors():
         ) 
         
     return {"anchors": out}
+
+
+
+# =====================================================================
+# PHASE D: paste ALL of this at the very bottom of main.py.
+#
+
+
+# ---------- Pages ----------
+@app.get("/payments")
+def payments_page():
+    return FileResponse("payments.html")
+
+
+@app.get("/receipt")
+@app.get("/receipt/{receipt_no}")
+def receipt_page(receipt_no: str = ""):
+    return FileResponse("receipt.html")
+
+
+# ---------- Helpers ----------
+CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # no 0, O, 1, I or L, so codes are easy to read out
+_fails = defaultdict(deque)  # wrong tries, kept in memory (resets when the server restarts)
+
+
+def client_ip(request: Request):
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        return forwarded.split(",")[-1].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def check_limit(request: Request, limit=8, window=600):
+    q, now = _fails[client_ip(request)], time.time()
+    while q and now - q[0] > window:
+        q.popleft()
+    if len(q) >= limit:
+        raise HTTPException(status_code=429, detail="Too many wrong tries. Please wait ten minutes.")
+
+
+def record_fail(request: Request):
+    _fails[client_ip(request)].append(time.time())
+
+
+def is_admin(key):
+    expected = os.getenv("ADMIN_KEY", "")
+    return bool(expected and key and secrets.compare_digest(key.encode(), expected.encode()))
+
+
+def normalise_code(code):
+    text = re.sub(r"[^A-Z0-9]", "", code.upper())
+    return text[4:] if text.startswith("SABA") else text
+
+
+def code_hash(code):
+    return sha(normalise_code(code))
+
+
+def new_login_code():
+    while True:
+        chars = "".join(secrets.choice(CODE_ALPHABET) for _ in range(12))
+        if not chars.startswith("SABA"):
+            return f"SABA-{chars[:4]}-{chars[4:8]}-{chars[8:]}"
+
+
+def issue_login_code(conn, payment_id, client_id, days, plots_allowed, plots_used=0):
+    code = new_login_code()
+    expires = conn.execute("SELECT NOW() + make_interval(days => %s)", (days,)).fetchone()[0]
+    conn.execute(
+        """
+        INSERT INTO login_codes (payment_id, client_id, code_hash, expires_at, plots_allowed, plots_used)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """,
+        (payment_id, client_id, code_hash(code), expires, plots_allowed, plots_used),
+    )
+    return code, expires
+
+
+class PaymentIn(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
+    client_type: Literal["individual", "corporate"]
+    email: str | None = Field(default=None, max_length=120)
+    phone: str | None = Field(default=None, max_length=40)
+    amount_ngn: float = Field(gt=0, lt=1_000_000_000)
+    method: Literal["Bank transfer", "Card or POS", "Cash", "Other"]
+    reference: str = Field(min_length=3, max_length=80)
+    valid_days: int = Field(default=30, ge=1, le=365)
+    plots_allowed: int | None = Field(default=None, ge=1, le=1000)
+
+
+class ReissueIn(BaseModel):
+    valid_days: int = Field(default=30, ge=1, le=365)
+
+
+class LoginIn(BaseModel):
+    code: str = Field(min_length=6, max_length=40)
+
+
+# ---------- Admin: record a payment and issue a login code ----------
+@app.post("/api/admin/payments", dependencies=[Depends(require_admin)])
+def record_payment(p: PaymentIn):
+    try:
+        with psycopg.connect(DB) as conn:
+            client_id = conn.execute(
+                "INSERT INTO clients (name, client_type, email, phone) VALUES (%s, %s, %s, %s) RETURNING id",
+                (p.name.strip(), p.client_type, (p.email or "").strip() or None, (p.phone or "").strip() or None),
+            ).fetchone()[0]
+            n = conn.execute("SELECT nextval('receipt_seq')").fetchone()[0]
+            receipt_no = f"SABA-RCPT-{datetime.now(timezone.utc).year}-{n:04d}"
+            verify = "".join(secrets.choice(CODE_ALPHABET) for _ in range(8))
+            payment_id = conn.execute(
+                """
+                INSERT INTO payments (client_id, receipt_no, verify_code, amount_ngn, method, reference)
+                VALUES (%s, %s, %s, %s, %s, %s) RETURNING id
+                """,
+                (client_id, receipt_no, verify, round(p.amount_ngn, 2), p.method, p.reference.strip()),
+            ).fetchone()[0]
+            code, expires = issue_login_code(conn, payment_id, client_id, p.valid_days, p.plots_allowed)
+    except psycopg.errors.UniqueViolation:
+        raise HTTPException(status_code=409, detail="That payment reference has already been recorded.")
+    return {"receipt_no": receipt_no, "verify_code": verify, "code": code, "expires_at": expires.isoformat()}
+
+
+@app.get("/api/admin/payments", dependencies=[Depends(require_admin)])
+def list_payments():
+    with psycopg.connect(DB) as conn:
+        rows = conn.execute(
+            """
+            SELECT p.receipt_no, p.verify_code, p.amount_ngn, p.method, p.reference, p.status, p.created_at,
+                   c.name, c.client_type, c.email, c.phone,
+                   lc.expires_at, lc.plots_allowed, lc.plots_used, lc.revoked
+            FROM payments p
+            JOIN clients c ON c.id = p.client_id
+            LEFT JOIN LATERAL (
+                SELECT * FROM login_codes WHERE payment_id = p.id ORDER BY id DESC LIMIT 1
+            ) lc ON TRUE
+            ORDER BY p.id DESC LIMIT 500
+            """
+        ).fetchall()
+    now = datetime.now(timezone.utc)
+    out = []
+    for r in rows:
+        if r[11] is None:
+            state = "none"
+        elif r[14] or r[5] == "void":
+            state = "revoked"
+        elif r[11] < now:
+            state = "expired"
+        else:
+            state = "active"
+        out.append({
+            "receipt_no": r[0], "verify_code": r[1], "amount_ngn": float(r[2]), "method": r[3],
+            "reference": r[4], "status": r[5], "created_at": r[6].isoformat(),
+            "name": r[7], "client_type": r[8], "email": r[9], "phone": r[10],
+            "code_state": state, "expires_at": r[11].isoformat() if r[11] else None,
+            "plots_allowed": r[12], "plots_used": r[13],
+        })
+    return out
+
+
+@app.post("/api/admin/payments/{receipt_no}/void", dependencies=[Depends(require_admin)])
+def void_payment(receipt_no: str):
+    with psycopg.connect(DB) as conn:
+        row = conn.execute("UPDATE payments SET status = 'void' WHERE receipt_no = %s RETURNING id", (receipt_no,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Receipt not found.")
+        conn.execute("UPDATE login_codes SET revoked = TRUE WHERE payment_id = %s", (row[0],))
+        conn.execute(
+            "DELETE FROM client_sessions WHERE code_id IN (SELECT id FROM login_codes WHERE payment_id = %s)",
+            (row[0],),
+        )
+    return {"ok": True}
+
+
+@app.post("/api/admin/payments/{receipt_no}/reissue", dependencies=[Depends(require_admin)])
+def reissue_code(receipt_no: str, body: ReissueIn | None = None):
+    days = body.valid_days if body else 30
+    with psycopg.connect(DB) as conn:
+        pay = conn.execute(
+            "SELECT id, client_id, status FROM payments WHERE receipt_no = %s", (receipt_no,)
+        ).fetchone()
+        if not pay:
+            raise HTTPException(status_code=404, detail="Receipt not found.")
+        if pay[2] != "confirmed":
+            raise HTTPException(status_code=400, detail="This payment is void.")
+        last = conn.execute(
+            "SELECT plots_allowed, plots_used FROM login_codes WHERE payment_id = %s ORDER BY id DESC LIMIT 1",
+            (pay[0],),
+        ).fetchone()
+        conn.execute("UPDATE login_codes SET revoked = TRUE WHERE payment_id = %s", (pay[0],))
+        conn.execute(
+            "DELETE FROM client_sessions WHERE code_id IN (SELECT id FROM login_codes WHERE payment_id = %s)",
+            (pay[0],),
+        )
+        code, expires = issue_login_code(conn, pay[0], pay[1], days, last[0] if last else None, last[1] if last else 0)
+    return {"code": code, "expires_at": expires.isoformat()}
+
+
+# ---------- Receipts: public, but you need the verification code ----------
+@app.get("/api/receipts/{receipt_no}")
+def get_receipt(receipt_no: str, request: Request, v: str = "", x_admin_key: str | None = Header(default=None)):
+    admin = is_admin(x_admin_key)
+    if not admin:
+        check_limit(request)
+    with psycopg.connect(DB) as conn:
+        row = conn.execute(
+            """
+            SELECT p.receipt_no, p.verify_code, p.amount_ngn, p.method, p.reference, p.status, p.created_at,
+                   c.name, c.client_type
+            FROM payments p JOIN clients c ON c.id = p.client_id
+            WHERE p.receipt_no = %s
+            """,
+            (receipt_no.strip().upper(),),
+        ).fetchone()
+    good = bool(row) and (admin or secrets.compare_digest(v.strip().upper().encode(), row[1].encode()))
+    if not good:
+        if not admin:
+            record_fail(request)
+        raise HTTPException(status_code=404, detail="Receipt not found, or the verification code is wrong.")
+    return {
+        "receipt_no": row[0], "verify_code": row[1] if admin else None,
+        "valid": row[5] == "confirmed", "status": row[5],
+        "amount_ngn": float(row[2]), "method": row[3], "reference": row[4],
+        "issued_at": row[6].isoformat(), "name": row[7], "client_type": row[8],
+    }
+
+
+# ---------- Clients: log in with a code ----------
+@app.post("/api/client/login")
+def client_login(body: LoginIn, request: Request):
+    check_limit(request)
+    with psycopg.connect(DB) as conn:
+        row = conn.execute(
+            """
+            SELECT lc.id, lc.expires_at, lc.plots_allowed, lc.plots_used, c.name, c.client_type
+            FROM login_codes lc
+            JOIN clients c ON c.id = lc.client_id
+            JOIN payments p ON p.id = lc.payment_id
+            WHERE lc.code_hash = %s AND NOT lc.revoked AND lc.expires_at > NOW() AND p.status = 'confirmed'
+            """,
+            (code_hash(body.code),),
+        ).fetchone()
+        if not row:
+            record_fail(request)
+            raise HTTPException(status_code=401, detail="That login code is not valid or has expired.")
+        token = secrets.token_urlsafe(32)
+        ends = conn.execute("SELECT LEAST(%s::timestamptz, NOW() + interval '12 hours')", (row[1],)).fetchone()[0]
+        conn.execute(
+            "INSERT INTO client_sessions (token_hash, code_id, expires_at) VALUES (%s, %s, %s)",
+            (sha(token), row[0], ends),
+        )
+        conn.execute("DELETE FROM client_sessions WHERE expires_at < NOW()")
+    return {
+        "token": token, "session_ends": ends.isoformat(), "name": row[4], "client_type": row[5],
+        "plots_allowed": row[2], "plots_used": row[3], "code_expires": row[1].isoformat(),
+    }
+
+
+def require_client(x_client_token: str | None = Header(default=None)):
+    """Used by the Register New Plot page in the next phase."""
+    if not x_client_token:
+        raise HTTPException(status_code=401, detail="Please log in with your login code.")
+    with psycopg.connect(DB) as conn:
+        row = conn.execute(
+            """
+            SELECT lc.id, lc.client_id, lc.plots_allowed, lc.plots_used, c.name, c.client_type, lc.expires_at
+            FROM client_sessions s
+            JOIN login_codes lc ON lc.id = s.code_id
+            JOIN clients c ON c.id = lc.client_id
+            JOIN payments p ON p.id = lc.payment_id
+            WHERE s.token_hash = %s AND s.expires_at > NOW()
+              AND NOT lc.revoked AND lc.expires_at > NOW() AND p.status = 'confirmed'
+            """,
+            (sha(x_client_token),),
+        ).fetchone()
+    if not row:
+        raise HTTPException(status_code=401, detail="Your session has ended. Please log in again.")
+    return {"code_id": row[0], "client_id": row[1], "plots_allowed": row[2], "plots_used": row[3],
+            "name": row[4], "client_type": row[5], "code_expires": row[6].isoformat()}
+
+
+@app.get("/api/client/me")
+def client_me(client=Depends(require_client)):
+    return client
