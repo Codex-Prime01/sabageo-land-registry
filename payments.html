@@ -160,6 +160,22 @@ td small{display:block;color:var(--mute)}
 </div>
 <p class="prov">These prices are provisional. Final amounts will be set after the review committee approves them.</p>
 
+<section class="card hidden" id="payOnline" style="--k:3">
+  <h2>Pay online <span class="b test" id="payMode" style="vertical-align:3px;margin-left:6px">Test mode: no real money</span></h2>
+  <p>Pay with a card, bank transfer or USSD through Paystack. When the payment goes through you come straight back to your SABAGeo receipt, with your login code on it.</p>
+  <p class="msg" id="payBack" role="status"></p>
+  <form id="payForm">
+    <div class="form">
+      <div class="fld"><label for="p_plan">Plan</label><select id="p_plan"><option value="individual">Individual</option><option value="corporate">Corporate real estate retainer</option></select></div>
+      <div class="fld"><label for="p_name">Your name or company name</label><input id="p_name" maxlength="120" required autocomplete="name"></div>
+      <div class="fld"><label for="p_email">Email <small>(Paystack sends your payment receipt here)</small></label><input id="p_email" type="email" maxlength="120" required autocomplete="email"></div>
+      <div class="fld"><label for="p_phone">Phone <small>(optional)</small></label><input id="p_phone" type="tel" maxlength="40" placeholder="0803 123 4567" autocomplete="tel"></div>
+    </div>
+    <p class="msg" id="payMsg"></p>
+    <button class="btnp" id="payBtn" style="margin-top:12px" type="submit">Pay <span id="payAmt"></span> with Paystack</button>
+  </form>
+</section>
+
 <section class="card" style="--k:3">
   <h2>How to get your login code</h2>
   <ol class="steps" style="margin-top:6px">
@@ -328,6 +344,49 @@ td small{display:block;color:var(--mute)}
     }
   });
   start();
+})();
+</script>
+<script>
+/* Pay online with Paystack. Shown only when the server has a Paystack key. */
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const naira = (n) => "₦" + Number(n).toLocaleString("en", { maximumFractionDigits: 0 });
+  let prices = {};
+  const showAmount = () => { $("payAmt").textContent = prices[$("p_plan").value] ? naira(prices[$("p_plan").value]) : ""; };
+  const back = new URLSearchParams(location.search).get("pay");
+  if (back) {
+    $("payBack").textContent = back === "failed"
+      ? "Your payment did not go through, so nothing was charged. You can try again."
+      : "We could not confirm that payment. If money left your account, contact SABAGeo with your Paystack receipt.";
+  }
+  Promise.all([fetch("/api/pay/config").then((r) => r.json()), fetch("/api/prices").then((r) => r.json())])
+    .then(([cfg, pr]) => {
+      if (!cfg.enabled) return;
+      Object.entries(pr.plans).forEach(([k, v]) => (prices[k] = v.amount));
+      $("payMode").style.display = cfg.test_mode ? "" : "none";
+      $("payOnline").classList.remove("hidden");
+      showAmount();
+      if (back) $("payOnline").scrollIntoView({ block: "start" });
+    })
+    .catch(() => {});
+  $("p_plan").addEventListener("change", showAmount);
+  $("payForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("payMsg").textContent = "";
+    $("payBtn").disabled = true;
+    try {
+      const r = await fetch("/api/pay/start", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: $("p_plan").value, name: $("p_name").value.trim(), email: $("p_email").value.trim(), phone: $("p_phone").value.trim() || null }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.authorization_url) throw new Error(typeof d.detail === "string" ? d.detail : "Please check your details and try again.");
+      location.href = d.authorization_url; // Paystack's own secure checkout page
+    } catch (err) {
+      $("payMsg").textContent = err.message;
+      $("payBtn").disabled = false;
+    }
+  });
 })();
 </script>
 </body>

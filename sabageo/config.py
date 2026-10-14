@@ -59,6 +59,21 @@ PLANS = {
 # return links). When empty, the address the request came in on is used.
 PUBLIC_URL = os.getenv("PUBLIC_URL", "").rstrip("/")
 
+# Online payments through Paystack. Use a TEST secret key (sk_test_...): a live key is refused
+# unless PAYSTACK_LIVE=1 is also set, so real money can never be taken by accident.
+PAYSTACK_API = "https://api.paystack.co"
+
+
+def paystack_key():
+    """The Paystack secret key if online payment may run, else None. Read each time (tests change it)."""
+    key = os.getenv("PAYSTACK_SECRET_KEY", "").strip()
+    if key.startswith("sk_test_"):
+        return key
+    if key.startswith("sk_live_") and os.getenv("PAYSTACK_LIVE") == "1":
+        return key
+    return None
+
+
 # Polygon Amoy test network
 RPC = os.getenv("POLYGON_RPC", "https://polygon-amoy.drpc.org")
 CHAIN_ID = 80002

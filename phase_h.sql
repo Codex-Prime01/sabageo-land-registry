@@ -24,6 +24,22 @@ CREATE TABLE IF NOT EXISTS chain_titles (
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Online payments (Paystack). One row per attempt, written BEFORE the customer is sent to
+-- Paystack, so the amount we expect never comes from the browser.
+CREATE TABLE IF NOT EXISTS pay_intents (
+  reference   TEXT PRIMARY KEY,
+  plan        TEXT NOT NULL CHECK (plan IN ('individual', 'corporate')),
+  name        TEXT NOT NULL,
+  email       TEXT NOT NULL,
+  phone       TEXT,
+  amount_kobo BIGINT NOT NULL CHECK (amount_kobo > 0),
+  status      TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'failed')),
+  receipt_no  TEXT,
+  code_shown  BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  paid_at     TIMESTAMPTZ
+);
+
 -- Minna datum, UTM zone 33N (Biu, Maiduguri). PostGIS has Minna 31N and 32N but not 33N,
 -- so it is added here with the standard Nigeria shift to WGS84 (Clarke 1880, -92 -93 122).
 -- Wrapped so a database that does not allow it simply skips it (the choice then stays off).
