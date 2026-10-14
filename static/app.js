@@ -58,6 +58,7 @@ const MENU = [
   ["Registry", [["Registered plots", "/registry"], ["Register New Plot", "/register-plot"], ["Parcel report", "/report"], ["Verify a title", "/verify"]]],
   ["Payments", [["Token payment", "/payments"], ["Payment receipt", "/receipt"]]],
   ["About", [["About us", "/about"], ["How it works", "/how-it-works"], ["Architecture", "/architecture"]]],
+  ["Admin", [["Dashboard", "/admin"]]],
 ];
 
 /* ---------- State ---------- */

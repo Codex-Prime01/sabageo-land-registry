@@ -28,6 +28,10 @@
         ["Architecture", "/architecture"],
       ],
     },
+    {
+      group: "Admin",
+      links: [["Dashboard", "/admin"]],
+    },
   ];
 
   // /receipt/SABA-RCPT-... still counts as the Receipt page

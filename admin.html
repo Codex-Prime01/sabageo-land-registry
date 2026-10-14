@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin dashboard | SABAGeo Land Registry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1628">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='8,12 34,7 37,32 11,37' fill='%23D9A441' fill-opacity='.4' stroke='%230A1628' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark"}catch(e){}</script>
+<style>
+:root{--bg:#0a1628;--text:#f4f6fa;--mute:#9fb0c8;--line:rgba(255,255,255,.12);--card:rgba(255,255,255,.05);--brass:#d9a441;--clear:#2bff88;--flag:#ff2d4d;--ease:cubic-bezier(.22,.8,.2,1)}
+[data-theme=light]{--bg:#f1f4f9;--text:#0a1628;--mute:#52627a;--line:rgba(10,22,40,.14);--card:rgba(10,22,40,.04);--clear:#0b8f4a;--flag:#d0112b}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.top{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:var(--bg);background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:"Fraunces",Georgia,serif;font-size:19px;font-weight:700}
+nav{margin-left:auto;display:flex;gap:4px;overflow-x:auto}
+nav a{padding:9px 12px;border-radius:10px;color:var(--mute);text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap}
+.map-btn{flex:none;padding:9px 14px;border-radius:999px;background:var(--brass);color:#1a1204;text-decoration:none;font-size:14px;font-weight:600}
+main{max-width:1120px;margin:0 auto;padding:40px 20px 72px}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+h1{margin:0;font-family:"Fraunces",Georgia,serif;font-size:clamp(26px,5vw,40px);line-height:1.12}
+.lead{margin:12px 0 0;font-size:16px;color:var(--mute)}
+.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .6s var(--ease) backwards;animation-delay:calc(var(--k,0)*60ms)}
+.card h2{margin:0 0 6px;font-family:"Fraunces",Georgia,serif;font-size:20px}
+.card p{margin:6px 0 0;color:var(--mute)}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:22px}
+.tile{padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:var(--card);animation:rise .6s var(--ease) backwards;animation-delay:calc(var(--k,0)*50ms)}
+.tile b{display:block;font-family:"Fraunces",Georgia,serif;font-size:28px;line-height:1.15}
+.tile small{color:var(--mute);font-size:13px}
+.tile.good b{color:var(--clear)}.tile.bad b{color:var(--flag)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.two .card{margin-top:16px}
+.tbl{margin-top:12px;overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);color:var(--mute);white-space:nowrap}
+th{color:var(--text);font-weight:600;background:var(--card)}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+td b{color:var(--text);font-weight:600}
+.mono{font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+.bars{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:16px;padding-bottom:22px;position:relative}
+.bar{flex:1;position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.bar i{display:block;border-radius:5px 5px 0 0;background:var(--brass);min-height:2px}
+.bar i.r{background:var(--flag);border-radius:0}
+.bar span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10.5px;color:var(--mute)}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--mute);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.form{display:flex;gap:10px;margin-top:16px;max-width:520px}
+.form input{flex:1;min-width:0;height:48px;padding:0 14px;font:inherit;font-size:16px;color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px}
+.form input:focus{outline:none;border-color:var(--brass)}
+.btn{height:48px;padding:0 20px;border:0;border-radius:12px;background:var(--brass);color:#1a1204;font:inherit;font-weight:600;cursor:pointer}
+.act{padding:9px 14px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--text);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:none}
+.act:hover{border-color:var(--brass)}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.msg{margin-top:12px;color:var(--flag)}
+.ok-t{color:var(--clear)}.no-t{color:var(--flag)}
+.empty{padding:18px;color:var(--mute);text-align:center}
+.hidden{display:none!important}
+footer{max-width:1120px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-inset-bottom));color:var(--mute);font-size:13px}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+@media (max-width:560px){.brand span{display:none}main{padding-top:28px}.card{padding:18px}.tile b{font-size:24px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}}
+</style>
+<link rel="stylesheet" href="/static/site.css" />
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/" aria-label="Back to the map">
+    <svg width="30" height="30" viewBox="0 0 44 44" aria-hidden="true"><polygon points="8,12 34,7 37,32 11,37" fill="rgba(217,164,65,.18)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8" cy="12" r="3.6" fill="#D9A441"/><circle cx="34" cy="7" r="3.6" fill="#D9A441"/><circle cx="37" cy="32" r="3.6" fill="#D9A441"/><circle cx="11" cy="37" r="3.6" fill="#D9A441"/></svg>
+    <span>SABAGeo</span>
+  </a>
+  <nav aria-label="Pages"><a href="/registry">Registry</a><a href="/admin" class="on" aria-current="page">Dashboard</a></nav>
+  <a class="map-btn" href="/">Open map</a>
+</header>
+<script src="/static/site.js"></script>
+<main>
+  <div class="head">
+    <div><p class="eyebrow">Admin dashboard</p><h1>Who registered what, and how the system is doing.</h1></div>
+    <div class="acts hidden" id="acts"><button class="act" id="refresh">Refresh</button><button class="act" id="lock">Lock</button></div>
+  </div>
+
+  <section class="card" id="unlock">
+    <h2>Unlock the dashboard</h2>
+    <p>This page shows client phone numbers and emails. Enter the admin key. It stays in this browser tab only.</p>
+    <form class="form" id="f"><input id="k" type="password" autocomplete="off" placeholder="Admin key" aria-label="Admin key" required><button class="btn">Unlock</button></form>
+    <p class="msg" id="msg"></p>
+  </section>
+
+  <div id="dash"></div>
+</main>
+<footer>SABAGeo Land Registry. Admin view: keep client details private.</footer>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const naira = (n) => "₦" + Number(n || 0).toLocaleString("en", { maximumFractionDigits: 0 });
+  const num = (n) => Number(n || 0).toLocaleString("en");
+  const date = (s) => s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
+  let last = null;
+
+  const key = () => { try { return sessionStorage.getItem("adminKey") || ""; } catch (e) { return ""; } };
+  const setKey = (k) => { try { k ? sessionStorage.setItem("adminKey", k) : sessionStorage.removeItem("adminKey"); } catch (e) {} };
+
+  async function load() {
+    $("msg").textContent = "";
+    let r;
+    try {
+      r = await fetch("/api/admin/overview", { headers: { "X-Admin-Key": key() } });
+    } catch (e) {
+      $("msg").textContent = "Could not reach the server.";
+      return;
+    }
+    if (r.status === 401) {
+      setKey("");
+      $("unlock").classList.remove("hidden");
+      $("acts").classList.add("hidden");
+      $("dash").innerHTML = "";
+      $("msg").textContent = key() ? "" : "That admin key is not right.";
+      return;
+    }
+    if (!r.ok) { $("msg").textContent = "The server had a problem (" + r.status + ")."; return; }
+    last = await r.json();
+    $("unlock").classList.add("hidden");
+    $("acts").classList.remove("hidden");
+    render(last);
+  }
+
+  function tile(value, label, cls, k) {
+    return '<div class="tile ' + (cls || "") + '" style="--k:' + k + '"><b>' + value + "</b><small>" + label + "</small></div>";
+  }
+
+  function render(d) {
+    const regs = d.regions;
+    const total = (f) => regs.reduce((s, r) => s + r[f], 0);
+    const c = d.checks;
+    const tiles = [
+      tile(num(total("synthetic") + total("field") + total("client")), "Registered plots", "", 1),
+      tile(num(total("client")), "Client plots", "", 2),
+      tile(naira(d.payments.total_ngn), "Received (confirmed)", "", 3),
+      tile(naira(d.payments.last_30_days_ngn), "Last 30 days", "", 4),
+      tile(num(d.codes.active), "Login codes active", "", 5),
+      c ? tile(num(c.total), "Overlap checks run", "", 6) : "",
+      c ? tile(num(c.red_flags), "Overlaps caught", c.red_flags ? "bad" : "", 7) : "",
+      tile(d.ledger.valid ? "Intact" : "Broken", "Ledger, " + num(d.ledger.records) + " records", d.ledger.valid ? "good" : "bad", 8),
+    ].join("");
+
+    const regionRows = regs.filter((r) => r.synthetic + r.field + r.client + r.reserved > 0).map((r) =>
+      "<tr><td><b>" + esc(r.name) + '</b></td><td class="n">' + r.synthetic + '</td><td class="n">' + r.field + '</td><td class="n">' + r.client +
+      '</td><td class="n">' + r.reserved + '</td><td class="n">' + num(Math.round(r.area_m2)) + "</td></tr>").join("");
+
+    const cp = d.client_plots;
+    const clientRows = cp.length ? cp.map((p) =>
+      '<tr><td><a class="mono" href="/report/' + encodeURIComponent(p.title_code) + '">' + esc(p.title_code) + "</a></td><td>" + esc(p.region) +
+      "</td><td><b>" + esc(p.owner_name) + "</b><br>" + esc(p.owner_type) + "</td><td>" + esc(p.owner_phone) + "<br>" + esc(p.owner_email) +
+      "</td><td>" + esc(p.paid_by) + '</td><td class="n">' + (p.area_m2 != null ? num(p.area_m2) : "") + '</td><td class="n">' + p.photos +
+      "</td><td>" + date(p.registered_at) + "</td></tr>").join("")
+      : '<tr><td colspan="8" class="empty">No client has registered a plot yet.</td></tr>';
+
+    let chart = "<p>Run phase_h.sql on this database to start counting checks.</p>";
+    if (c) {
+      const max = Math.max(1, ...c.by_day.map((x) => x.checks));
+      chart = '<div class="bars">' + c.by_day.map((x) => {
+        const clear = x.checks - x.red_flags;
+        return '<div class="bar" title="' + x.day + ": " + x.checks + " checks, " + x.red_flags + ' red flags"><i class="r" style="height:' + (100 * x.red_flags / max) + '%"></i><i style="height:' + (100 * clear / max) + '%"></i><span>' + x.day.slice(8) + "</span></div>";
+      }).join("") + '</div><div class="legend"><span><i style="background:var(--brass)"></i>Clear</span><span><i style="background:var(--flag)"></i>Red flag</span></div>' +
+        "<p>" + num(c.last_30_days) + " checks in the last 30 days, " + num(c.red_flags_30_days) + " red flags. " + num(c.overlap_m2_caught) + " m² of overlap caught in total.</p>";
+    }
+
+    const p = d.payments;
+    const methods = p.by_method.map((m) => esc(m.method) + ": " + m.count).join(", ") || "none yet";
+    const a = d.last_anchor;
+    const anchor = a
+      ? '<a href="' + esc(a.url) + '" target="_blank" rel="noopener">Ledger record ' + a.ledger_id + "</a> on " + date(a.anchored_at) + (a.covers_latest ? ' <span class="ok-t">(up to date)</span>' : ' <span class="no-t">(newer records not anchored yet)</span>')
+      : "Never anchored.";
+
+    $("dash").innerHTML =
+      '<div class="tiles">' + tiles + "</div>" +
+      '<section class="card" style="--k:2"><div class="head"><div><h2>Client plots</h2><p>Plots registered by paying clients, with the owner\'s contact details. Keep these private.</p></div>' +
+      '<button class="act" id="csv"' + (cp.length ? "" : " disabled") + '>Download CSV</button></div>' +
+      '<div class="tbl"><table><tr><th>Title code</th><th>Region</th><th>Owner</th><th>Contact</th><th>Paid by</th><th class="n">Area m²</th><th class="n">Photos</th><th>Registered</th></tr>' + clientRows + "</table></div></section>" +
+      '<div class="two"><section class="card" style="--k:3"><h2>Overlap checks, last 14 days</h2>' + chart + "</section>" +
+      '<section class="card" style="--k:4"><h2>Payments and codes</h2>' +
+      "<p><b>" + num(p.confirmed) + "</b> confirmed payments (" + num(p.individual) + " individual, " + num(p.corporate) + " corporate), " + num(p.void) + " void.</p>" +
+      "<p>By method: " + methods + ".</p>" +
+      "<p>Login codes: <b>" + num(d.codes.active) + "</b> active, " + num(d.codes.used_up) + " used up, " + num(d.codes.expired) + " expired, " + num(d.codes.revoked) + " revoked.</p>" +
+      '<p>Prices (provisional): individual ' + naira(d.provisional_prices.individual) + ", corporate " + naira(d.provisional_prices.corporate) + '. <a href="/payments">Record a payment</a></p></section></div>' +
+      '<div class="two"><section class="card" style="--k:5"><h2>Plots per city</h2><div class="tbl"><table><tr><th>Region</th><th class="n">Synthetic</th><th class="n">Field</th><th class="n">Client</th><th class="n">Reserved</th><th class="n">Area m²</th></tr>' + regionRows + "</table></div></section>" +
+      '<section class="card" style="--k:6"><h2>Ledger and blockchain</h2>' +
+      "<p>Ledger: " + (d.ledger.valid ? '<span class="ok-t">intact</span>' : '<span class="no-t">broken at record ' + esc(d.ledger.broken_at) + ": " + esc(d.ledger.reason) + "</span>") + ", " + num(d.ledger.records) + " records" + (d.ledger.removed ? ", " + num(d.ledger.removed) + " removals" : "") + ".</p>" +
+      "<p>Last anchor: " + anchor + "</p>" +
+      "<p>Titles on the smart contract: " + (d.onchain_titles == null ? "not set up" : num(d.onchain_titles)) + ".</p>" +
+      '<p><a href="/ledger/verify" target="_blank" rel="noopener">Raw ledger check</a></p></section></div>';
+
+    const btn = $("csv");
+    if (btn) btn.onclick = () => downloadCsv(cp);
+  }
+
+  // CSV: cells starting with = + - @ are prefixed with ' so spreadsheets never run them as formulas
+  function cell(v) {
+    let s = String(v == null ? "" : v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  function downloadCsv(rows) {
+    const cols = ["title_code", "region", "owner_type", "owner_name", "owner_phone", "owner_email", "paid_by", "area_m2", "photos", "registered_at"];
+    const text = [cols.join(",")].concat(rows.map((r) => cols.map((c) => cell(r[c])).join(","))).join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿" + text], { type: "text/csv;charset=utf-8" }));
+    a.download = "sabageo-client-plots-" + new Date().toISOString().slice(0, 10) + ".csv";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  $("f").onsubmit = (e) => { e.preventDefault(); setKey($("k").value.trim()); $("k").value = ""; load(); };
+  $("refresh").onclick = load;
+  $("lock").onclick = () => { setKey(""); location.reload(); };
+  if (key()) load();
+})();
+</script>
+</body>
+</html>

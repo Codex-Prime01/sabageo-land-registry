@@ -1,6 +1,8 @@
 """Map data, the overlap check, registering plots and beacon photos."""
 import json
+import logging
 
+import psycopg
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import Response
 
@@ -13,6 +15,7 @@ from sabageo.photos import read_upload, save_photo
 from sabageo.security import require_admin
 
 router = APIRouter()
+log = logging.getLogger("sabageo")
 
 
 # ---------- Map data ----------
@@ -198,11 +201,25 @@ def plot_report(title_code: str):
 
 
 # ---------- Check and register ----------
+def log_check(conn, region, hits):
+    """Count the check for the admin dashboard. Never blocks the check itself."""
+    try:
+        with conn.transaction():  # a savepoint: a problem here cannot undo anything else
+            conn.execute(
+                "INSERT INTO check_log (region_code, status, overlap_count, overlap_m2) VALUES (%s, %s, %s, %s)",
+                (region[:10], "RED FLAG" if hits else "0 OVERLAP", len(hits),
+                 round(sum(h["overlap_m2"] for h in hits), 2)),
+            )
+    except psycopg.errors.UndefinedTable:
+        log.warning("check_log table is missing: run phase_h.sql to turn on check counting")
+
+
 @router.post("/check")
 def check_overlap(plot: NewPlot):
     with connect() as conn:
         info = prepare(conn, plot)
         hits = find_overlaps(conn, info["wkt"], info["utm"])
+        log_check(conn, plot.region, hits)
     base = {"shape": info["shape"], "area_m2": round(info["area"], 2)}
     if hits:
         return {
