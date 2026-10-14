@@ -410,3 +410,23 @@ body.sx-lock {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ---------- printing (parcel report, receipt): plain paper, no menus ---------- */
+@media print {
+  body {
+    background-image: none;
+  }
+  .sx-menu,
+  .sx-scrim,
+  .sx-drawer,
+  .sx-foot,
+  .top::after {
+    display: none !important;
+  }
+  .card,
+  .steps li,
+  .note,
+  .tbl {
+    box-shadow: none;
+  }
+}

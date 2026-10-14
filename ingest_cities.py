@@ -1,18 +1,24 @@
 """
-Loads the localized city dataset into the database as SYNTHETIC plots.
+Loads the localized city dataset into the database as SYNTHETIC plots (55 plots: 11 cities x 5).
 
-The dataset gives ONE point per plot, so it holds no real shape or size.
-The shapes below are stand-ins until real surveyed corners exist:
+The dataset gives ONE point per plot. Each point stands for a whole plot, so the
+plot shape is built around it using the standard Borno layout plot the senior gave:
+18 m frontage x 30 m depth (about 60 ft x 100 ft), so every plot is 540 m2.
 
-  DISJOINT_NODE      each plot is its own rectangle, centred on its dataset point.
-  ADJOINING_CLUSTER  the five plots are built as one row that really touches along
-                     shared boundaries, starting at the Plot 1 point. (The dataset
-                     points are about 300 m apart, so they cannot be touching
+  DISJOINT_NODE      (Lagos, Abuja, Kano, Gombe, Maiduguri, Biu)
+                     each plot is its own 18 x 30 m rectangle, centred on its dataset point.
+  ADJOINING_CLUSTER  (Ibadan, Port Harcourt, Benin City, Owerri, Ilorin)
+                     the five plots are built as one row of 18 x 30 m plots that really
+                     touch along shared boundaries. Plot 1 is centred on its dataset point.
+                     (The dataset points are about 300 m apart, so they cannot be touching
                      plots, which is why the row is anchored at Plot 1.)
 
-Sizes are in metres. Change them below if your senior wants other sizes.
+The 18 m side runs east-west and the 30 m side runs north-south. Real orientation comes
+with real surveyed corners.
+
 Safe to run twice: plots that are already loaded are skipped.
 Run it with:  python ingest_cities.py
+To replace old data first, use:  python reset_dataset.py
 """
 import psycopg
 
@@ -21,9 +27,11 @@ import main  # reuses the database settings and the ledger code
 DISJOINT = "DISJOINT_NODE"
 ADJOINING = "ADJOINING_CLUSTER"
 
-DISJOINT_SIZES = [(18, 28), (20, 30), (24, 32), (15, 30), (22, 26)]  # (east-west, north-south)
-ADJOINING_WIDTHS = [15, 18, 15, 20, 15]  # east-west width of each plot in the row
-ADJOINING_DEPTH = 30  # north-south depth of every plot in the row
+FRONTAGE = 18  # metres, east-west (the senior's standard plot: 18 m x 30 m)
+DEPTH = 30     # metres, north-south
+DISJOINT_SIZES = [(FRONTAGE, DEPTH)] * 5        # (east-west, north-south) for plots 1 to 5
+ADJOINING_WIDTHS = [FRONTAGE] * 5               # east-west width of each plot in the row
+ADJOINING_DEPTH = DEPTH                         # north-south depth of every plot in the row
 
 # (region code, cluster type, five (latitude, longitude) points exactly as in the dataset tables)
 DATASET = [
@@ -79,37 +87,41 @@ def shapes(conn, kind, points):
     return out, utm
 
 
-def run():
+def run(conn=None):
+    """Load the dataset. Pass an open connection to run it inside someone else's transaction."""
+    if conn is None:
+        with psycopg.connect(main.DB) as own:
+            return run(own)
     added = skipped = 0
-    with psycopg.connect(main.DB) as conn:
-        conn.execute("LOCK TABLE plots IN SHARE ROW EXCLUSIVE MODE")
-        for region, kind, points in DATASET:
-            wkts, utm = shapes(conn, kind, points)
-            for i, ((lat, lon), wkt) in enumerate(zip(points, wkts), start=1):
-                label = f"Plot {i}"
-                if conn.execute(
-                    "SELECT 1 FROM plots WHERE region_code = %s AND label = %s", (region, label)
-                ).fetchone():
-                    skipped += 1
-                    continue
-                if main.find_overlaps(conn, wkt, utm):
-                    print("Skipped (would overlap an existing plot):", region, label)
-                    skipped += 1
-                    continue
-                code, area, saved_wkt = conn.execute(
-                    """
-                    INSERT INTO plots (title_code, region_code, source, status, label,
-                                       cluster_type, ref_lat, ref_lon, geom, area_m2)
-                    VALUES (%s, %s, 'synthetic', 'registered', %s, %s, %s, %s,
-                            ST_GeomFromText(%s, 4326), ST_Area(ST_GeomFromText(%s, 4326)::geography))
-                    RETURNING title_code, area_m2, ST_AsText(geom)
-                    """,
-                    (main.next_code(conn, region, "SYN"), region, label, kind, lat, lon, wkt, wkt),
-                ).fetchone()
-                main.add_ledger_record(conn, code, saved_wkt, area)
-                print(f"Added {code}  {kind}  {area:.0f} m2")
-                added += 1
+    conn.execute("LOCK TABLE plots IN SHARE ROW EXCLUSIVE MODE")
+    for region, kind, points in DATASET:
+        wkts, utm = shapes(conn, kind, points)
+        for i, ((lat, lon), wkt) in enumerate(zip(points, wkts), start=1):
+            label = f"Plot {i}"
+            if conn.execute(
+                "SELECT 1 FROM plots WHERE region_code = %s AND label = %s", (region, label)
+            ).fetchone():
+                skipped += 1
+                continue
+            if main.find_overlaps(conn, wkt, utm):
+                print("Skipped (would overlap an existing plot):", region, label)
+                skipped += 1
+                continue
+            code, area, saved_wkt = conn.execute(
+                """
+                INSERT INTO plots (title_code, region_code, source, status, label,
+                                   cluster_type, ref_lat, ref_lon, geom, area_m2)
+                VALUES (%s, %s, 'synthetic', 'registered', %s, %s, %s, %s,
+                        ST_GeomFromText(%s, 4326), ST_Area(ST_GeomFromText(%s, 4326)::geography))
+                RETURNING title_code, area_m2, ST_AsText(geom)
+                """,
+                (main.next_code(conn, region, "SYN"), region, label, kind, lat, lon, wkt, wkt),
+            ).fetchone()
+            main.add_ledger_record(conn, code, saved_wkt, area)
+            print(f"Added {code}  {kind}  {area:.0f} m2")
+            added += 1
     print(f"Done. {added} added, {skipped} skipped.")
+    return added, skipped
 
 
 if __name__ == "__main__":

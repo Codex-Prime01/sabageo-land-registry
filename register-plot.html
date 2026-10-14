@@ -1,1273 +1,380 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Register New Plot | SABAGeo Land Registry</title>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
-    <meta name="theme-color" content="#0A1628" />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='8,12 34,7 37,32 11,37' fill='%23D9A441' fill-opacity='.4' stroke='%230A1628' stroke-width='3'/%3E%3C/svg%3E"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <script>
-      try {
-        document.documentElement.dataset.theme =
-          localStorage.getItem("theme") || "dark";
-      } catch (e) {}
-    </script>
-    <style>
-      :root {
-        --bg: #0a1628;
-        --text: #f4f6fa;
-        --mute: #9fb0c8;
-        --line: rgba(255, 255, 255, 0.12);
-        --card: rgba(255, 255, 255, 0.05);
-        --brass: #d9a441;
-        --clear: #2bff88;
-        --flag: #ff2d4d;
-        --ease: cubic-bezier(0.22, 0.8, 0.2, 1);
-      }
-      [data-theme="light"] {
-        --bg: #f1f4f9;
-        --text: #0a1628;
-        --mute: #52627a;
-        --line: rgba(10, 22, 40, 0.14);
-        --card: rgba(10, 22, 40, 0.04);
-      }
-      * {
-        box-sizing: border-box;
-      }
-      html {
-        scroll-behavior: smooth;
-      }
-      body {
-        margin: 0;
-        font-family:
-          "Public Sans",
-          system-ui,
-          -apple-system,
-          "Segoe UI",
-          sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        line-height: 1.65;
-        -webkit-font-smoothing: antialiased;
-      }
-      a {
-        color: inherit;
-      }
-      .top {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 16px;
-        padding-top: max(12px, env(safe-area-inset-top));
-        background: var(--bg);
-        background: color-mix(in srgb, var(--bg) 84%, transparent);
-        -webkit-backdrop-filter: blur(14px);
-        backdrop-filter: blur(14px);
-        border-bottom: 1px solid var(--line);
-      }
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-        font-family: "Fraunces", Georgia, serif;
-        font-size: 19px;
-        font-weight: 700;
-      }
-      nav {
-        margin-left: auto;
-        display: flex;
-        gap: 4px;
-        overflow-x: auto;
-      }
-      nav a {
-        padding: 9px 12px;
-        border-radius: 10px;
-        color: var(--mute);
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
-        white-space: nowrap;
-        transition:
-          background 0.3s,
-          color 0.3s;
-      }
-      nav a:hover {
-        color: var(--text);
-      }
-      nav a.on {
-        color: var(--text);
-        background: var(--card);
-      }
-      .map-btn {
-        flex: none;
-        padding: 9px 14px;
-        border-radius: 999px;
-        background: var(--brass);
-        color: #1a1204;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
-        transition:
-          transform 0.3s var(--ease),
-          box-shadow 0.3s;
-      }
-      .map-btn:hover {
-        box-shadow: 0 8px 22px -8px rgba(217, 164, 65, 0.8);
-      }
-      .map-btn:active {
-        transform: scale(0.96);
-      }
-      main {
-        max-width: 760px;
-        margin: 0 auto;
-        padding: 44px 20px 72px;
-      }
-      .eyebrow {
-        margin: 0 0 10px;
-        font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: var(--brass);
-      }
-      h1 {
-        margin: 0;
-        font-family: "Fraunces", Georgia, serif;
-        font-size: clamp(28px, 6vw, 44px);
-        line-height: 1.12;
-        letter-spacing: -0.015em;
-      }
-      .lead {
-        margin: 16px 0 0;
-        font-size: 17px;
-        color: var(--mute);
-      }
-      .card {
-        margin-top: 16px;
-        padding: 22px;
-        border: 1px solid var(--line);
-        border-radius: 18px;
-        background: var(--card);
-        animation: rise 0.7s var(--ease) backwards;
-        animation-delay: calc(var(--k, 0) * 80ms);
-      }
-      .card h2 {
-        margin: 0 0 8px;
-        font-family: "Fraunces", Georgia, serif;
-        font-size: 21px;
-      }
-      .card p {
-        margin: 8px 0 0;
-        color: var(--mute);
-      }
-      .card ul {
-        margin: 10px 0 0;
-        padding-left: 20px;
-        color: var(--mute);
-      }
-      .card li {
-        margin: 4px 0;
-      }
-      .card b {
-        color: var(--text);
-      }
-      .steps {
-        list-style: none;
-        counter-reset: s;
-        margin: 20px 0 0;
-        padding: 0;
-      }
-      .steps li {
-        counter-increment: s;
-        position: relative;
-        margin-top: 14px;
-        padding: 20px 20px 20px 70px;
-        border: 1px solid var(--line);
-        border-radius: 18px;
-        background: var(--card);
-        animation: rise 0.7s var(--ease) backwards;
-        animation-delay: calc(var(--k, 0) * 80ms);
-      }
-      .steps li::before {
-        content: counter(s);
-        position: absolute;
-        left: 20px;
-        top: 20px;
-        width: 34px;
-        height: 34px;
-        display: grid;
-        place-items: center;
-        border-radius: 50%;
-        background: var(--brass);
-        color: #1a1204;
-        font-weight: 700;
-      }
-      .steps h2 {
-        margin: 0;
-        font-family: "Fraunces", Georgia, serif;
-        font-size: 19px;
-      }
-      .steps p {
-        margin: 6px 0 0;
-        color: var(--mute);
-      }
-      .dot {
-        display: inline-block;
-        width: 11px;
-        height: 11px;
-        border-radius: 50%;
-        margin-right: 8px;
-        vertical-align: -1px;
-      }
-      .note {
-        margin-top: 16px;
-        padding: 16px 18px;
-        border-left: 3px solid var(--brass);
-        border-radius: 0 12px 12px 0;
-        background: var(--card);
-        color: var(--mute);
-        font-size: 15px;
-      }
-      .cta {
-        display: inline-block;
-        margin-top: 26px;
-        padding: 14px 22px;
-        border-radius: 14px;
-        background: var(--text);
-        color: var(--bg);
-        font-weight: 600;
-        text-decoration: none;
-        transition:
-          transform 0.3s var(--ease),
-          box-shadow 0.3s;
-      }
-      .cta:hover {
-        box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.6);
-      }
-      .cta:active {
-        transform: scale(0.97);
-      }
-      footer {
-        max-width: 760px;
-        margin: 0 auto;
-        padding: 0 20px calc(40px + env(safe-area-inset-bottom));
-        color: var(--mute);
-        font-size: 13px;
-      }
+<head>
+<meta charset="utf-8">
+<title>Register New Plot | SABAGeo Land Registry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1628">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='8,12 34,7 37,32 11,37' fill='%23D9A441' fill-opacity='.4' stroke='%230A1628' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark"}catch(e){}</script>
+<style>
+:root{--bg:#0a1628;--text:#f4f6fa;--mute:#9fb0c8;--line:rgba(255,255,255,.12);--card:rgba(255,255,255,.05);--brass:#d9a441;--clear:#2bff88;--flag:#ff2d4d;--ease:cubic-bezier(.22,.8,.2,1)}
+[data-theme=light]{--bg:#f1f4f9;--text:#0a1628;--mute:#52627a;--line:rgba(10,22,40,.14);--card:rgba(10,22,40,.04)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.top{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:var(--bg);background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:"Fraunces",Georgia,serif;font-size:19px;font-weight:700}
+nav{margin-left:auto;display:flex;gap:4px;overflow-x:auto}
+nav a{padding:9px 12px;border-radius:10px;color:var(--mute);text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap;transition:background .3s,color .3s}
+nav a:hover{color:var(--text)}
+nav a.on{color:var(--text);background:var(--card)}
+.map-btn{flex:none;padding:9px 14px;border-radius:999px;background:var(--brass);color:#1a1204;text-decoration:none;font-size:14px;font-weight:600;transition:transform .3s var(--ease),box-shadow .3s}
+.map-btn:hover{box-shadow:0 8px 22px -8px rgba(217,164,65,.8)}
+.map-btn:active{transform:scale(.96)}
+main{max-width:760px;margin:0 auto;padding:44px 20px 72px}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+h1{margin:0;font-family:"Fraunces",Georgia,serif;font-size:clamp(28px,6vw,44px);line-height:1.12;letter-spacing:-.015em}
+.lead{margin:16px 0 0;font-size:17px;color:var(--mute)}
+.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .7s var(--ease) backwards;animation-delay:calc(var(--k,0)*80ms)}
+.card h2{margin:0 0 8px;font-family:"Fraunces",Georgia,serif;font-size:21px}
+.card p{margin:8px 0 0;color:var(--mute)}
+.card ul{margin:10px 0 0;padding-left:20px;color:var(--mute)}
+.card li{margin:4px 0}
+.card b{color:var(--text)}
+.steps{list-style:none;counter-reset:s;margin:20px 0 0;padding:0}
+.steps li{counter-increment:s;position:relative;margin-top:14px;padding:20px 20px 20px 70px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .7s var(--ease) backwards;animation-delay:calc(var(--k,0)*80ms)}
+.steps li::before{content:counter(s);position:absolute;left:20px;top:20px;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:var(--brass);color:#1a1204;font-weight:700}
+.steps h2{margin:0;font-family:"Fraunces",Georgia,serif;font-size:19px}
+.steps p{margin:6px 0 0;color:var(--mute)}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:8px;vertical-align:-1px}
+.note{margin-top:16px;padding:16px 18px;border-left:3px solid var(--brass);border-radius:0 12px 12px 0;background:var(--card);color:var(--mute);font-size:15px}
+.cta{display:inline-block;margin-top:26px;padding:14px 22px;border-radius:14px;background:var(--text);color:var(--bg);font-weight:600;text-decoration:none;transition:transform .3s var(--ease),box-shadow .3s}
+.cta:hover{box-shadow:0 12px 28px -12px rgba(0,0,0,.6)}
+.cta:active{transform:scale(.97)}
+footer{max-width:760px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-inset-bottom));color:var(--mute);font-size:13px}
 
-      .layer {
-        margin-top: 14px;
-        padding: 18px;
-        border: 1px solid var(--line);
-        border-radius: 18px;
-        background: var(--card);
-      }
-      .card .layer {
-        background: transparent;
-      }
-      .layer h3 {
-        margin: 0 0 10px;
-        font-family: "Fraunces", Georgia, serif;
-        font-size: 17px;
-      }
-      .item {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 12px;
-        margin-top: 8px;
-        padding: 10px 12px;
-        border-radius: 12px;
-        background: rgba(0, 0, 0, 0.18);
-        font-size: 14.5px;
-        color: var(--mute);
-      }
-      [data-theme="light"] .item {
-        background: rgba(10, 22, 40, 0.05);
-      }
-      .item span:first-child {
-        flex: 1;
-      }
-      .b {
-        flex: none;
-        display: inline-block;
-        padding: 2px 10px;
-        border-radius: 999px;
-        font-size: 11.5px;
-        font-weight: 600;
-        white-space: nowrap;
-      }
-      .b.built {
-        background: rgba(43, 255, 136, 0.15);
-        color: #2bff88;
-      }
-      .b.test {
-        background: rgba(217, 164, 65, 0.2);
-        color: #d9a441;
-      }
-      .b.plan {
-        background: rgba(159, 176, 200, 0.18);
-        color: var(--mute);
-      }
-      [data-theme="light"] .b.built {
-        background: rgba(11, 143, 74, 0.12);
-        color: #0b8f4a;
-      }
-      [data-theme="light"] .b.test {
-        color: #9a6b10;
-      }
-      .down {
-        display: grid;
-        place-items: center;
-        height: 34px;
-        color: var(--brass);
-      }
-      .two-col {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-      .two-col .layer {
-        margin-top: 0;
-      }
-      .verify {
-        display: block;
-        margin: 12px auto 0;
-        width: max-content;
-        padding: 10px 24px;
-        border: 1.5px solid var(--brass);
-        border-radius: 999px;
-        color: var(--brass);
-        font-weight: 600;
-        letter-spacing: 0.08em;
-      }
-      .tbl {
-        margin-top: 12px;
-        overflow-x: auto;
-        border: 1px solid var(--line);
-        border-radius: 14px;
-      }
-      table {
-        width: 100%;
-        min-width: 560px;
-        border-collapse: collapse;
-        font-size: 14px;
-      }
-      th,
-      td {
-        padding: 12px 14px;
-        text-align: left;
-        vertical-align: top;
-        border-bottom: 1px solid var(--line);
-        color: var(--mute);
-      }
-      th {
-        color: var(--text);
-        font-weight: 600;
-        background: var(--card);
-      }
-      tr:last-child td {
-        border-bottom: 0;
-      }
-      code {
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 0.92em;
-        color: var(--brass);
-      }
-      @media (max-width: 640px) {
-        .two-col {
-          grid-template-columns: 1fr;
-        }
-      }
-      @keyframes rise {
-        from {
-          opacity: 0;
-          transform: translateY(16px);
-        }
-      }
-      @media (max-width: 560px) {
-        .brand span {
-          display: none;
-        }
-        main {
-          padding-top: 32px;
-        }
-        .steps li {
-          padding: 18px 16px 18px 62px;
-        }
-        .steps li::before {
-          left: 16px;
-          top: 18px;
-        }
-        .card {
-          padding: 18px;
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-          animation: none !important;
-          transition-duration: 0.01ms !important;
-        }
-      }
-    </style>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-      .form {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-        margin-top: 14px;
-      }
-      .fld {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        min-width: 0;
-      }
-      .fld.full {
-        grid-column: 1/-1;
-      }
-      .fld label {
-        font-size: 13px;
-        font-weight: 600;
-      }
-      .fld small {
-        font-size: 12px;
-        color: var(--mute);
-      }
-      .fld input,
-      .fld select {
-        width: 100%;
-        height: 46px;
-        padding: 0 14px;
-        font: inherit;
-        font-size: 15px;
-        color: var(--text);
-        background: var(--card);
-        border: 1.5px solid var(--line);
-        border-radius: 12px;
-        transition:
-          border-color 0.25s,
-          box-shadow 0.25s;
-      }
-      .fld select option {
-        color: #0a1628;
-        background: #fff;
-      }
-      .fld input:focus,
-      .fld select:focus {
-        outline: none;
-        border-color: var(--brass);
-        box-shadow: 0 0 0 4px rgba(217, 164, 65, 0.16);
-      }
-      .btnp {
-        height: 50px;
-        padding: 0 24px;
-        border: 0;
-        border-radius: 12px;
-        background: var(--brass);
-        color: #1a1204;
-        font: inherit;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition:
-          transform 0.2s var(--ease),
-          box-shadow 0.3s,
-          opacity 0.2s;
-      }
-      .btnp:hover {
-        box-shadow: 0 10px 24px -10px rgba(217, 164, 65, 0.8);
-      }
-      .btnp:active {
-        transform: scale(0.97);
-      }
-      .btnp:disabled {
-        opacity: 0.6;
-        cursor: progress;
-      }
-      .msg {
-        margin: 12px 0 0;
-        font-size: 14px;
-        color: #ff5c77;
-      }
-      .b.bad {
-        background: rgba(255, 45, 77, 0.15);
-        color: #ff5c77;
-      }
-      .seal {
-        flex: none;
-        width: 52px;
-        height: 52px;
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        animation: stamp 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) backwards;
-      }
-      .seal.ok {
-        background: #2bff88;
-        box-shadow: 0 0 22px rgba(43, 255, 136, 0.55);
-      }
-      .seal.no {
-        background: #ff2d4d;
-        box-shadow: 0 0 22px rgba(255, 45, 77, 0.6);
-      }
-      .seal svg {
-        stroke: #05260f;
-      }
-      .seal.no svg {
-        stroke: #fff;
-      }
-      @keyframes stamp {
-        from {
-          opacity: 0;
-          transform: scale(1.6) rotate(-12deg);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
-      }
-      .hidden {
-        display: none !important;
-      }
-      @media (max-width: 640px) {
-        .form {
-          grid-template-columns: 1fr;
-        }
-      }
-      .fld textarea {
-        width: 100%;
-        min-height: 140px;
-        padding: 12px 14px;
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 15px;
-        line-height: 1.7;
-        color: var(--text);
-        background: var(--card);
-        border: 1.5px solid var(--line);
-        border-radius: 12px;
-        resize: vertical;
-        white-space: pre;
-        transition:
-          border-color 0.25s,
-          box-shadow 0.25s;
-      }
-      .fld textarea:focus {
-        outline: none;
-        border-color: var(--brass);
-        box-shadow: 0 0 0 4px rgba(217, 164, 65, 0.16);
-      }
-      .who {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-      .who b {
-        font-family: "Fraunces", Georgia, serif;
-        font-size: 19px;
-      }
-      .who small {
-        display: block;
-        margin-top: 2px;
-        color: var(--mute);
-      }
-      .row2 {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 14px;
-      }
-      .act {
-        padding: 10px 16px;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        background: transparent;
-        color: var(--text);
-        font: inherit;
-        font-size: 13.5px;
-        font-weight: 600;
-        text-decoration: none;
-        cursor: pointer;
-        transition:
-          border-color 0.25s,
-          background 0.25s,
-          transform 0.25s var(--ease);
-      }
-      .act:hover {
-        border-color: var(--brass);
-        background: rgba(217, 164, 65, 0.08);
-      }
-      .act:active {
-        transform: scale(0.97);
-      }
-      .btnp.green {
-        background: #2bff88;
-        color: #05260f;
-      }
-      .verdict {
-        display: flex;
-        align-items: flex-start;
-        gap: 14px;
-        margin-top: 16px;
-        padding: 16px;
-        border: 1.5px solid;
-        border-radius: 16px;
-        animation: rise 0.5s var(--ease);
-      }
-      .verdict.ok {
-        border-color: #2bff88;
-        background: rgba(43, 255, 136, 0.1);
-      }
-      .verdict.no {
-        border-color: #ff2d4d;
-        background: rgba(255, 45, 77, 0.12);
-      }
-      .verdict b.t {
-        font-family: "Fraunces", Georgia, serif;
-        font-size: 20px;
-      }
-      .verdict.ok b.t {
-        color: #2bff88;
-      }
-      .verdict.no b.t {
-        color: #ff5c77;
-      }
-      [data-theme="light"] .verdict.ok b.t {
-        color: #0b8f4a;
-      }
-      .verdict p {
-        margin: 6px 0 0;
-        color: var(--text);
-      }
-      #rmap {
-        height: 340px;
-        margin-top: 12px;
-        border-radius: 14px;
-        overflow: hidden;
-        background: #0d1b2e;
-      }
-      .mine {
-        list-style: none;
-        margin: 10px 0 0;
-        padding: 0;
-      }
-      .mine li {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 8px;
-        align-items: center;
-        padding: 12px 0;
-        border-bottom: 1px solid var(--line);
-      }
-      .mine li:last-child {
-        border-bottom: 0;
-      }
-      .mine small {
-        display: block;
-        color: var(--mute);
-      }
-      .code {
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 14px;
-        color: var(--brass);
-      }
-    </style>
-    <link rel="stylesheet" href="/static/site.css" />
-  </head>
-  <body>
-    <header class="top">
-      <a class="brand" href="/" aria-label="Back to the map">
-        <svg width="30" height="30" viewBox="0 0 44 44" aria-hidden="true">
-          <polygon
-            points="8,12 34,7 37,32 11,37"
-            fill="rgba(217,164,65,.18)"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linejoin="round"
-          />
-          <circle cx="8" cy="12" r="3.6" fill="#D9A441" />
-          <circle cx="34" cy="7" r="3.6" fill="#D9A441" />
-          <circle cx="37" cy="32" r="3.6" fill="#D9A441" />
-          <circle cx="11" cy="37" r="3.6" fill="#D9A441" />
-        </svg>
-        <span>SABAGeo</span>
-      </a>
-      <nav aria-label="Pages">
-        <a href="/registry">Registry</a><a href="/report">Report</a
-        ><a href="/about">About us</a><a href="/how-it-works">How it works</a
-        ><a href="/architecture">Architecture</a>
-      </nav>
-      <a class="map-btn" href="/">Open map</a>
-    </header>
-    <script src="/static/site.js"></script>
-    <main class="">
-      <p class="eyebrow">Register New Plot</p>
-      <h1>Register your land parcel.</h1>
-      <p class="lead">
-        For individuals and real estate companies. Log in with the code you
-        received after your token payment, check your plot for overlap, then
-        register it.
-      </p>
+.layer{margin-top:14px;padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--card)}
+.card .layer{background:transparent}
+.layer h3{margin:0 0 10px;font-family:"Fraunces",Georgia,serif;font-size:17px}
+.item{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.18);font-size:14.5px;color:var(--mute)}
+[data-theme=light] .item{background:rgba(10,22,40,.05)}
+.item span:first-child{flex:1}
+.b{flex:none;display:inline-block;padding:2px 10px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.b.built{background:rgba(43,255,136,.15);color:#2bff88}
+.b.test{background:rgba(217,164,65,.2);color:#d9a441}
+.b.plan{background:rgba(159,176,200,.18);color:var(--mute)}
+[data-theme=light] .b.built{background:rgba(11,143,74,.12);color:#0b8f4a}
+[data-theme=light] .b.test{color:#9a6b10}
+.down{display:grid;place-items:center;height:34px;color:var(--brass)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.two-col .layer{margin-top:0}
+.verify{display:block;margin:12px auto 0;width:max-content;padding:10px 24px;border:1.5px solid var(--brass);border-radius:999px;color:var(--brass);font-weight:600;letter-spacing:.08em}
+.tbl{margin-top:12px;overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;min-width:560px;border-collapse:collapse;font-size:14px}
+th,td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);color:var(--mute)}
+th{color:var(--text);font-weight:600;background:var(--card)}
+tr:last-child td{border-bottom:0}
+code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
+@media (max-width:640px){.two-col{grid-template-columns:1fr}}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+@media (max-width:560px){.brand span{display:none}main{padding-top:32px}.steps li{padding:18px 16px 18px 62px}.steps li::before{left:16px;top:18px}.card{padding:18px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important}}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+.form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fld.full{grid-column:1/-1}
+.fld label{font-size:13px;font-weight:600}
+.fld small{font-size:12px;color:var(--mute)}
+.fld input,.fld select{width:100%;height:46px;padding:0 14px;font:inherit;font-size:15px;color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px;transition:border-color .25s,box-shadow .25s}
+.fld select option{color:#0a1628;background:#fff}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 4px rgba(217,164,65,.16)}
+.btnp{height:50px;padding:0 24px;border:0;border-radius:12px;background:var(--brass);color:#1a1204;font:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:transform .2s var(--ease),box-shadow .3s,opacity .2s}
+.btnp:hover{box-shadow:0 10px 24px -10px rgba(217,164,65,.8)}
+.btnp:active{transform:scale(.97)}
+.btnp:disabled{opacity:.6;cursor:progress}
+.msg{margin:12px 0 0;font-size:14px;color:#ff5c77}
+.b.bad{background:rgba(255,45,77,.15);color:#ff5c77}
+.seal{flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;animation:stamp .5s cubic-bezier(.2,1.4,.4,1) backwards}
+.seal.ok{background:#2bff88;box-shadow:0 0 22px rgba(43,255,136,.55)}
+.seal.no{background:#ff2d4d;box-shadow:0 0 22px rgba(255,45,77,.6)}
+.seal svg{stroke:#05260f}
+.seal.no svg{stroke:#fff}
+@keyframes stamp{from{opacity:0;transform:scale(1.6) rotate(-12deg)}to{opacity:1;transform:none}}
+.hidden{display:none!important}
+@media (max-width:640px){.form{grid-template-columns:1fr}}
+.fld textarea{width:100%;min-height:140px;padding:12px 14px;font-family:"IBM Plex Mono",monospace;font-size:15px;line-height:1.7;color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px;resize:vertical;white-space:pre;transition:border-color .25s,box-shadow .25s}
+.fld textarea:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 4px rgba(217,164,65,.16)}
+.who{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.who b{font-family:"Fraunces",Georgia,serif;font-size:19px}
+.who small{display:block;margin-top:2px;color:var(--mute)}
+.row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.act{padding:10px 16px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--text);font:inherit;font-size:13.5px;font-weight:600;text-decoration:none;cursor:pointer;transition:border-color .25s,background .25s,transform .25s var(--ease)}
+.act:hover{border-color:var(--brass);background:rgba(217,164,65,.08)}
+.act:active{transform:scale(.97)}
+.btnp.green{background:#2bff88;color:#05260f}
+.verdict{display:flex;align-items:flex-start;gap:14px;margin-top:16px;padding:16px;border:1.5px solid;border-radius:16px;animation:rise .5s var(--ease)}
+.verdict.ok{border-color:#2bff88;background:rgba(43,255,136,.1)}
+.verdict.no{border-color:#ff2d4d;background:rgba(255,45,77,.12)}
+.verdict b.t{font-family:"Fraunces",Georgia,serif;font-size:20px}
+.verdict.ok b.t{color:#2bff88}
+.verdict.no b.t{color:#ff5c77}
+[data-theme=light] .verdict.ok b.t{color:#0b8f4a}
+.verdict p{margin:6px 0 0;color:var(--text)}
+.ov-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.ov-list li{padding:10px 12px;border-radius:12px;background:rgba(255,45,77,.1);border:1px solid rgba(255,45,77,.35)}
+.ov-list small{display:block;margin-top:3px;color:var(--mute);line-height:1.5}
+.zone-tip{background:#ff1744;color:#fff;border:0;border-radius:999px;padding:2px 9px;font:600 12px/1.4 "Public Sans",sans-serif;box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.zone-tip::before{display:none}
+#rmap{height:340px;margin-top:12px;border-radius:14px;overflow:hidden;background:#0d1b2e}
+.mine{list-style:none;margin:10px 0 0;padding:0}
+.mine li{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.mine li:last-child{border-bottom:0}
+.mine small{display:block;color:var(--mute)}
+.code{font-family:"IBM Plex Mono",monospace;font-size:14px;color:var(--brass)}
+</style>
+<link rel="stylesheet" href="/static/site.css" />
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/" aria-label="Back to the map">
+    <svg width="30" height="30" viewBox="0 0 44 44" aria-hidden="true"><polygon points="8,12 34,7 37,32 11,37" fill="rgba(217,164,65,.18)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8" cy="12" r="3.6" fill="#D9A441"/><circle cx="34" cy="7" r="3.6" fill="#D9A441"/><circle cx="37" cy="32" r="3.6" fill="#D9A441"/><circle cx="11" cy="37" r="3.6" fill="#D9A441"/></svg>
+    <span>SABAGeo</span>
+  </a>
+  <nav aria-label="Pages"><a href="/registry" >Registry</a><a href="/register-plot" class="on" aria-current="page">Register plot</a><a href="/report" >Report</a><a href="/about" >About us</a><a href="/how-it-works" >How it works</a><a href="/architecture" >Architecture</a></nav>
+  <a class="map-btn" href="/">Open map</a>
+</header>
+<script src="/static/site.js"></script>
+<main class="">
+<p class="eyebrow">Register New Plot</p>
+<h1>Register your land parcel.</h1>
+<p class="lead">For individuals and corporate real estate companies. Log in with the code on your token payment receipt, enter the owner's details and the plot's corners, check for overlap, then register it.</p>
 
-      <section class="card" id="login" style="--k: 1">
-        <h2>Log in</h2>
-        <form id="loginForm">
-          <div class="form">
-            <div class="fld full">
-              <label for="code">Login code</label
-              ><input
-                id="code"
-                placeholder="SABA-XXXX-XXXX-XXXX"
-                autocomplete="off"
-                required
-              />
-            </div>
-          </div>
-          <p class="msg" id="loginMsg"></p>
-          <button class="btnp" style="margin-top: 12px" type="submit">
-            Log in
-          </button>
-        </form>
-        <p>
-          Don't have a code? It is issued after your token payment is recorded.
-        </p>
-      </section>
+<section class="card" id="login" style="--k:1">
+  <h2>Log in</h2>
+  <form id="loginForm">
+    <div class="form"><div class="fld full"><label for="code">Login code</label><input id="code" placeholder="SABA-XXXX-XXXX-XXXX" autocomplete="off" required></div></div>
+    <p class="msg" id="loginMsg"></p>
+    <button class="btnp" style="margin-top:12px" type="submit">Log in</button>
+  </form>
+  <p>Don't have a code? Contact SABAGeo and pay the token fee first. Your login code comes on your receipt. <a href="/payments" style="color:var(--brass)">See prices</a></p>
+</section>
 
-      <div id="work" class="hidden">
-        <section class="card who" style="--k: 1">
-          <div id="who"></div>
-          <button class="act" id="logout">Log out</button>
-        </section>
+<div id="work" class="hidden">
+  <section class="card who" style="--k:1"><div id="who"></div><button class="act" id="logout">Log out</button></section>
 
-        <section class="card" style="--k: 2">
-          <h2>Plot details</h2>
-          <div class="form">
-            <div class="fld">
-              <label for="crs">Coordinate type</label
-              ><select id="crs">
-                <option value="wgs84">Lat / Long (WGS84)</option>
-                <option value="utm31">UTM 31N (WGS84)</option>
-                <option value="utm32">UTM 32N (WGS84)</option>
-                <option value="utm33">UTM 33N (WGS84)</option>
-              </select>
-            </div>
-            <div class="fld">
-              <label for="region">Where is the plot?</label
-              ><select id="region"></select>
-            </div>
-            <div class="fld full">
-              <label for="corners">Plot corners</label
-              ><textarea
-                id="corners"
-                spellcheck="false"
-                autocomplete="off"
-              ></textarea
-              ><small id="hint"></small>
-            </div>
-          </div>
-          <p class="msg" id="formMsg"></p>
-          <div class="row2">
-            <button class="btnp" id="checkBtn" type="button">
-              Check for overlap
-            </button>
-            <button class="act" id="csvBtn" type="button">Upload CSV</button>
-            <button class="btnp green" id="regBtn" type="button" disabled>
-              Register this plot
-            </button>
-          </div>
-          <input type="file" id="csvFile" accept=".csv,text/csv" hidden />
-          <p class="note" id="csvNote" style="display: none"></p>
-          <div id="verdict"></div>
-        </section>
+  <section class="card" style="--k:2">
+    <h2>Owner details</h2>
+    <p id="ownerNote">Who does this plot belong to? These are filled in from your payment. Change them if you are registering for someone else.</p>
+    <div class="form">
+      <div class="fld"><label for="o_type">Owner type</label><select id="o_type"><option value="individual">Individual</option><option value="corporate">Corporate real estate company</option></select></div>
+      <div class="fld"><label for="o_name" id="o_nameLbl">Full name</label><input id="o_name" maxlength="120" autocomplete="off"></div>
+      <div class="fld"><label for="o_phone">Phone number</label><input id="o_phone" type="tel" maxlength="40" placeholder="0803 123 4567" autocomplete="off"></div>
+      <div class="fld"><label for="o_email">Email <small>(optional)</small></label><input id="o_email" type="email" maxlength="120" placeholder="name@example.com" autocomplete="off"></div>
+    </div>
+    <p class="note" style="margin-top:12px">Phone numbers and emails are kept private. Only the owner's name appears on the parcel report.</p>
+  </section>
 
-        <section class="card hidden" id="mapCard" style="--k: 3">
-          <h2>Your plot on the map</h2>
-          <div id="rmap"></div>
-        </section>
+  <section class="card" style="--k:3">
+    <h2>Plot coordinates</h2>
+    <div class="form">
+      <div class="fld"><label for="crs">Coordinate type</label><select id="crs"><option value="wgs84">Lat / Long (WGS84)</option><option value="utm31">UTM 31N (WGS84)</option><option value="utm32">UTM 32N (WGS84)</option><option value="utm33">UTM 33N (WGS84)</option></select></div>
+      <div class="fld"><label for="region">Where is the plot?</label><select id="region"></select></div>
+      <div class="fld full"><label for="corners">Plot corners</label><textarea id="corners" spellcheck="false" autocomplete="off"></textarea><small id="hint"></small></div>
+    </div>
+    <p class="msg" id="formMsg"></p>
+    <div class="row2">
+      <button class="btnp" id="checkBtn" type="button">Check for overlap</button>
+      <button class="act" id="csvBtn" type="button">Upload CSV</button>
+      <button class="btnp green" id="regBtn" type="button" disabled>Register this plot</button>
+    </div>
+    <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
+    <p class="note" id="csvNote" style="display:none"></p>
+    <div id="verdict"></div>
+  </section>
 
-        <section class="card" style="--k: 4">
-          <h2>Your registered plots</h2>
-          <ul class="mine" id="mine">
-            <li>Loading…</li>
-          </ul>
-        </section>
-      </div>
-    </main>
-    <footer>
-      SABAGeo Land Registry. A research prototype from the Nigerian Army
-      University Biu.
-    </footer>
-    <script>
-      (() => {
-        const $ = (id) => document.getElementById(id);
-        const esc = (s) =>
-          String(s == null ? "" : s).replace(
-            /[&<>"]/g,
-            (c) =>
-              ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
-          );
-        const fmt = (n, d = 0) =>
-          Number(n).toLocaleString("en", {
-            minimumFractionDigits: d,
-            maximumFractionDigits: d,
-          });
-        const day = (iso) =>
-          new Date(iso).toLocaleDateString("en-GB", { dateStyle: "medium" });
-        const TICK =
-          '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-        const CROSS =
-          '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
-        const HINTS = {
-          wgs84:
-            "One corner per line: latitude, longitude (decimal degrees), like 10.6120, 12.1950. Use at least 3 corners.",
-          utm31:
-            "One corner per line: easting, northing in metres (UTM Zone 31N). Use at least 3 corners.",
-          utm32:
-            "One corner per line: easting, northing in metres (UTM Zone 32N). Use at least 3 corners.",
-          utm33:
-            "One corner per line: easting, northing in metres (UTM Zone 33N). Use at least 3 corners.",
-        };
-        let me = null,
-          ok = false,
-          map = null,
-          layers = [],
-          allPlots = null;
-        const token = () => sessionStorage.getItem("clientToken") || "";
-        const verdict = (kind, title, html) =>
-          '<div class="verdict ' +
-          kind +
-          '"><span class="seal ' +
-          (kind === "ok" ? "ok" : "no") +
-          '">' +
-          (kind === "ok" ? TICK : CROSS) +
-          '</span><div><b class="t">' +
-          title +
-          "</b><p>" +
-          html +
-          "</p></div></div>";
+  <section class="card hidden" id="mapCard" style="--k:4"><h2>Your plot on the map</h2><div id="rmap"></div></section>
 
-        async function api(url, opts) {
-          opts = opts || {};
-          opts.headers = Object.assign(
-            { "X-Client-Token": token() },
-            opts.headers || {},
-          );
-          const r = await fetch(url, opts);
-          let d = null;
-          try {
-            d = await r.json();
-          } catch (e) {}
-          if (!r.ok) {
-            const err = new Error(
-              d && typeof d.detail === "string"
-                ? d.detail
-                : "Please check your entries and try again.",
-            );
-            err.status = r.status;
-            throw err;
-          }
-          return d;
-        }
-        function show(inside) {
-          $("login").classList.toggle("hidden", inside);
-          $("work").classList.toggle("hidden", !inside);
-        }
-        function logout(msg) {
-          sessionStorage.removeItem("clientToken");
-          me = null;
-          ok = false;
-          show(false);
-          $("loginMsg").textContent = msg || "";
-        }
-        function fail(err) {
-          if (err.status === 401) return logout(err.message);
-          $("verdict").innerHTML = verdict(
-            "no",
-            "Something went wrong",
-            esc(err.message),
-          );
-        }
+  <section class="card" style="--k:5"><h2>Your registered plots</h2><ul class="mine" id="mine"><li>Loading…</li></ul></section>
+</div>
+</main>
+<footer>SABAGeo Land Registry. A research prototype from the Nigerian Army University Biu.</footer>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const fmt = (n, d = 0) => Number(n).toLocaleString("en", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const day = (iso) => new Date(iso).toLocaleDateString("en-GB", { dateStyle: "medium" });
+  const TICK = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const CROSS = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  const HINTS = {
+    wgs84: "One corner per line: latitude, longitude (decimal degrees), like 10.6120, 12.1950. Use at least 3 corners.",
+    utm31: "One corner per line: easting, northing in metres (UTM Zone 31N). Use at least 3 corners.",
+    utm32: "One corner per line: easting, northing in metres (UTM Zone 32N). Use at least 3 corners.",
+    utm33: "One corner per line: easting, northing in metres (UTM Zone 33N). Use at least 3 corners.",
+  };
+  let me = null, ok = false, map = null, layers = [], allPlots = null;
+  const token = () => sessionStorage.getItem("clientToken") || "";
+  const verdict = (kind, title, html) => '<div class="verdict ' + kind + '"><span class="seal ' + (kind === "ok" ? "ok" : "no") + '">' + (kind === "ok" ? TICK : CROSS) + '</span><div><b class="t">' + title + "</b><p>" + html + "</p></div></div>";
 
-        $("loginForm").addEventListener("submit", async (e) => {
-          e.preventDefault();
-          $("loginMsg").textContent = "";
-          try {
-            const r = await fetch("/api/client/login", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ code: $("code").value }),
-            });
-            const d = await r.json();
-            if (!r.ok)
-              throw new Error(
-                typeof d.detail === "string"
-                  ? d.detail
-                  : "That code could not be checked.",
-              );
-            sessionStorage.setItem("clientToken", d.token);
-            $("code").value = "";
-            me = d;
-            enter();
-          } catch (err) {
-            $("loginMsg").textContent = err.message;
-          }
-        });
-        $("logout").addEventListener("click", () =>
-          logout("You are logged out."),
-        );
+  async function api(url, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ "X-Client-Token": token() }, opts.headers || {});
+    const r = await fetch(url, opts);
+    let d = null; try { d = await r.json(); } catch (e) {}
+    if (!r.ok) { const err = new Error(d && typeof d.detail === "string" ? d.detail : "Please check your entries and try again."); err.status = r.status; throw err; }
+    return d;
+  }
+  function show(inside) { $("login").classList.toggle("hidden", inside); $("work").classList.toggle("hidden", !inside); }
+  function logout(msg) {
+    sessionStorage.removeItem("clientToken"); me = null; ok = false; show(false);
+    $("loginMsg").textContent = msg || "";
+  }
+  function fail(err) {
+    if (err.status === 401) return logout(err.message);
+    $("verdict").innerHTML = verdict("no", "Something went wrong", esc(err.message));
+  }
 
-        function who() {
-          $("who").innerHTML =
-            "<b>Welcome, " +
-            esc(me.name) +
-            "</b><small>" +
-            (me.client_type === "corporate"
-              ? "Corporate client"
-              : "Individual client") +
-            " | " +
-            (me.plots_allowed
-              ? "Plots used " + me.plots_used + " of " + me.plots_allowed
-              : "No plot limit") +
-            " | Code valid until " +
-            day(me.code_expires) +
-            "</small>";
-        }
-        async function enter() {
-          who();
-          show(true);
-          hint();
-          try {
-            const regions = await (await fetch("/regions")).json();
-            $("region").innerHTML = regions
-              .filter((r) => !r.is_pilot && r.code !== "TST")
-              .map(
-                (r) =>
-                  '<option value="' + r.code + '">' + esc(r.name) + "</option>",
-              )
-              .join("");
-            if ([...$("region").options].some((o) => o.value === "OTH"))
-              $("region").value = "OTH";
-          } catch (e) {}
-          mine();
-        }
-        async function mine() {
-          try {
-            const rows = await api("/api/client/plots");
-            $("mine").innerHTML = rows.length
-              ? rows
-                  .map(
-                    (p) =>
-                      '<li><div><span class="code">' +
-                      esc(p.code) +
-                      "</span><small>" +
-                      esc(p.region) +
-                      " | " +
-                      fmt(p.area_m2) +
-                      " m² | " +
-                      (p.registered_at ? day(p.registered_at) : "") +
-                      '</small></div><a class="act" href="/report/' +
-                      encodeURIComponent(p.code) +
-                      '">Report</a></li>',
-                  )
-                  .join("")
-              : "<li>No plots registered yet.</li>";
-          } catch (err) {
-            fail(err);
-          }
-        }
-        function hint() {
-          $("hint").textContent = HINTS[$("crs").value];
-          $("corners").placeholder =
-            $("crs").value === "wgs84"
-              ? "10.6120, 12.1950\n10.6120, 12.1954\n10.6124, 12.1954\n10.6124, 12.1950"
-              : "850040, 1172010\n850090, 1172010\n850090, 1172040\n850040, 1172040";
-        }
-        function invalidate() {
-          ok = false;
-          $("regBtn").disabled = true;
-          $("verdict").innerHTML = "";
-          $("formMsg").textContent = "";
-        }
-        ["corners", "crs", "region"].forEach((id) =>
-          $(id).addEventListener(id === "corners" ? "input" : "change", () => {
-            if (id === "crs") hint();
-            invalidate();
-          }),
-        );
+  $("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault(); $("loginMsg").textContent = "";
+    try {
+      const r = await fetch("/api/client/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: $("code").value }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(typeof d.detail === "string" ? d.detail : "That code could not be checked.");
+      sessionStorage.setItem("clientToken", d.token); $("code").value = ""; me = d; enter();
+    } catch (err) { $("loginMsg").textContent = err.message; }
+  });
+  $("logout").addEventListener("click", () => logout("You are logged out."));
 
-        function parse() {
-          const wgs = $("crs").value === "wgs84",
-            num = /^-?\d+(\.\d+)?$/;
-          const lines = $("corners")
-              .value.split("\n")
-              .map((l) => l.trim())
-              .filter(Boolean),
-            pts = [];
-          for (let i = 0; i < lines.length; i++) {
-            const p = lines[i].split(",").map((s) => s.trim());
-            if (p.length !== 2 || !num.test(p[0]) || !num.test(p[1]))
-              return {
-                error:
-                  "Line " +
-                  (i + 1) +
-                  ": " +
-                  (wgs ? "use latitude, longitude" : "use easting, northing") +
-                  ".",
-              };
-            const a = parseFloat(p[0]),
-              b = parseFloat(p[1]);
-            pts.push(
-              wgs ? { easting: b, northing: a } : { easting: a, northing: b },
-            );
-          }
-          return pts.length < 3
-            ? { error: "A plot needs at least 3 corners." }
-            : { pts };
-        }
-        const body = (pts) =>
-          JSON.stringify({
-            corners: pts,
-            crs: $("crs").value,
-            region: $("region").value,
-          });
-        const busy = (on) => {
-          $("checkBtn").disabled = on;
-          if (on) $("regBtn").disabled = true;
-        };
+  function who() {
+    $("who").innerHTML = "<b>Welcome, " + esc(me.name) + "</b><small>" + (me.client_type === "corporate" ? "Corporate client" : "Individual client") + " | " +
+      (me.plots_allowed ? "Plots used " + me.plots_used + " of " + me.plots_allowed : "No plot limit") + " | Code valid until " + day(me.code_expires) + "</small>";
+  }
+  function ownerLabel() { $("o_nameLbl").textContent = $("o_type").value === "corporate" ? "Company name" : "Full name"; }
+  function prefillOwner() {
+    $("o_type").value = me.client_type === "corporate" ? "corporate" : "individual";
+    $("o_name").value = me.name || ""; $("o_phone").value = me.phone || ""; $("o_email").value = me.email || "";
+    $("ownerNote").textContent = me.client_type === "corporate"
+      ? "Who does this plot belong to? As a corporate client you can register plots for your buyers: put the buyer's details here, or keep your company's."
+      : "Who does this plot belong to? These are filled in from your payment. Change them if needed.";
+    ownerLabel();
+  }
+  $("o_type").addEventListener("change", ownerLabel);
+  function owner() {
+    const o = { owner_type: $("o_type").value, owner_name: $("o_name").value.trim(), owner_phone: $("o_phone").value.trim(), owner_email: $("o_email").value.trim() || null };
+    if (o.owner_name.length < 2) return { error: "Please enter the owner's " + ($("o_type").value === "corporate" ? "company name." : "full name.") };
+    if (!/^\+?[0-9 ()-]{7,20}$/.test(o.owner_phone)) return { error: "Please enter a valid phone number, like 0803 123 4567." };
+    if (o.owner_email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(o.owner_email)) return { error: "Please enter a valid email address, or leave it empty." };
+    return { o };
+  }
+  async function enter() {
+    who(); show(true); hint(); prefillOwner();
+    try {
+      const regions = await (await fetch("/regions")).json();
+      $("region").innerHTML = regions.filter((r) => !r.is_pilot && r.code !== "TST").map((r) => '<option value="' + r.code + '">' + esc(r.name) + "</option>").join("");
+      if ([...$("region").options].some((o) => o.value === "OTH")) $("region").value = "OTH";
+    } catch (e) {}
+    mine();
+  }
+  async function mine() {
+    try {
+      const rows = await api("/api/client/plots");
+      $("mine").innerHTML = rows.length ? rows.map((p) => '<li><div><span class="code">' + esc(p.code) + "</span><small>" + (p.owner_name ? esc(p.owner_name) + " | " : "") + esc(p.region) + " | " + fmt(p.area_m2) + " m² | " + (p.registered_at ? day(p.registered_at) : "") + '</small></div><a class="act" href="/report/' + encodeURIComponent(p.code) + '">Report</a></li>').join("") : "<li>No plots registered yet.</li>";
+    } catch (err) { fail(err); }
+  }
+  function hint() { $("hint").textContent = HINTS[$("crs").value]; $("corners").placeholder = $("crs").value === "wgs84" ? "10.6120, 12.1950\n10.6120, 12.1954\n10.6124, 12.1954\n10.6124, 12.1950" : "850040, 1172010\n850090, 1172010\n850090, 1172040\n850040, 1172040"; }
+  function invalidate() { ok = false; $("regBtn").disabled = true; $("verdict").innerHTML = ""; $("formMsg").textContent = ""; }
+  ["corners", "crs", "region"].forEach((id) => $(id).addEventListener(id === "corners" ? "input" : "change", () => { if (id === "crs") hint(); invalidate(); }));
 
-        $("csvBtn").addEventListener("click", () => $("csvFile").click());
-        $("csvFile").addEventListener("change", (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = () => {
-            const rows = reader.result
-              .split(/\r?\n/)
-              .map((l) => l.trim())
-              .filter(Boolean)
-              .map((l) => l.split(/[,;\t]/).map((x) => x.trim()))
-              .filter(
-                (c) =>
-                  c.length >= 2 &&
-                  c[0] !== "" &&
-                  c[1] !== "" &&
-                  !isNaN(Number(c[0])) &&
-                  !isNaN(Number(c[1])),
-              );
-            const note = $("csvNote");
-            note.style.display = "block";
-            if (rows.length < 3) {
-              note.textContent =
-                "Found " +
-                rows.length +
-                " valid corners in " +
-                file.name +
-                ". A plot needs at least 3.";
-              return;
-            }
-            $("corners").value = rows.map((c) => c[0] + ", " + c[1]).join("\n");
-            invalidate();
-            note.textContent =
-              rows.length +
-              " corners loaded from " +
-              file.name +
-              ". The columns must be in the same order as the coordinate type.";
-          };
-          reader.readAsText(file);
-          e.target.value = "";
-        });
+  function parse() {
+    const wgs = $("crs").value === "wgs84", num = /^-?\d+(\.\d+)?$/;
+    const lines = $("corners").value.split("\n").map((l) => l.trim()).filter(Boolean), pts = [];
+    for (let i = 0; i < lines.length; i++) {
+      const p = lines[i].split(",").map((s) => s.trim());
+      if (p.length !== 2 || !num.test(p[0]) || !num.test(p[1])) return { error: "Line " + (i + 1) + ": " + (wgs ? "use latitude, longitude" : "use easting, northing") + "." };
+      const a = parseFloat(p[0]), b = parseFloat(p[1]);
+      pts.push(wgs ? { easting: b, northing: a } : { easting: a, northing: b });
+    }
+    return pts.length < 3 ? { error: "A plot needs at least 3 corners." } : { pts };
+  }
+  const body = (pts) => JSON.stringify({ corners: pts, crs: $("crs").value, region: $("region").value });
+  const busy = (on) => { $("checkBtn").disabled = on; if (on) $("regBtn").disabled = true; };
 
-        async function draw(shape, hits) {
-          $("mapCard").classList.remove("hidden");
-          if (!map) {
-            map = L.map("rmap", { scrollWheelZoom: false });
-            map.attributionControl.setPrefix(false);
-            const esri = (p) =>
-              L.tileLayer(
-                "https://server.arcgisonline.com/ArcGIS/rest/services/" +
-                  p +
-                  "/MapServer/tile/{z}/{y}/{x}",
-                { maxZoom: 20, maxNativeZoom: 17 },
-              );
-            esri("World_Imagery").addTo(map);
-            esri("Reference/World_Boundaries_and_Places").addTo(map);
-          }
-          if (!allPlots) {
-            try {
-              allPlots = await (await fetch("/plots")).json();
-            } catch (e) {
-              allPlots = { features: [] };
-            }
-          }
-          layers.forEach((l) => map.removeLayer(l));
-          layers = [];
-          layers.push(
-            L.geoJSON(allPlots, {
-              style: (f) =>
-                hits.includes(f.properties.title_code)
-                  ? {
-                      color: "#ff2d4d",
-                      weight: 3,
-                      fillColor: "#ff2d4d",
-                      fillOpacity: 0.45,
-                    }
-                  : {
-                      color: "#00d1ff",
-                      weight: 2,
-                      fillColor: "#00d1ff",
-                      fillOpacity: 0.15,
-                    },
-            }).addTo(map),
-          );
-          const c = hits.length ? "#ff2d4d" : "#2bff88";
-          const mineLayer = L.geoJSON(shape, {
-            style: {
-              color: c,
-              weight: 3.5,
-              dashArray: "8 6",
-              fillColor: c,
-              fillOpacity: 0.4,
-            },
-          }).addTo(map);
-          layers.push(mineLayer);
-          map.invalidateSize();
-          map.fitBounds(mineLayer.getBounds(), {
-            padding: [50, 50],
-            maxZoom: 18,
-          });
-        }
+  $("csvBtn").addEventListener("click", () => $("csvFile").click());
+  $("csvFile").addEventListener("change", (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const rows = reader.result.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((l) => l.split(/[,;\t]/).map((x) => x.trim()))
+        .filter((c) => c.length >= 2 && c[0] !== "" && c[1] !== "" && !isNaN(Number(c[0])) && !isNaN(Number(c[1])));
+      const note = $("csvNote"); note.style.display = "block";
+      if (rows.length < 3) { note.textContent = "Found " + rows.length + " valid corners in " + file.name + ". A plot needs at least 3."; return; }
+      $("corners").value = rows.map((c) => c[0] + ", " + c[1]).join("\n"); invalidate();
+      note.textContent = rows.length + " corners loaded from " + file.name + ". The columns must be in the same order as the coordinate type.";
+    };
+    reader.readAsText(file); e.target.value = "";
+  });
 
-        $("checkBtn").addEventListener("click", async () => {
-          const p = parse();
-          if (p.error) {
-            $("formMsg").textContent = p.error;
-            return;
-          }
-          invalidate();
-          busy(true);
-          $("checkBtn").textContent = "Checking…";
-          try {
-            const d = await api("/check", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: body(p.pts),
-            });
-            const red = d.status === "RED FLAG";
-            ok = !red;
-            $("verdict").innerHTML = red
-              ? verdict(
-                  "no",
-                  "RED FLAG",
-                  "This plot overlaps registered land:<br>" +
-                    d.overlaps
-                      .map(
-                        (o) =>
-                          "<b>" +
-                          esc(o.title_code) +
-                          "</b>, " +
-                          fmt(o.overlap_m2, 2) +
-                          " m² overlap",
-                      )
-                      .join("<br>"),
-                )
-              : verdict(
-                  "ok",
-                  "0 OVERLAP",
-                  "No registered plot shares area with this one. You can register it.",
-                );
-            $("regBtn").disabled = !ok;
-            draw(d.shape, red ? d.overlaps.map((o) => o.title_code) : []);
-          } catch (err) {
-            if (err.status === 401) return fail(err);
-            $("verdict").innerHTML = verdict(
-              "no",
-              "Cannot check this plot",
-              esc(err.message),
-            );
-          } finally {
-            busy(false);
-            $("checkBtn").textContent = "Check for overlap";
-            $("regBtn").disabled = !ok;
-          }
-        });
+  async function draw(shape, overlaps) {
+    const hits = overlaps.map((o) => o.title_code);
+    $("mapCard").classList.remove("hidden");
+    if (!map) {
+      map = L.map("rmap", { scrollWheelZoom: false }); map.attributionControl.setPrefix(false);
+      const esri = (p) => L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/" + p + "/MapServer/tile/{z}/{y}/{x}", { maxZoom: 20, maxNativeZoom: 17 });
+      esri("World_Imagery").addTo(map); esri("Reference/World_Boundaries_and_Places").addTo(map);
+    }
+    if (!allPlots) { try { allPlots = await (await fetch("/plots")).json(); } catch (e) { allPlots = { features: [] }; } }
+    layers.forEach((l) => map.removeLayer(l)); layers = [];
+    layers.push(L.geoJSON(allPlots, { style: (f) => hits.includes(f.properties.title_code) ? { color: "#ff2d4d", weight: 3, fillColor: "#ff2d4d", fillOpacity: 0.45 } : { color: "#00d1ff", weight: 2, fillColor: "#00d1ff", fillOpacity: 0.15 } }).addTo(map));
+    const c = hits.length ? "#ff2d4d" : "#2bff88";
+    const mineLayer = L.geoJSON(shape, { style: { color: c, weight: 3.5, dashArray: "8 6", fillColor: c, fillOpacity: 0.4 } }).addTo(map);
+    layers.push(mineLayer);
+    overlaps.forEach((o) => {
+      const z = L.geoJSON(o.zone, { style: { color: "#fff", weight: 2, dashArray: "4 4", fillColor: "#ff1744", fillOpacity: 0.9 } }).addTo(map);
+      const zb = z.getBounds();
+      z.bindTooltip("Overlap " + fmt(o.overlap_m2, o.overlap_m2 < 10 ? 2 : 1) + " m²", { permanent: true, direction: "bottom", className: "zone-tip" });
+      if (zb.isValid()) z.openTooltip([zb.getSouth(), zb.getCenter().lng]);
+      layers.push(z);
+    });
+    map.invalidateSize(); map.fitBounds(mineLayer.getBounds(), { padding: [50, 50], maxZoom: 19 });
+  }
 
-        $("regBtn").addEventListener("click", async () => {
-          const p = parse();
-          if (p.error || !ok) return;
-          busy(true);
-          $("regBtn").disabled = true;
-          $("regBtn").textContent = "Registering…";
-          try {
-            const d = await api("/client/register", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: body(p.pts),
-            });
-            ok = false;
-            allPlots = null;
-            $("verdict").innerHTML = verdict(
-              "ok",
-              "Registered",
-              "Title code: <b>" +
-                esc(d.title_code) +
-                "</b><br>Area: <b>" +
-                fmt(d.area_m2, 2) +
-                ' m²</b></p><div class="row2"><a class="act" href="/report/' +
-                encodeURIComponent(d.title_code) +
-                '">View parcel report</a></div><p style="display:none">',
-            );
-            me = Object.assign(me, await api("/api/client/me"));
-            who();
-            mine();
-          } catch (err) {
-            if (err.status === 401) return fail(err);
-            $("verdict").innerHTML = verdict(
-              "no",
-              "Not registered",
-              esc(err.message),
-            );
-          } finally {
-            busy(false);
-            $("regBtn").textContent = "Register this plot";
-            $("regBtn").disabled = !ok;
-          }
-        });
+  $("checkBtn").addEventListener("click", async () => {
+    const p = parse(); if (p.error) { $("formMsg").textContent = p.error; return; }
+    invalidate(); busy(true); $("checkBtn").textContent = "Checking…";
+    try {
+      const d = await api("/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: body(p.pts) });
+      const red = d.status === "RED FLAG"; ok = !red;
+      $("verdict").innerHTML = red
+        ? verdict("no", "RED FLAG", "This plot overlaps <b>" + d.overlaps.length + "</b> registered plot" + (d.overlaps.length === 1 ? "" : "s") + ", " + fmt(d.total_overlap_m2, 2) + " m² in total. The exact overlap is shaded on the map below." +
+            '<ul class="ov-list">' + d.overlaps.map((o) => "<li><b>" + esc(o.title_code) + "</b><small>" + (o.label ? esc(o.label) + ", " : "") + esc(o.region || "") + "<br>" +
+              fmt(o.overlap_m2, 2) + " m² overlap" + (o.share_of_plot_pct != null ? " (" + o.share_of_plot_pct + "% of that plot)" : "") + "<br>Overlap centre: " + o.centre[0].toFixed(6) + ", " + o.centre[1].toFixed(6) + "</small></li>").join("") + "</ul>")
+        : verdict("ok", "0 OVERLAP", "No registered plot shares area with this one. You can register it.");
+      $("regBtn").disabled = !ok;
+      draw(d.shape, red ? d.overlaps : []);
+    } catch (err) {
+      if (err.status === 401) return fail(err);
+      $("verdict").innerHTML = verdict("no", "Cannot check this plot", esc(err.message));
+    } finally { busy(false); $("checkBtn").textContent = "Check for overlap"; $("regBtn").disabled = !ok; }
+  });
 
-        (async () => {
-          if (!token()) return show(false);
-          try {
-            me = await api("/api/client/me");
-            enter();
-          } catch (err) {
-            logout(err.status === 401 ? "Please log in again." : "");
-          }
-        })();
-      })();
-    </script>
-  </body>
+  $("regBtn").addEventListener("click", async () => {
+    const p = parse(); if (p.error || !ok) return;
+    const ow = owner(); if (ow.error) { $("formMsg").textContent = ow.error; $("o_name").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+    busy(true); $("regBtn").disabled = true; $("regBtn").textContent = "Registering…";
+    try {
+      const d = await api("/client/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign(JSON.parse(body(p.pts)), ow.o)) });
+      ok = false; allPlots = null;
+      $("verdict").innerHTML = verdict("ok", "Registered", "Title code: <b>" + esc(d.title_code) + "</b><br>Area: <b>" + fmt(d.area_m2, 2) + ' m²</b></p><div class="row2"><a class="act" href="/report/' + encodeURIComponent(d.title_code) + '">View parcel report</a></div><p style="display:none">');
+      me = Object.assign(me, await api("/api/client/me")); who(); mine();
+    } catch (err) {
+      if (err.status === 401) return fail(err);
+      $("verdict").innerHTML = verdict("no", "Not registered", esc(err.message));
+    } finally { busy(false); $("regBtn").textContent = "Register this plot"; $("regBtn").disabled = !ok; }
+  });
+
+  (async () => {
+    if (!token()) return show(false);
+    try { me = await api("/api/client/me"); enter(); } catch (err) { logout(err.status === 401 ? "Please log in again." : ""); }
+  })();
+})();
+</script>
+</body>
 </html>

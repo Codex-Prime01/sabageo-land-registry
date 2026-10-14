@@ -1,16 +1,23 @@
-import re
-import time
-from collections import defaultdict, deque
-from typing import Literal
+"""
+SABAGeo Land Registry: the whole server in one file.
 
+This file replaces every earlier paste (Round 1, Phases A to F). Sections, top to bottom:
+  settings, site password, admin key, data shapes, helpers (overlap check, title codes, ledger),
+  pages, map data, check and register, beacon photos, ledger, Polygon anchoring,
+  token payments and receipts, client login, Register New Plot.
+"""
 import base64
 import hashlib
 import io
 import json
 import os
+import re
 import secrets
+import time
 import uuid
+from collections import defaultdict, deque
 from datetime import datetime, timezone
+from typing import Literal
 
 import psycopg
 from dotenv import load_dotenv
@@ -24,6 +31,7 @@ from web3 import Web3
 
 load_dotenv(override=True)
 
+# ---------- Settings ----------
 # DATABASE_URL is used when hosted online. Locally we use the .env values.
 DB = os.getenv("DATABASE_URL") or make_conninfo(
     host=os.getenv("DB_HOST", "localhost"),
@@ -41,7 +49,35 @@ CRS_CHOICES = {"wgs84": 4326, "utm31": 32631, "utm32": 32632, "utm33": 32633}
 # Rough box around Nigeria (west, south, east, north). Catches wrong-zone mistakes.
 NIGERIA = (2.6, 4.2, 14.8, 13.95)
 
+# Boundary tolerance. An "overlap" thinner than this along a shared boundary is rounding
+# or survey noise, not encroachment (6-decimal lat/long is only exact to about 11 cm).
+# Real overlaps wider than this are always flagged, whatever their area.
+OVERLAP_TOLERANCE_M = float(os.getenv("OVERLAP_TOLERANCE_CM", "10")) / 100
+
+# Token prices. These are the senior's working figures until the review committee approves real ones.
+# Change them in .env (PRICE_INDIVIDUAL, PRICE_CORPORATE) without touching the code.
+PLANS = {
+    "individual": {
+        "label": "Individual",
+        "amount": float(os.getenv("PRICE_INDIVIDUAL", "15000")),
+        "per": "per verification",
+        "days": 30,      # the login code works for 30 days
+        "plots": 1,      # one plot per payment
+    },
+    "corporate": {
+        "label": "Corporate real estate retainer",
+        "amount": float(os.getenv("PRICE_CORPORATE", "200000")),
+        "per": "per month",
+        "days": 30,
+        "plots": None,   # no plot limit during the month
+    },
+}
+
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+
+# CSS and JS live in the static folder
+if os.path.isdir("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # ---------- Optional site password (keeps the project private) ----------
@@ -66,9 +102,13 @@ async def site_gate(request: Request, call_next):
 
 
 # ---------- Admin lock ----------
-def require_admin(x_admin_key: str | None = Header(default=None)):
+def is_admin(key):
     expected = os.getenv("ADMIN_KEY", "")
-    if not expected or not x_admin_key or not secrets.compare_digest(x_admin_key, expected):
+    return bool(expected and key and secrets.compare_digest(key.encode(), expected.encode()))
+
+
+def require_admin(x_admin_key: str | None = Header(default=None)):
+    if not is_admin(x_admin_key):
         raise HTTPException(status_code=401, detail="Admin key needed. Open the menu and tap Admin key.")
 
 
@@ -82,6 +122,34 @@ class NewPlot(BaseModel):
     corners: list[Corner]
     crs: str = "utm32"     # wgs84, utm31, utm32 or utm33
     region: str = "TST"    # TST = test area. NAUB = real pilot plots (uses the reserved slots)
+
+
+class ClientPlot(NewPlot):
+    """Register New Plot: the owner's details come with the corners."""
+    owner_type: Literal["individual", "corporate"]
+    owner_name: str = Field(min_length=2, max_length=120)
+    owner_phone: str = Field(min_length=7, max_length=40)
+    owner_email: str | None = Field(default=None, max_length=120)
+
+
+class PaymentIn(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
+    client_type: Literal["individual", "corporate"]
+    email: str | None = Field(default=None, max_length=120)
+    phone: str | None = Field(default=None, max_length=40)
+    amount_ngn: float = Field(gt=0, lt=1_000_000_000)
+    method: Literal["Bank transfer", "Card or POS", "Cash", "Other"]
+    reference: str = Field(min_length=3, max_length=80)
+    valid_days: int = Field(default=30, ge=1, le=365)
+    plots_allowed: int | None = Field(default=None, ge=1, le=1000)
+
+
+class ReissueIn(BaseModel):
+    valid_days: int = Field(default=30, ge=1, le=365)
+
+
+class LoginIn(BaseModel):
+    code: str = Field(min_length=6, max_length=40)
 
 
 # ---------- Helpers ----------
@@ -129,19 +197,46 @@ def prepare(conn, plot: NewPlot):
 
 
 def find_overlaps(conn, wkt, utm):
-    """Registered plots that share real area with this shape (touching edges do not count)."""
-    return conn.execute(
+    """
+    Registered plots that share real area with this shape. Touching edges do not count,
+    and neither do slivers thinner than OVERLAP_TOLERANCE_M along a shared boundary.
+    For each one it also returns WHERE the overlap is: the overlap zone itself, its centre,
+    and how much of the registered plot it covers. Biggest overlap first.
+    """
+    rows = conn.execute(
         """
-        WITH n AS (SELECT ST_GeomFromText(%s, 4326) AS g)
-        SELECT p.title_code,
-               ST_Area(ST_Intersection(ST_Transform(p.geom, %s::int), ST_Transform(n.g, %s::int))) AS overlap_m2
-        FROM plots p, n
-        WHERE p.geom IS NOT NULL
-          AND ST_Intersects(p.geom, n.g)
-          AND ST_Area(ST_Intersection(ST_Transform(p.geom, %s::int), ST_Transform(n.g, %s::int))) > 0.01
+        WITH n AS (SELECT ST_Transform(ST_GeomFromText(%(wkt)s, 4326), %(utm)s::int) AS g),
+        hits AS (
+            SELECT p.title_code, p.label, r.name AS region,
+                   ST_Area(ST_Transform(p.geom, %(utm)s::int)) AS plot_area,
+                   ST_CollectionExtract(ST_Intersection(ST_Transform(p.geom, %(utm)s::int), n.g), 3) AS z
+            FROM plots p JOIN regions r ON r.code = p.region_code, n
+            WHERE p.geom IS NOT NULL
+              AND ST_Intersects(p.geom, ST_GeomFromText(%(wkt)s, 4326))
+        )
+        SELECT title_code, label, region, ST_Area(z), plot_area,
+               ST_AsGeoJSON(ST_Transform(z, 4326), 7),
+               ST_Y(ST_Transform(ST_PointOnSurface(z), 4326)),
+               ST_X(ST_Transform(ST_PointOnSurface(z), 4326))
+        FROM hits
+        WHERE NOT ST_IsEmpty(z) AND ST_Area(z) > 0.01
+          AND NOT ST_IsEmpty(ST_Buffer(z, -%(half)s))   -- thinner than the tolerance: not an overlap
+        ORDER BY ST_Area(z) DESC
         """,
-        (wkt, utm, utm, utm, utm),
+        {"wkt": wkt, "utm": utm, "half": OVERLAP_TOLERANCE_M / 2},
     ).fetchall()
+    return [
+        {
+            "title_code": r[0],
+            "label": r[1],
+            "region": r[2],
+            "overlap_m2": round(r[3], 2),
+            "share_of_plot_pct": round(100 * r[3] / r[4], 1) if r[4] else None,
+            "centre": [round(r[6], 6), round(r[7], 6)],  # latitude, longitude
+            "zone": json.loads(r[5]),
+        }
+        for r in rows
+    ]
 
 
 def next_code(conn, region, kind):
@@ -155,23 +250,37 @@ def next_code(conn, region, kind):
     return f"SABA-{region}-{kind}-{n:03d}"
 
 
-def add_ledger_record(conn, code, wkt, area):
-    """Each ledger record holds the fingerprint of the one before it."""
+def _append_ledger(conn, code, data):
     last = conn.execute("SELECT record_hash FROM ledger ORDER BY id DESC LIMIT 1").fetchone()
     prev_hash = last[0] if last else "GENESIS"
-    payload = json.dumps(
-        {
-            "title_code": code,
-            "wkt": wkt,
-            "area_m2": round(area, 2),
-            "time": datetime.now(timezone.utc).isoformat(),
-        },
-        sort_keys=True,
-    )
+    payload = json.dumps(data, sort_keys=True)
     conn.execute(
         "INSERT INTO ledger (title_code, payload, prev_hash, record_hash) VALUES (%s, %s, %s, %s)",
         (code, payload, prev_hash, sha(prev_hash + payload)),
     )
+
+
+def add_ledger_record(conn, code, wkt, area):
+    """A registration. Each ledger record holds the fingerprint of the one before it."""
+    _append_ledger(conn, code, {
+        "title_code": code,
+        "wkt": wkt,
+        "area_m2": round(area, 2),
+        "time": datetime.now(timezone.utc).isoformat(),
+    })
+
+
+def add_removal_record(conn, code, reason):
+    """
+    A removal. The ledger is never edited or shortened: when a plot is taken out
+    (for example synthetic data being replaced), a new record SAYS so, with the reason.
+    """
+    _append_ledger(conn, code, {
+        "title_code": code,
+        "action": "removed",
+        "reason": reason,
+        "time": datetime.now(timezone.utc).isoformat(),
+    })
 
 
 def read_gps(source):
@@ -191,13 +300,24 @@ def read_gps(source):
         return None
 
 
+def clean_contact(phone, email):
+    phone = (phone or "").strip()
+    email = (email or "").strip() or None
+    if phone and not re.fullmatch(r"\+?[0-9 ()-]{7,20}", phone):
+        raise HTTPException(status_code=400, detail="Please enter a valid phone number, like 0803 123 4567.")
+    if email and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        raise HTTPException(status_code=400, detail="Please enter a valid email address, or leave it empty.")
+    return phone or None, email
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# ---------- Pages and reading data ----------
+# ---------- Pages ----------
+def page(name):
+    return FileResponse(name)
+
+
 @app.get("/")
 def home():
-    return FileResponse("index.html")
+    return page("index.html")
 
 
 @app.get("/health")
@@ -208,18 +328,47 @@ def health():
 
 @app.get("/about")
 def about_page():
-    return FileResponse("about.html")
+    return page("about.html")
 
 
 @app.get("/how-it-works")
 def how_it_works_page():
-    return FileResponse("how-it-works.html")
+    return page("how-it-works.html")
+
 
 @app.get("/architecture")
 def architecture_page():
-    return FileResponse("architecture.html")
+    return page("architecture.html")
 
 
+@app.get("/registry")
+def registry_page():
+    return page("registry.html")
+
+
+@app.get("/report")
+@app.get("/report/{title_code}")
+def report_page(title_code: str = ""):
+    return page("report.html")
+
+
+@app.get("/payments")
+def payments_page():
+    return page("payments.html")
+
+
+@app.get("/receipt")
+@app.get("/receipt/{receipt_no}")
+def receipt_page(receipt_no: str = ""):
+    return page("receipt.html")
+
+
+@app.get("/register-plot")
+def register_plot_page():
+    return page("register-plot.html")
+
+
+# ---------- Map data ----------
 @app.get("/regions")
 def get_regions():
     with psycopg.connect(DB) as conn:
@@ -289,7 +438,7 @@ def plot_coordinates(title_code: str, crs: str = "wgs84"):
     ring = json.loads(row[5])["coordinates"][0][:-1]  # drop the repeated closing corner
     if crs == "wgs84":
         corners = [[round(y, 6), round(x, 6)] for x, y in ring]  # latitude, longitude
-    else:  
+    else:
         corners = [[round(x, 2), round(y, 2)] for x, y in ring]  # easting, northing
     return {
         "title_code": row[0],
@@ -303,22 +452,11 @@ def plot_coordinates(title_code: str, crs: str = "wgs84"):
         "crs": crs,
         "corners": corners,
     }
-    
-    
-    
-@app.get("/registry")
-def registry_page():
-    return FileResponse("registry.html")
-
-
-@app.get("/report")
-@app.get("/report/{title_code}")
-def report_page(title_code: str = ""):
-    return FileResponse("report.html")
 
 
 @app.get("/api/registry")
 def api_registry():
+    # public list: no owner phone numbers or emails here
     with psycopg.connect(DB) as conn:
         rows = conn.execute(
             """
@@ -349,7 +487,8 @@ def plot_report(title_code: str):
             SELECT p.title_code, p.label, p.source, p.cluster_type, r.name, p.area_m2,
                    ST_Perimeter(p.geom::geography),
                    ST_Y(ST_Centroid(p.geom)), ST_X(ST_Centroid(p.geom)),
-                   ST_AsGeoJSON(p.geom, 8), p.registered_at
+                   ST_AsGeoJSON(p.geom, 8), p.registered_at,
+                   p.owner_name, p.owner_type
             FROM plots p JOIN regions r ON r.code = p.region_code
             WHERE p.title_code = %s AND p.geom IS NOT NULL
             """,
@@ -403,24 +542,29 @@ def plot_report(title_code: str):
         "corners_wgs": [[round(y, 6), round(x, 6)] for x, y in ring_wgs],  # latitude, longitude
         "corners_utm": [[round(x, 2), round(y, 2)] for x, y in ring_utm],  # easting, northing
         "registered_at": row[10].isoformat() if row[10] else None,
+        "owner_name": row[11],  # name only; phone and email are never shown publicly
+        "owner_type": row[12],
         "photos": [{"id": p[0], "distance_m": p[1]} for p in photos],
         "ledger": ledger,
         "anchor": anchor,
     }
+
 
 # ---------- Check and register ----------
 @app.post("/check")
 def check_overlap(plot: NewPlot):
     with psycopg.connect(DB) as conn:
         info = prepare(conn, plot)
-        rows = find_overlaps(conn, info["wkt"], info["utm"])
-    if rows:
+        hits = find_overlaps(conn, info["wkt"], info["utm"])
+    base = {"shape": info["shape"], "area_m2": round(info["area"], 2)}
+    if hits:
         return {
             "status": "RED FLAG",
-            "shape": info["shape"],
-            "overlaps": [{"title_code": r[0], "overlap_m2": round(r[1], 2)} for r in rows],
+            **base,
+            "overlaps": hits,
+            "total_overlap_m2": round(sum(h["overlap_m2"] for h in hits), 2),
         }
-    return {"status": "0 OVERLAP", "shape": info["shape"]}
+    return {"status": "0 OVERLAP", **base}
 
 
 @app.post("/register", dependencies=[Depends(require_admin)])
@@ -540,6 +684,11 @@ def get_photo(photo_id: int):
 # ---------- Ledger ----------
 @app.get("/ledger/verify")
 def verify_ledger():
+    """
+    1. Every record must link to the one before it, and must not have been edited.
+    2. For each title code, its LATEST record must match the registry today:
+       a registration must match the plot's shape; a removal means the plot must be gone.
+    """
     def broken(record_id, reason):
         return {"valid": False, "broken_at": record_id, "reason": reason}
 
@@ -549,28 +698,39 @@ def verify_ledger():
         ).fetchall()
 
         prev = "GENESIS"
+        latest = {}
         for rec_id, code, payload, prev_hash, record_hash in rows:
             if prev_hash != prev:
                 return broken(rec_id, "the chain link does not match")
             if sha(prev_hash + payload) != record_hash:
                 return broken(rec_id, "this record was edited")
-            current = conn.execute(
-                "SELECT ST_AsText(geom) FROM plots WHERE title_code = %s", (code,)
-            ).fetchone()
-            if current is None:
-                return broken(rec_id, "the plot " + code + " was deleted")
-            if current[0] != json.loads(payload)["wkt"]:
-                return broken(rec_id, "the shape of " + code + " was changed")
+            latest[code] = (rec_id, json.loads(payload))
             prev = record_hash
 
-        not_in_ledger = conn.execute(
-            """
-            SELECT COUNT(*) FROM plots
-            WHERE status = 'registered' AND title_code NOT IN (SELECT title_code FROM ledger)
-            """
-        ).fetchone()[0]
+        shapes = dict(conn.execute(
+            "SELECT title_code, ST_AsText(geom) FROM plots WHERE geom IS NOT NULL"
+        ).fetchall())
+        registered = {r[0] for r in conn.execute("SELECT title_code FROM plots WHERE status = 'registered'").fetchall()}
 
-    return {"valid": True, "records": len(rows), "not_in_ledger": not_in_ledger}
+    removed = 0
+    for code, (rec_id, data) in sorted(latest.items(), key=lambda kv: kv[1][0]):
+        if data.get("action") == "removed":
+            removed += 1
+            if code in shapes:
+                return broken(rec_id, code + " is marked removed in the ledger but is still in the registry")
+            continue
+        if code not in shapes:
+            return broken(rec_id, "the plot " + code + " was deleted without a removal record")
+        if shapes[code] != data["wkt"]:
+            return broken(rec_id, "the shape of " + code + " was changed")
+
+    in_ledger = {c for c, (_, d) in latest.items() if d.get("action") != "removed"}
+    return {
+        "valid": True,
+        "records": len(rows),
+        "removed": removed,
+        "not_in_ledger": len(registered - in_ledger),
+    }
 
 
 # ---------- Polygon anchoring ----------
@@ -665,31 +825,12 @@ def list_anchors():
                 "anchored_at": at.isoformat(),
                 "matches_ledger": current_hash == anchored_hash,
                 "matches_chain": on_chain,
-            } 
-        ) 
-        
+            }
+        )
     return {"anchors": out}
 
 
-
-# =====================================================================
-# PHASE D: paste ALL of this at the very bottom of main.py.
-#
-
-
-# ---------- Pages ----------
-@app.get("/payments")
-def payments_page():
-    return FileResponse("payments.html")
-
-
-@app.get("/receipt")
-@app.get("/receipt/{receipt_no}")
-def receipt_page(receipt_no: str = ""):
-    return FileResponse("receipt.html")
-
-
-# ---------- Helpers ----------
+# ---------- Token payments, login codes and receipts ----------
 CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"  # no 0, O, 1, I or L, so codes are easy to read out
 _fails = defaultdict(deque)  # wrong tries, kept in memory (resets when the server restarts)
 
@@ -711,11 +852,6 @@ def check_limit(request: Request, limit=8, window=600):
 
 def record_fail(request: Request):
     _fails[client_ip(request)].append(time.time())
-
-
-def is_admin(key):
-    expected = os.getenv("ADMIN_KEY", "")
-    return bool(expected and key and secrets.compare_digest(key.encode(), expected.encode()))
 
 
 def normalise_code(code):
@@ -747,34 +883,20 @@ def issue_login_code(conn, payment_id, client_id, days, plots_allowed, plots_use
     return code, expires
 
 
-class PaymentIn(BaseModel):
-    name: str = Field(min_length=2, max_length=120)
-    client_type: Literal["individual", "corporate"]
-    email: str | None = Field(default=None, max_length=120)
-    phone: str | None = Field(default=None, max_length=40)
-    amount_ngn: float = Field(gt=0, lt=1_000_000_000)
-    method: Literal["Bank transfer", "Card or POS", "Cash", "Other"]
-    reference: str = Field(min_length=3, max_length=80)
-    valid_days: int = Field(default=30, ge=1, le=365)
-    plots_allowed: int | None = Field(default=None, ge=1, le=1000)
+@app.get("/api/prices")
+def prices():
+    """Public price list for the Token payment page."""
+    return {"plans": PLANS, "provisional": True, "currency": "NGN"}
 
 
-class ReissueIn(BaseModel):
-    valid_days: int = Field(default=30, ge=1, le=365)
-
-
-class LoginIn(BaseModel):
-    code: str = Field(min_length=6, max_length=40)
-
-
-# ---------- Admin: record a payment and issue a login code ----------
 @app.post("/api/admin/payments", dependencies=[Depends(require_admin)])
 def record_payment(p: PaymentIn):
+    phone, email = clean_contact(p.phone, p.email)
     try:
         with psycopg.connect(DB) as conn:
             client_id = conn.execute(
                 "INSERT INTO clients (name, client_type, email, phone) VALUES (%s, %s, %s, %s) RETURNING id",
-                (p.name.strip(), p.client_type, (p.email or "").strip() or None, (p.phone or "").strip() or None),
+                (p.name.strip(), p.client_type, email, phone),
             ).fetchone()[0]
             n = conn.execute("SELECT nextval('receipt_seq')").fetchone()[0]
             receipt_no = f"SABA-RCPT-{datetime.now(timezone.utc).year}-{n:04d}"
@@ -867,9 +989,9 @@ def reissue_code(receipt_no: str, body: ReissueIn | None = None):
     return {"code": code, "expires_at": expires.isoformat()}
 
 
-# ---------- Receipts: public, but you need the verification code ----------
 @app.get("/api/receipts/{receipt_no}")
 def get_receipt(receipt_no: str, request: Request, v: str = "", x_admin_key: str | None = Header(default=None)):
+    """Public, but you need the verification code printed on the receipt."""
     admin = is_admin(x_admin_key)
     if not admin:
         check_limit(request)
@@ -877,8 +999,12 @@ def get_receipt(receipt_no: str, request: Request, v: str = "", x_admin_key: str
         row = conn.execute(
             """
             SELECT p.receipt_no, p.verify_code, p.amount_ngn, p.method, p.reference, p.status, p.created_at,
-                   c.name, c.client_type
+                   c.name, c.client_type, lc.expires_at, lc.plots_allowed
             FROM payments p JOIN clients c ON c.id = p.client_id
+            LEFT JOIN LATERAL (
+                SELECT expires_at, plots_allowed FROM login_codes
+                WHERE payment_id = p.id ORDER BY id DESC LIMIT 1
+            ) lc ON TRUE
             WHERE p.receipt_no = %s
             """,
             (receipt_no.strip().upper(),),
@@ -888,11 +1014,15 @@ def get_receipt(receipt_no: str, request: Request, v: str = "", x_admin_key: str
         if not admin:
             record_fail(request)
         raise HTTPException(status_code=404, detail="Receipt not found, or the verification code is wrong.")
+    plan = PLANS.get(row[8], {})
     return {
-        "receipt_no": row[0], "verify_code": row[1] if admin else None,
+        "receipt_no": row[0], "verify_code": row[1],
         "valid": row[5] == "confirmed", "status": row[5],
         "amount_ngn": float(row[2]), "method": row[3], "reference": row[4],
         "issued_at": row[6].isoformat(), "name": row[7], "client_type": row[8],
+        "plan": (plan.get("label", "") + ", " + plan.get("per", "")).strip(", "),
+        "code_expires": row[9].isoformat() if row[9] else None,
+        "plots_allowed": row[10],
     }
 
 
@@ -903,7 +1033,7 @@ def client_login(body: LoginIn, request: Request):
     with psycopg.connect(DB) as conn:
         row = conn.execute(
             """
-            SELECT lc.id, lc.expires_at, lc.plots_allowed, lc.plots_used, c.name, c.client_type
+            SELECT lc.id, lc.expires_at, lc.plots_allowed, lc.plots_used, c.name, c.client_type, c.phone, c.email
             FROM login_codes lc
             JOIN clients c ON c.id = lc.client_id
             JOIN payments p ON p.id = lc.payment_id
@@ -924,17 +1054,18 @@ def client_login(body: LoginIn, request: Request):
     return {
         "token": token, "session_ends": ends.isoformat(), "name": row[4], "client_type": row[5],
         "plots_allowed": row[2], "plots_used": row[3], "code_expires": row[1].isoformat(),
+        "phone": row[6], "email": row[7],
     }
 
 
 def require_client(x_client_token: str | None = Header(default=None)):
-    """Used by the Register New Plot page in the next phase."""
     if not x_client_token:
         raise HTTPException(status_code=401, detail="Please log in with your login code.")
     with psycopg.connect(DB) as conn:
         row = conn.execute(
             """
-            SELECT lc.id, lc.client_id, lc.plots_allowed, lc.plots_used, c.name, c.client_type, lc.expires_at
+            SELECT lc.id, lc.client_id, lc.plots_allowed, lc.plots_used, c.name, c.client_type, lc.expires_at,
+                   c.phone, c.email
             FROM client_sessions s
             JOIN login_codes lc ON lc.id = s.code_id
             JOIN clients c ON c.id = lc.client_id
@@ -947,7 +1078,8 @@ def require_client(x_client_token: str | None = Header(default=None)):
     if not row:
         raise HTTPException(status_code=401, detail="Your session has ended. Please log in again.")
     return {"code_id": row[0], "client_id": row[1], "plots_allowed": row[2], "plots_used": row[3],
-            "name": row[4], "client_type": row[5], "code_expires": row[6].isoformat()}
+            "name": row[4], "client_type": row[5], "code_expires": row[6].isoformat(),
+            "phone": row[7], "email": row[8]}
 
 
 @app.get("/api/client/me")
@@ -955,19 +1087,12 @@ def client_me(client=Depends(require_client)):
     return client
 
 
-
-# =====================================================================
-# PHASE E: paste ALL of this at the very bottom of main.py
-# (below the Phase D code). No new imports are needed.
-# =====================================================================
-
-@app.get("/register-plot")
-def register_plot_page():
-    return FileResponse("register-plot.html")
-
-
+# ---------- Register New Plot (clients) ----------
 @app.post("/client/register")
-def client_register(plot: NewPlot, client=Depends(require_client)):
+def client_register(plot: ClientPlot, client=Depends(require_client)):
+    phone, email = clean_contact(plot.owner_phone, plot.owner_email)
+    if not phone:
+        raise HTTPException(status_code=400, detail="Please enter the owner's phone number.")
     with psycopg.connect(DB) as conn:
         # lock so two registrations can't overlap each other at the same moment
         conn.execute("LOCK TABLE plots IN SHARE ROW EXCLUSIVE MODE")
@@ -983,7 +1108,7 @@ def client_register(plot: NewPlot, client=Depends(require_client)):
         if limits[1] is not None and limits[0] >= limits[1]:
             raise HTTPException(
                 status_code=403,
-                detail="This login code has no plots left. Please ask the administrator for a new one.",
+                detail="This login code has no plots left. Please make a new token payment to get another code.",
             )
 
         info = prepare(conn, plot)
@@ -991,25 +1116,27 @@ def client_register(plot: NewPlot, client=Depends(require_client)):
             raise HTTPException(status_code=409, detail="This plot overlaps a registered plot. Not saved.")
 
         code, area, wkt = conn.execute(
-            """ 
-            INSERT INTO plots (title_code, region_code, source, status, geom, area_m2, client_id)
-            VALUES (%s, %s, 'field', 'registered', ST_GeomFromText(%s, 4326), %s, %s)
+            """
+            INSERT INTO plots (title_code, region_code, source, status, geom, area_m2, client_id,
+                               owner_type, owner_name, owner_phone, owner_email)
+            VALUES (%s, %s, 'field', 'registered', ST_GeomFromText(%s, 4326), %s, %s, %s, %s, %s, %s)
             RETURNING title_code, area_m2, ST_AsText(geom)
             """,
-            (next_code(conn, plot.region, "CLT"), plot.region, info["wkt"], info["area"], client["client_id"]),
+            (next_code(conn, plot.region, "CLT"), plot.region, info["wkt"], info["area"], client["client_id"],
+             plot.owner_type, plot.owner_name.strip(), phone, email),
         ).fetchone()
         conn.execute("UPDATE login_codes SET plots_used = plots_used + 1 WHERE id = %s", (client["code_id"],))
         add_ledger_record(conn, code, wkt, area)
 
     return {"status": "REGISTERED", "title_code": code, "area_m2": round(area, 2), "region": plot.region}
 
- 
+
 @app.get("/api/client/plots")
 def client_plots(client=Depends(require_client)):
     with psycopg.connect(DB) as conn:
         rows = conn.execute(
             """
-            SELECT p.title_code, r.name, p.area_m2, p.registered_at
+            SELECT p.title_code, r.name, p.area_m2, p.registered_at, p.owner_name, p.owner_type
             FROM plots p JOIN regions r ON r.code = p.region_code
             WHERE p.client_id = %s ORDER BY p.id DESC
             """,
@@ -1017,6 +1144,7 @@ def client_plots(client=Depends(require_client)):
         ).fetchall()
     return [
         {"code": r[0], "region": r[1], "area_m2": r[2],
-         "registered_at": r[3].isoformat() if r[3] else None}
+         "registered_at": r[3].isoformat() if r[3] else None,
+         "owner_name": r[4], "owner_type": r[5]}
         for r in rows
-    ]
+    ] 

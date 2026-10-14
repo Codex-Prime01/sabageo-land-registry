@@ -16,15 +16,17 @@ PostgreSQL + PostGIS (psycopg 3) · FastAPI, single `main.py` (docs endpoints of
 
 ## Files
 - `main.py`: the whole backend, fully merged (Phases C, D, E included).
-- `schema.sql`: base tables for a fresh DB. `add_payments.sql`: payments/clients/login codes/sessions, `plots.client_id`, region `OTH`. Safe to re-run. **Fresh DB (e.g. Neon): run both, in that order.** (The old chat's `schema_full.sql`, `phase_d.sql`, `phase_e.sql` don't exist here.)
-- `ingest_cities.py`: 55 synthetic plots (11 cities × 5). Expect `55 added`.
-- `index.html` + `static/app.js` + `static/style.css`: the map page. `app.js` loads last as a classic script (not a module); inline `onclick`s need its globals. Don't rename the IDs it uses.
+- **Fresh DB (e.g. Neon): run `schema_full.sql` only.** Existing DB: `add_payments.sql` (payments, clients, login codes, sessions, `plots.client_id`, region OTH) then `phase_g.sql` (owner columns). Both are safe to re-run. `schema.sql` is the old base file.
+- `ingest_cities.py`: 55 synthetic plots (11 cities × 5), all **18 m × 30 m** (the senior's standard plot). Expect `55 added`.
+- `reset_dataset.py`: **dry run by default**; `--go` removes every synthetic plot (writing ledger "removed" records) and reloads the 55. Real field/client plots are kept unless named with `--remove CODE`.
+- `index.html` + `static/app.js` + `static/style.css`: the map page. `app.js` (Phase G rewrite) loads last as a classic script (not a module); inline `onclick`s need its globals. Don't rename the IDs it uses. Its map menu is built from `MENU` (groups) in `buildMenu()`.
 - Content pages: `registry`, `report`, `payments`, `receipt`, `register-plot`, `about`, `how-it-works`, `architecture` (`.html`). Each has its own inline CSS, plus shared `static/site.css` and `static/site.js`.
-- **Page links live in one list: `PAGES` at the top of `static/site.js`** (top bar, ☰ drawer, footer). New page → add it there. The map page menu is built in `app.js` (grouping block at the end).
+- **Page links live in one list: `PAGES` at the top of `static/site.js`** (top bar, ☰ drawer, footer). New page → add it there AND to `MENU` in `app.js`. The 8 pages hard-code a fallback `<nav>` that site.js replaces.
 
 ## Data model
 - `regions`: NAUB (pilot, sorts first), LAG, ABJ, GMB, KAN, MDG, BIU, IBD, PHC, BEN, OWR, ILR, TST (test), OTH (clients' other locations).
-- `plots`: title_code, region_code, source field|synthetic, status registered|reserved, label, cluster_type DISJOINT_NODE|ADJOINING_CLUSTER, ref_lat/lon, geom Polygon 4326 (GIST), area_m2, client_id.
+- `plots`: title_code, region_code, source field|synthetic, status registered|reserved, label, cluster_type DISJOINT_NODE|ADJOINING_CLUSTER, ref_lat/lon, geom Polygon 4326 (GIST), area_m2, client_id, owner_type/name/phone/email. **Owner phone and email are private: never return them from public endpoints.**
+- Ledger payloads: a registration `{title_code, wkt, area_m2, time}` or a removal `{title_code, action: "removed", reason, time}`. Never edit or delete ledger rows; append a removal instead.
 - `ledger`, `photos`, `anchors`; payments side: `clients`, `payments`, `login_codes`, `client_sessions`, `receipt_seq` (TIMESTAMPTZ, because the code compares with UTC-aware datetimes).
 - Title codes: pilot `SABA-NAUB-RES-001..005` (reserved up front, filled in order) · synthetic `SABA-<REGION>-SYN-NNN` · client `SABA-<REGION>-CLT-NNN`.
 
@@ -34,11 +36,13 @@ Admin: header `X-Admin-Key` (key kept in `sessionStorage`, sent via `adminHeader
 ## Decisions (don't undo without asking)
 - **Store WGS84, measure in metres in local UTM** (`32600 + int((lon+180)//6) + 1`). Input: WGS84 or UTM 31/32/33.
 - **Biu and Maiduguri are UTM 33N**, not 32N as the senior's doc says. Don't "fix" it back.
-- **Touching is not overlap**: only intersection > 0.01 m² counts.
+- **Touching is not overlap**: intersection must be > 0.01 m² AND survive a negative buffer of half `OVERLAP_TOLERANCE_CM` (default 10 cm), so rounding slivers don't flag. Tested: 220 self re-checks across 4 CRS, 0 neighbour hits.
+- **Overlap location is shown, not a badge**: `/check` returns per hit the zone GeoJSON, m², % of that plot and centre; the map shades the zone with a label and a Show button. Perey asked to remove the big tick/X map badge, so don't add it back.
+- Token prices (provisional, pending the review committee): ₦15,000 individual per verification (1 plot, 30 days), ₦200,000 corporate per month (no limit). Set via `PRICE_INDIVIDUAL` / `PRICE_CORPORATE` in `.env`; served at `/api/prices`.
 - Server re-checks overlap at registration; never trust the browser check.
 - Nigeria bounding-box sanity check catches swapped lat/lon or wrong zone.
 - Synthetic data is labelled synthetic; the 5 real NAUB pilot slots always come first.
-- Cluster type and lat/long show in lists/registry only, **not on the map**. The dataset has points, not shapes, so stand-in rectangles are generated (DISJOINT sizes `[(18,28),(20,30),(24,32),(15,30),(22,26)]`; ADJOINING widths `[15,18,15,20,15]`, depth 30).
+- Cluster type and lat/long show in lists/registry only, **not on the map**. The dataset has points, not shapes, so stand-in 18 × 30 m rectangles are generated (18 m east-west). DISJOINT (LAG, ABJ, KAN, GMB, MDG, BIU): centred on each point. ADJOINING (IBD, PHC, BEN, OWR, ILR): a touching row anchored at Plot 1. There is no other "six zones" dataset.
 - Anchoring = zero-value self-tx with the hash in data, from a **test-only wallet**. Mainnet is a later decision.
 - Architecture page labels things Built / Test / Planned. Keep it honest.
 
@@ -57,7 +61,7 @@ Admin: header `X-Admin-Key` (key kept in `sessionStorage`, sent via `adminHeader
 ```
 venv\Scripts\activate
 pip install -r requirements.txt
-# fresh DB: run schema.sql, then add_payments.sql; copy .env.example to .env
+# fresh DB: run schema_full.sql; copy .env.example to .env
 python ingest_cities.py      # 55 added
 uvicorn main:app --reload    # http://127.0.0.1:8000
 ```
@@ -71,6 +75,7 @@ uvicorn main:app --reload    # http://127.0.0.1:8000
 5. Phone width: bottom sheet and menus work.
 
 ## Planned next
+0. **Live site (Neon) still has the old Maiduguri/Biu leftovers.** Run `phase_g.sql` there, then `reset_dataset.py` dry run against Neon, review, then `--go` (with Perey's OK).
 1. Split `main.py` into modules + add tests.
 2. Client beacon-photo upload (admin-only today).
 3. Real payment gateway (amount, company, client details not yet decided).
@@ -79,4 +84,5 @@ uvicorn main:app --reload    # http://127.0.0.1:8000
 6. Smart contract for title records; mainnet vs testnet.
 7. README screenshots.
 
-**Open questions for the senior:** stand-in plot sizes, adjoining layout, payment amount/company, client details to collect, About us wording, NAUB datum/zone.
+**Answered by the senior (12 Oct):** receipt design (SABAGeo letterhead, code like an MTN card), token-first flow, provisional prices, printable report (shape, perimeter, area, map), Register New Plot fields, 18 × 30 plots, "use the method that gives the most suitable results".
+**Still open:** NAUB datum/zone, payment gateway company, SABAGeo contact details for /payments, whether the public report should show the owner name (currently yes, name only).
