@@ -2,12 +2,12 @@
 import logging
 
 import psycopg
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from sabageo import chain, config
 from sabageo.db import connect
 from sabageo.routes.ledger import chain_error, wallet_key
-from sabageo.security import require_admin
+from sabageo.security import require_admin, throttle
 
 router = APIRouter()
 log = logging.getLogger("sabageo")
@@ -67,9 +67,10 @@ def sync_titles():
 
 
 @router.get("/api/verify/{title_code}/chain")
-def title_on_chain(title_code: str):
+def title_on_chain(title_code: str, request: Request):
     """Ask the contract itself (live) whether it holds this title's latest ledger fingerprint."""
     address = need_contract()
+    throttle(request, "chain_read", limit=30, window=600)  # each call reaches the blockchain network
     code = title_code.strip().upper()
     with connect() as conn:
         rec = conn.execute(

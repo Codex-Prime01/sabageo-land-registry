@@ -44,6 +44,20 @@ def record_fail(request: Request):
     _fails[client_ip(request)].append(time.time())
 
 
+# ---------- Busy routes: a simple per-visitor limit (in memory, like the one above) ----------
+_hits = defaultdict(deque)
+
+
+def throttle(request: Request, bucket, limit, window):
+    """Allow `limit` calls per `window` seconds per visitor for this bucket, then answer 429."""
+    q, now = _hits[(bucket, client_ip(request))], time.time()
+    while q and now - q[0] > window:
+        q.popleft()
+    if len(q) >= limit:
+        raise HTTPException(status_code=429, detail="Too many requests. Please wait a few minutes and try again.")
+    q.append(now)
+
+
 # ---------- Client sessions ----------
 def require_client(x_client_token: str | None = Header(default=None)):
     if not x_client_token:

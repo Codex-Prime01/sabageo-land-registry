@@ -31,7 +31,7 @@ from sabageo.codes import create_payment, issue_login_code
 from sabageo.db import connect
 from sabageo.helpers import clean_contact
 from sabageo.routes.verify import site_url
-from sabageo.security import check_limit, record_fail
+from sabageo.security import check_limit, record_fail, throttle
 
 router = APIRouter()
 log = logging.getLogger("sabageo")
@@ -67,6 +67,7 @@ def pay_config():
 
 @router.post("/api/pay/start")
 def pay_start(body: PayStart, request: Request):
+    throttle(request, "pay_start", limit=10, window=600)
     key = config.paystack_key()
     if not key:
         raise HTTPException(status_code=503, detail="Online payment is not set up yet. Please pay SABAGeo directly.")

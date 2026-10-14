@@ -189,3 +189,10 @@ def test_price_comes_from_server_not_browser(client, fake, db):
 def test_bad_email_is_refused(client, fake):
     r = client.post("/api/pay/start", json={"plan": "individual", "name": "Ada", "email": "not-an-email"})
     assert r.status_code == 400
+
+
+def test_start_is_rate_limited(client, fake):
+    for _ in range(10):
+        start(client)
+    r = client.post("/api/pay/start", json={"plan": "individual", "name": "Ada", "email": "ada@example.com"})
+    assert r.status_code == 429

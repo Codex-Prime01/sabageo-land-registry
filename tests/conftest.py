@@ -82,9 +82,10 @@ def clean_db(test_database):
 
 def _clear_rate_limit():
     for mod in (main, sys.modules.get("sabageo.security")):
-        fails = getattr(mod, "_fails", None) if mod else None
-        if fails is not None:
-            fails.clear()
+        for name in ("_fails", "_hits"):
+            store = getattr(mod, name, None) if mod else None
+            if store is not None:
+                store.clear()
 
 
 @pytest.fixture

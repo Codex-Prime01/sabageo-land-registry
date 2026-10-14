@@ -1,9 +1,9 @@
 # SABAGeo Land Registry: project notes for Claude
 
-Handoff from the earlier claude.ai chat ("Building a web GIS land verification system"), checked against this repo on 14 Oct 2026. **This repo is the source of truth.** The old chat's file copies are out of date.
+Handoff from the earlier claude.ai chat ("Building a web GIS land verification system"), checked against this repo on 14 Oct 2026 and updated after Phase H. **This repo is the source of truth.** The old chat's file copies are out of date.
 
 ## What it is
-Web-GIS land overlap checker with a tamper-evident record. Enter plot corners → **RED FLAG** (overlapping plots + overlap m²) or **0 OVERLAP** (green tick) → register and get a title code. Registered plots go into a SHA-256 hash-chained ledger; the latest hash can be anchored on **Polygon Amoy testnet**. Beacon photos: GPS EXIF is compared with the plot.
+Web-GIS land overlap checker with a tamper-evident record. Enter plot corners → **RED FLAG** (overlapping plots + overlap m², zone shaded) or **0 OVERLAP** → register and get a title code. Registered plots go into a SHA-256 hash-chained ledger; the latest hash can be anchored on **Polygon Amoy testnet**, and each title's latest record can be written to the **TitleRegistry** smart contract. Parcel reports carry a QR code to a public verify page. Beacon photos: GPS EXIF is compared with the plot.
 
 Built for a senior surveying student (Oga Alabi) at NAUB, Borno State, as research (TETFund, decentralized cadastre + blockchain). Company name on the site: **SABAGeo Technology Limited**.
 
@@ -12,77 +12,90 @@ Built for a senior surveying student (Oga Alabi) at NAUB, Borno State, as resear
 - Audience is students and a non-technical senior: **plain English everywhere** in the UI.
 
 ## Stack
-PostgreSQL + PostGIS (psycopg 3) · FastAPI, single `main.py` (docs endpoints off) · plain HTML/CSS/JS + Leaflet (Esri satellite, OSM) · fonts Fraunces / Public Sans / IBM Plex Mono · dark/light theme · web3.py → Polygon Amoy · Pillow for EXIF, photos as BYTEA · hosted on Render (free, UptimeRobot pings `/health`) + Neon.
+PostgreSQL + PostGIS (psycopg 3) · FastAPI (docs endpoints off) · plain HTML/CSS/JS + Leaflet (Esri satellite, OSM) · fonts Fraunces / Public Sans / IBM Plex Mono · dark/light theme · web3.py → Polygon Amoy · Pillow for EXIF, photos as BYTEA · segno for QR SVGs · Paystack (test mode) via requests · hosted on Render (free, UptimeRobot pings `/health`) + Neon.
 
-## Files
-- `main.py`: the whole backend, fully merged (Phases C, D, E included).
-- **Fresh DB (e.g. Neon): run `schema_full.sql` only.** Existing DB: `add_payments.sql` (payments, clients, login codes, sessions, `plots.client_id`, region OTH) then `phase_g.sql` (owner columns). Both are safe to re-run. `schema.sql` is the old base file.
-- `ingest_cities.py`: 55 synthetic plots (11 cities × 5), all **18 m × 30 m** (the senior's standard plot). Expect `55 added`.
-- `reset_dataset.py`: **dry run by default**; `--go` removes every synthetic plot (writing ledger "removed" records) and reloads the 55. Real field/client plots are kept unless named with `--remove CODE`.
-- `index.html` + `static/app.js` + `static/style.css`: the map page. `app.js` (Phase G rewrite) loads last as a classic script (not a module); inline `onclick`s need its globals. Don't rename the IDs it uses. Its map menu is built from `MENU` (groups) in `buildMenu()`.
-- Content pages: `registry`, `report`, `payments`, `receipt`, `register-plot`, `about`, `how-it-works`, `architecture` (`.html`). Each has its own inline CSS, plus shared `static/site.css` and `static/site.js`.
-- **Page links live in one list: `PAGES` at the top of `static/site.js`** (top bar, ☰ drawer, footer). New page → add it there AND to `MENU` in `app.js`. The 8 pages hard-code a fallback `<nav>` that site.js replaces.
+## Code layout
+- `main.py`: thin entry. Builds the app, site-password middleware, includes the routers. **Re-exports `app`, `DB`, `find_overlaps`, `next_code`, `add_ledger_record`, `add_removal_record`** because `ingest_cities.py`, `reset_dataset.py` and the tests use `main.<name>`. Keep those.
+- `sabageo/`: `config.py` (env, CRS_CHOICES, GEOGRAPHIC, PLANS, `paystack_key()`, PUBLIC_URL, RPC) · `db.py` (`connect()` reads `config.DB` at call time, so tests can repoint it) · `security.py` (admin key, client sessions, `check_limit`/`record_fail`, `throttle`) · `geo.py` · `ledger.py` (`verify_chain`) · `photos.py` (`read_upload`, `save_photo`, shared by admin and client) · `codes.py` (login codes, `create_payment`, shared by admin form and Paystack) · `chain.py` (TitleRegistry helpers, `onchain_title`).
+- `sabageo/routes/`: pages, plots (map data, `/check` + check_log, register, admin photos), ledger (verify, anchor), chain (sync-titles, live chain check), payments, paystack, clients (login, register, client photos), verify (QR page + API), admin (dashboard).
+- `contracts/TitleRegistry.sol` + compiled `TitleRegistry.json` (the server only reads the JSON). `tools/compile_contract.py` (dev, py-solc-x), `tools/deploy_contract.py` (refuses any chain but Amoy 80002).
+- Pages: `index.html` (map) + `static/app.js` + `static/style.css`; content pages `registry report payments receipt register-plot verify field-kit admin about how-it-works architecture` (.html), each with inline CSS + shared `static/site.css` / `static/site.js`. `static/csv.js` = shared CSV corner reader (map + Register New Plot).
+- **Page links live in `PAGES` in `static/site.js`** (top bar, ☰ drawer, footer) **and `MENU` in `static/app.js`** (map drawer). New page → add to both.
+- DB: **fresh DB → `schema_full.sql` only** (includes everything through Phase H). Existing DB → `add_payments.sql`, `phase_g.sql`, `phase_h.sql` in order; all additive and safe to re-run.
+- Data scripts: `ingest_cities.py` (55 synthetic 18 × 30 m plots), `reset_dataset.py` (dry run unless `--go`).
+
+## Tests
+`pip install -r requirements-dev.txt` then `python -m pytest` (103+ tests). `tests/conftest.py` builds a separate local **`sabageo_test`** DB from `schema_full.sql` + `phase_h.sql`, truncates before each test, refuses non-local DB hosts, and **unsets PAYSTACK/TITLE_CONTRACT/ANCHOR_PRIVATE_KEY/PUBLIC_URL** so tests never hit real services. Paystack and the chain are faked in tests. `test_chain.py` in the repo root is a network script, not a test (pytest.ini limits to `tests/`).
 
 ## Data model
 - `regions`: NAUB (pilot, sorts first), LAG, ABJ, GMB, KAN, MDG, BIU, IBD, PHC, BEN, OWR, ILR, TST (test), OTH (clients' other locations).
-- `plots`: title_code, region_code, source field|synthetic, status registered|reserved, label, cluster_type DISJOINT_NODE|ADJOINING_CLUSTER, ref_lat/lon, geom Polygon 4326 (GIST), area_m2, client_id, owner_type/name/phone/email. **Owner phone and email are private: never return them from public endpoints.**
-- Ledger payloads: a registration `{title_code, wkt, area_m2, time}` or a removal `{title_code, action: "removed", reason, time}`. Never edit or delete ledger rows; append a removal instead.
-- `ledger`, `photos`, `anchors`; payments side: `clients`, `payments`, `login_codes`, `client_sessions`, `receipt_seq` (TIMESTAMPTZ, because the code compares with UTC-aware datetimes).
-- Title codes: pilot `SABA-NAUB-RES-001..005` (reserved up front, filled in order) · synthetic `SABA-<REGION>-SYN-NNN` · client `SABA-<REGION>-CLT-NNN`.
+- `plots`: title_code, region_code, source field|synthetic, status registered|reserved, label, cluster_type, ref_lat/lon, geom Polygon 4326 (GIST), area_m2, client_id, owner_type/name/phone/email. **Owner phone and email are private: only `/api/admin/overview` (admin) returns them.**
+- Ledger payloads: registration `{title_code, wkt, area_m2, time}` or removal `{title_code, action: "removed", reason, time}`. Never edit or delete ledger rows; append a removal.
+- `ledger`, `photos`, `anchors`; payments: `clients`, `payments`, `login_codes`, `client_sessions`, `receipt_seq` (TIMESTAMPTZ).
+- Phase H (`phase_h.sql`): `check_log` (one row per /check, no coordinates), `chain_titles` (latest ledger record per title that is on-chain), `pay_intents` (Paystack attempts; expected amount stored server-side), SRID **926333 = Minna / UTM 33N**.
+- **Every Phase H table is optional at runtime**: code catches `UndefinedTable` in a savepoint, so a DB without `phase_h.sql` keeps working with those features off.
+- Title codes: pilot `SABA-NAUB-RES-001..005` · synthetic `SABA-<REGION>-SYN-NNN` · client `SABA-<REGION>-CLT-NNN`.
 
-## Auth
-Admin: header `X-Admin-Key` (key kept in `sessionStorage`, sent via `adminHeaders()`). Client: login code `SABA-XXXX-XXXX-XXXX` (only its hash stored, shown once) → `X-Client-Token` session, 12 h max. Wrong tries: 8 per 10 min, in memory. Receipts: receipt number + verify code. Payments are **simulated**. Optional `SITE_PASSWORD` gate must keep `/health` exempt.
+## Auth and security
+- Admin: header `X-Admin-Key` (sessionStorage `adminKey`). Client: login code (hash only, shown once) → `X-Client-Token`, 12 h max (sessionStorage `clientToken`).
+- In-memory limits: wrong codes/receipts 8 per 10 min; `/api/pay/start` 10 per 10 min; live chain check 30 per 10 min.
+- Client photos: only on the client's own plot (404 otherwise, so codes can't be probed), max 5 per plot, row lock on the count.
+- Paystack: live key (`sk_live_`) refused unless `PAYSTACK_LIVE=1`; verify status + amount (vs pay_intents) + currency on Paystack's server; webhook needs HMAC-SHA512 signature; intent row `FOR UPDATE` so one intent = one payment; the login code is shown once (callback re-issues if the webhook recorded it first).
+- Chain: `connect_chain()` refuses any chain id but 80002. Contract writes are owner-only and idempotent (older/equal ledgerId skipped), so a resend after a crash is harmless.
+- Admin CSV export escapes formula-leading cells. All page JS escapes server data before innerHTML.
 
 ## Decisions (don't undo without asking)
-- **Store WGS84, measure in metres in local UTM** (`32600 + int((lon+180)//6) + 1`). Input: WGS84 or UTM 31/32/33.
-- **Biu and Maiduguri are UTM 33N**, not 32N as the senior's doc says. Don't "fix" it back.
-- **Touching is not overlap**: intersection must be > 0.01 m² AND survive a negative buffer of half `OVERLAP_TOLERANCE_CM` (default 10 cm), so rounding slivers don't flag. Tested: 220 self re-checks across 4 CRS, 0 neighbour hits.
-- **Overlap location is shown, not a badge**: `/check` returns per hit the zone GeoJSON, m², % of that plot and centre; the map shades the zone with a label and a Show button. Perey asked to remove the big tick/X map badge, so don't add it back.
-- Token prices (provisional, pending the review committee): ₦15,000 individual per verification (1 plot, 30 days), ₦200,000 corporate per month (no limit). Set via `PRICE_INDIVIDUAL` / `PRICE_CORPORATE` in `.env`; served at `/api/prices`.
-- Server re-checks overlap at registration; never trust the browser check.
-- Nigeria bounding-box sanity check catches swapped lat/lon or wrong zone.
-- Synthetic data is labelled synthetic; the 5 real NAUB pilot slots always come first.
-- Cluster type and lat/long show in lists/registry only, **not on the map**. The dataset has points, not shapes, so stand-in 18 × 30 m rectangles are generated (18 m east-west). DISJOINT (LAG, ABJ, KAN, GMB, MDG, BIU): centred on each point. ADJOINING (IBD, PHC, BEN, OWR, ILR): a touching row anchored at Plot 1. There is no other "six zones" dataset.
-- Anchoring = zero-value self-tx with the hash in data, from a **test-only wallet**. Mainnet is a later decision.
-- Architecture page labels things Built / Test / Planned. Keep it honest.
+- **Store WGS84, measure in metres in local UTM** (`32600 + int((lon+180)//6) + 1`).
+- **Biu and Maiduguri are UTM 33N** (Benin City is 31N). Don't "fix" it back.
+- **Minna supported** (lat/long 4263, UTM 31/32N 26331/26332, UTM 33N custom 926333 with towgs84 -92,-93,122, belts 26391–3). Same recipe matches official EPSG:26332 to 0.00 m. UI says it is good to a few metres. Still ask Oga which datum the NAUB data uses.
+- **Touching is not overlap**: > 0.01 m² AND survives a negative buffer of half `OVERLAP_TOLERANCE_CM` (10 cm).
+- **Overlap location is shown, not a badge**. Perey asked to remove the big tick/X map badge; don't add it back.
+- Token prices (provisional): ₦15,000 individual (1 plot, 30 days), ₦200,000 corporate per month (no limit). `PRICE_INDIVIDUAL` / `PRICE_CORPORATE`.
+- Server re-checks overlap at registration. Nigeria bounding box after conversion. Synthetic data labelled; NAUB pilot slots first.
+- Cluster type and lat/long only in lists, not on the map. No other "six zones" dataset exists.
+- Anchoring and title records use a **test-only wallet** on Amoy. Mainnet is a later decision.
+- Architecture page labels Built / Test / Planned honestly (QR = Built, smart contract = Test network).
+
+## Live test-network state (14 Oct 2026)
+- TitleRegistry deployed at `0x00af627898d4aFE65Ee6817969F0504ebce1BEC6` (owner = the anchor wallet). In local `.env` as `TITLE_CONTRACT`.
+- 2 titles written in a live test (SABA-OTH-CLT-001, SABA-LAG-SYN-001); `chain_titles` was not updated by that test, so the next sync resends them and the contract skips them.
+- Wallet had ~0.061 test POL left. A full sync of ~61 titles needs ~0.14: top up from the Amoy faucet.
 
 ## Gotchas
-- **`pywin32` breaks the Render (Linux) build.** `pip freeze` on Windows re-adds it; remove it from `requirements.txt` before pushing.
-- **Don't use `rpc-amoy.polygon.technology`** (gave `NameResolutionError`). Default and `.env`/Render should be `https://polygon-amoy.drpc.org`. After env changes, do a full restart (`--reload` may miss them).
-- New code using a new table/column → the DB needs a migration run too (`UndefinedTable` / `UndefinedColumn` = the code is ahead of the DB).
+- **Don't regenerate `requirements.txt` with `pip freeze`** (adds `pywin32`, breaks Render). It's hand-kept and UTF-8.
+- **Don't use `rpc-amoy.polygon.technology`**. Use `https://polygon-amoy.drpc.org`. After `.env` changes, fully restart uvicorn (`--reload` only reloads code).
+- New code using a new table/column → the DB needs a migration too. **Run the migration before deploying the code.**
+- `eth-tester` can't build on Python 3.14 (safe-pysha3), so there is no local EVM: contract logic is tested by a Python model + a live Amoy run.
 - `registerPlot`'s `.finally(...)` re-enables the button. It's load-bearing.
-- `static/site.js` runs right after `</header>`, so anything below the header (like the footer) must wait for `DOMContentLoaded`.
-- PowerShell 5.1 mangles `"` inside native-command args (git commit messages, `python -c`). Use here-strings without inner double quotes, or a script file.
-- Rate limiter is in memory: resets on restart, not shared across instances.
-- NAUB field data may be in **Minna datum**. Ask, don't assume WGS84.
-- Never print or commit `ANCHOR_PRIVATE_KEY`, `ADMIN_KEY`, `SITE_PASSWORD`, `DATABASE_URL`.
+- `static/site.js` runs right after `</header>`: anything below it must wait for `DOMContentLoaded`.
+- PowerShell 5.1 mangles `"` inside native-command args. Use here-strings without inner double quotes, or a script file. Long bash heredocs with many quotes can fail too: write a script file.
+- Rate limits are in memory: reset on restart, not shared across instances.
+- Never print or commit `ANCHOR_PRIVATE_KEY`, `ADMIN_KEY`, `SITE_PASSWORD`, `DATABASE_URL`, `PAYSTACK_SECRET_KEY`.
 
 ## Run
 ```
 venv\Scripts\activate
-pip install -r requirements.txt
-# fresh DB: run schema_full.sql; copy .env.example to .env
+pip install -r requirements.txt          # requirements-dev.txt for tests
+# fresh DB: schema_full.sql; existing: add_payments.sql, phase_g.sql, phase_h.sql
 python ingest_cities.py      # 55 added
 uvicorn main:app --reload    # http://127.0.0.1:8000
 ```
-`.env`: `DB_HOST DB_PORT DB_NAME DB_USER DB_PASSWORD` (or `DATABASE_URL`), `ADMIN_KEY`, `SITE_PASSWORD` (optional), `ANCHOR_PRIVATE_KEY`, `POLYGON_RPC`.
+`.env`: see `.env.example` (DB, ADMIN_KEY, SITE_PASSWORD, ANCHOR_PRIVATE_KEY, POLYGON_RPC, TITLE_CONTRACT, PUBLIC_URL, PAYSTACK_SECRET_KEY, prices).
 
 ## Smoke test
 1. Every menu link opens its page (map drawer, top bar, ☰ on content pages).
-2. Overlapping polygon → red X; clear → green tick; edge-touching must **not** flag.
-3. Admin key → register a plot, upload a photo, `/ledger/verify`, `/ledger/anchor`, confirm the tx on Amoy.
-4. Payment flow: admin records payment → client logs in with code → registers via `/register-plot` → receipt verifies.
-5. Phone width: bottom sheet and menus work.
+2. Overlap → red flag with shaded zone; clear → 0 OVERLAP; edge-touching must **not** flag. Try a Minna type and the field kit CSV template.
+3. Admin key → register, upload a photo, `/ledger/verify`, anchor, **Write titles to contract**, then `/verify/<code>` shows "checked live".
+4. Payments: admin records one → client logs in → registers → adds a beacon photo → receipt verifies. With a Paystack test key: Pay online → test card → back on the receipt with a code.
+5. `/admin` with the admin key shows the client plot, payment and check counts.
+6. Phone width: bottom sheet and menus work.
 
 ## Planned next
-0. **Live site (Neon) still has the old Maiduguri/Biu leftovers.** Run `phase_g.sql` there, then `reset_dataset.py` dry run against Neon, review, then `--go` (with Perey's OK).
-1. Split `main.py` into modules + add tests.
-2. Client beacon-photo upload (admin-only today).
-3. Real payment gateway (amount, company, client details not yet decided).
-4. Real NAUB field data (fill the 5 slots; datum/zone decision).
-5. Real user accounts/roles instead of a shared admin key; persistent rate limiting.
-6. Smart contract for title records; mainnet vs testnet.
-7. README screenshots.
+0. **Live site:** run `phase_h.sql` on Neon (and `reset_dataset.py` dry run → `--go` with Perey's OK, for the old Maiduguri/Biu leftovers). Add `TITLE_CONTRACT`, `PUBLIC_URL`, `PAYSTACK_SECRET_KEY` on Render; Paystack webhook → `/api/pay/webhook`.
+1. Real NAUB field data (fill the 5 slots; datum answer from Oga).
+2. Payment gateway live (after committee approval; company not chosen).
+3. Real user accounts/roles instead of a shared admin key; persistent rate limiting.
+4. Mainnet vs testnet decision. README screenshots.
 
-**Answered by the senior (12 Oct):** receipt design (SABAGeo letterhead, code like an MTN card), token-first flow, provisional prices, printable report (shape, perimeter, area, map), Register New Plot fields, 18 × 30 plots, "use the method that gives the most suitable results".
+**Answered by the senior (12 Oct):** receipt design, token-first flow, provisional prices, printable report, Register New Plot fields, 18 × 30 plots, "use the method that gives the most suitable results".
 **Still open:** NAUB datum/zone, payment gateway company, SABAGeo contact details for /payments, whether the public report should show the owner name (currently yes, name only).
