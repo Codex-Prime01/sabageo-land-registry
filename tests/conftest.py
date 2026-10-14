@@ -54,7 +54,9 @@ def test_database():
     _point_app_at(TEST_DB)
     os.environ["ADMIN_KEY"] = ADMIN_KEY
     os.environ.pop("SITE_PASSWORD", None)
-    os.environ.pop("PAYSTACK_SECRET_KEY", None)
+    # never let a test reach a real payment provider or blockchain, whatever .env says
+    for name in ("PAYSTACK_SECRET_KEY", "PAYSTACK_LIVE", "TITLE_CONTRACT", "ANCHOR_PRIVATE_KEY", "PUBLIC_URL"):
+        os.environ.pop(name, None)
     yield
 
 

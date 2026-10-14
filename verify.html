@@ -123,7 +123,7 @@ footer{max-width:620px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-in
     if (d.registered_at) rows.push(["Registered", date(d.registered_at)]);
     rows.push(["Whole ledger", d.ledger_intact ? '<span class="ok-t">Intact</span>' : '<span class="no-t">Broken</span>']);
     if (d.record && d.status === "registered") rows.push(["This record", d.record.matches_plot ? '<span class="ok-t">Matches the plot</span>' : '<span class="no-t">Does not match</span>']);
-    rows.push(["On Polygon", d.onchain ? '<a href="' + esc(d.onchain.url) + '" target="_blank" rel="noopener">Title record ✓</a>' : d.anchor ? '<a href="' + esc(d.anchor.url) + '" target="_blank" rel="noopener">Ledger anchored ✓</a>' : "Not yet"]);
+    rows.push(["On Polygon", '<span id="chainLive">' + (d.onchain ? '<a href="' + esc(d.onchain.url) + '" target="_blank" rel="noopener">Title record ✓</a>' : d.anchor ? '<a href="' + esc(d.anchor.url) + '" target="_blank" rel="noopener">Ledger anchored ✓</a>' : "Not yet") + "</span>"]);
 
     app.innerHTML =
       '<h1 class="code">' + esc(d.title_code) + "</h1>" +
@@ -133,6 +133,21 @@ footer{max-width:620px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-in
       '<div class="links">' + (d.status === "registered" ? '<a href="/report/' + encodeURIComponent(d.title_code) + '">Full parcel report</a><a href="/?plot=' + encodeURIComponent(d.title_code) + '">See it on the map</a>' : "") + '<a href="/verify">Check another title</a></div>' +
       '<p class="lead" style="font-size:13.5px;margin-top:20px">A matching record shows the title has not changed since SABAGeo registered it. It does not prove the original survey was correct.</p>';
     document.title = d.title_code + " | Verify a title | SABAGeo";
+    checkLive(d.title_code);
+  }
+
+  // ask the smart contract itself, live; quietly skipped when the contract is not set up
+  async function checkLive(code) {
+    const el = document.getElementById("chainLive");
+    try {
+      const r = await fetch("/api/verify/" + encodeURIComponent(code) + "/chain");
+      if (!r.ok) return;
+      const c = await r.json();
+      const link = (text, cls) => '<a class="' + (cls || "") + '" href="' + esc(c.contract) + '" target="_blank" rel="noopener">' + text + "</a>";
+      if (c.matches_latest) el.innerHTML = link(c.removed ? "Removal recorded on-chain ✓" : "Title record matches ✓ (checked live)", "ok-t");
+      else if (c.behind) el.innerHTML = link("On-chain record is older", "no-t");
+      else if (c.on_chain) el.innerHTML = link("On-chain record does not match", "no-t");
+    } catch (e) { /* the network is slow or down: keep what the registry said */ }
   }
 
   const code = decodeURIComponent(location.pathname.replace(/^\/verify\/?/, "")).trim().toUpperCase();

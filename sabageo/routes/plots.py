@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import Response
 
 from sabageo import config
+from sabageo.chain import onchain_title
 from sabageo.db import connect
 from sabageo.geo import find_overlaps, next_code, prepare, utm_zone
 from sabageo.ledger import add_ledger_record
@@ -180,6 +181,7 @@ def plot_report(title_code: str):
             ).fetchone()
             if a:
                 anchor = {"url": config.EXPLORER_TX + a[0], "anchored_at": a[1].isoformat()}
+        onchain = onchain_title(conn, title_code)
 
     return {
         "title_code": row[0],
@@ -201,6 +203,7 @@ def plot_report(title_code: str):
         "photos": [{"id": p[0], "distance_m": p[1]} for p in photos],
         "ledger": ledger,
         "anchor": anchor,
+        "onchain": onchain,
     }
 
 

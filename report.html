@@ -255,7 +255,8 @@ main.wide{max-width:1040px}
     const reg = d.registered_at ? new Date(d.registered_at).toLocaleDateString("en-GB", { dateStyle: "long" }) : "n/a";
     const led = d.ledger
       ? "<p>Ledger record <b>" + d.ledger.record_id + "</b>, written " + new Date(d.ledger.recorded_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }) + '.</p><p class="hash">' + d.ledger.hash + "</p>" +
-        (d.anchor ? '<p><span class="b test">Test network</span> Covered by a Polygon anchor from ' + new Date(d.anchor.anchored_at).toLocaleDateString("en-GB", { dateStyle: "medium" }) + '. <a class="noprint" href="' + d.anchor.url + '" target="_blank" rel="noopener" style="color:var(--brass)">View on PolygonScan</a></p>' : '<p><span class="b plan">Not anchored yet</span> This record has not been posted to Polygon.</p>')
+        (d.anchor ? '<p><span class="b test">Test network</span> Covered by a Polygon anchor from ' + new Date(d.anchor.anchored_at).toLocaleDateString("en-GB", { dateStyle: "medium" }) + '. <a class="noprint" href="' + d.anchor.url + '" target="_blank" rel="noopener" style="color:var(--brass)">View on PolygonScan</a></p>' : '<p><span class="b plan">Not anchored yet</span> This record has not been posted to Polygon.</p>') +
+        (d.onchain && d.onchain.record_hash === d.ledger.hash ? '<p><span class="b test">Test network</span> Title record written to the SABAGeo smart contract. <a class="noprint" href="' + d.onchain.url + '" target="_blank" rel="noopener" style="color:var(--brass)">View the transaction</a></p>' : "")
       : "<p>This plot has no ledger record.</p>";
     const photos = d.photos.length
       ? '<div class="thumbs">' + d.photos.map((p) => '<figure><img loading="lazy" src="/photos/' + p.id + '" alt="Beacon photo"><figcaption>' + (p.distance_m == null ? "No GPS tag" : fmt(p.distance_m, 1) + " m from the plot") + "</figcaption></figure>").join("") + "</div>"

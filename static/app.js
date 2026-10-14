@@ -660,6 +660,26 @@ function anchorLedger() {
       '<a href="' + d.url + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">View on PolygonScan</a>');
   }).catch(() => { s.textContent = "Failed"; });
 }
+/* write every title's latest ledger fingerprint to the TitleRegistry contract (safe to press again) */
+function syncTitles() {
+  const s = $("titlesState");
+  s.textContent = "Sending…";
+  fetch("/ledger/sync-titles", { method: "POST", headers: adminHeaders() }).then((r) => r.json()).then((d) => {
+    closeMenu();
+    setPanel(true);
+    if (d.detail) {
+      s.textContent = "Failed";
+      showResult("flag", "Titles not written", typeof d.detail === "string" ? d.detail : "Something went wrong.");
+      return;
+    }
+    s.textContent = d.remaining ? "More" : "Done";
+    const links = d.batches.map((b, i) => '<a href="' + b.url + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">transaction ' + (i + 1) + "</a>").join(", ");
+    showResult("clear", d.sent ? d.sent + " titles written on-chain" : "All titles already on-chain",
+      (d.sent ? "Sent in " + links + ". " : "") +
+      (d.remaining ? d.remaining + " more to go: tap Write titles again. " : "") +
+      '<a href="' + d.contract + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">See the contract</a>');
+  }).catch(() => { s.textContent = "Failed"; });
+}
 function verifyAnchors() {
   fetch("/ledger/anchors").then((r) => r.json()).then((d) => {
     closeMenu();

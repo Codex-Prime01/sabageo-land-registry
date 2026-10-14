@@ -2,12 +2,12 @@
 import io
 import json
 
-import psycopg
 import segno
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 
 from sabageo import config
+from sabageo.chain import onchain_title
 from sabageo.db import connect
 from sabageo.ledger import verify_chain
 
@@ -16,21 +16,6 @@ router = APIRouter()
 
 def site_url(request: Request):
     return config.PUBLIC_URL or str(request.base_url).rstrip("/")
-
-
-def onchain_title(conn, code):
-    """The on-chain title record for this code, or None (also None before that table exists)."""
-    try:
-        with conn.transaction():  # a savepoint, so a missing table does not spoil the connection
-            row = conn.execute(
-                "SELECT record_hash, tx_hash, recorded_at FROM chain_titles WHERE title_code = %s",
-                (code,),
-            ).fetchone()
-    except psycopg.errors.UndefinedTable:
-        return None
-    if not row:
-        return None
-    return {"record_hash": row[0], "url": config.EXPLORER_TX + row[1], "recorded_at": row[2].isoformat()}
 
 
 @router.get("/verify")
