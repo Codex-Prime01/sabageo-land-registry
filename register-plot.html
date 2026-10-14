@@ -192,7 +192,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
 
   <section class="card hidden" id="mapCard" style="--k:4"><h2>Your plot on the map</h2><div id="rmap"></div></section>
 
-  <section class="card" style="--k:5"><h2>Your registered plots</h2><ul class="mine" id="mine"><li>Loading…</li></ul></section>
+  <section class="card" style="--k:5"><h2>Your registered plots</h2><p>Add up to 5 beacon photos per plot. Take them at the beacons with your phone's location turned on, so the system can check they were taken at the plot.</p><ul class="mine" id="mine"><li>Loading…</li></ul><input type="file" id="photoFile" accept="image/jpeg,image/png" hidden><p class="note" id="photoMsg" style="display:none" role="status"></p></section>
 </div>
 </main>
 <footer>SABAGeo Land Registry. A research prototype from the Nigerian Army University Biu.</footer>
@@ -276,7 +276,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
   async function mine() {
     try {
       const rows = await api("/api/client/plots");
-      $("mine").innerHTML = rows.length ? rows.map((p) => '<li><div><span class="code">' + esc(p.code) + "</span><small>" + (p.owner_name ? esc(p.owner_name) + " | " : "") + esc(p.region) + " | " + fmt(p.area_m2) + " m² | " + (p.registered_at ? day(p.registered_at) : "") + '</small></div><a class="act" href="/report/' + encodeURIComponent(p.code) + '">Report</a></li>').join("") : "<li>No plots registered yet.</li>";
+      $("mine").innerHTML = rows.length ? rows.map((p) => '<li><div><span class="code">' + esc(p.code) + "</span><small>" + (p.owner_name ? esc(p.owner_name) + " | " : "") + esc(p.region) + " | " + fmt(p.area_m2) + " m² | " + (p.registered_at ? day(p.registered_at) : "") + " | " + p.photos + (p.photos === 1 ? " photo" : " photos") + '</small></div><div class="row2" style="margin:0"><button class="act" type="button" data-photo="' + esc(p.code) + '"' + (p.photos_left ? "" : " disabled") + ">" + (p.photos_left ? "Add photo" : "Photos full") + '</button><a class="act" href="/report/' + encodeURIComponent(p.code) + '">Report</a></div></li>').join("") : "<li>No plots registered yet.</li>";
     } catch (err) { fail(err); }
   }
   function hint() { $("hint").textContent = HINTS[$("crs").value]; $("corners").placeholder = $("crs").value === "wgs84" ? "10.6120, 12.1950\n10.6120, 12.1954\n10.6124, 12.1954\n10.6124, 12.1950" : "850040, 1172010\n850090, 1172010\n850090, 1172040\n850040, 1172040"; }
@@ -362,12 +362,44 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
     try {
       const d = await api("/client/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(Object.assign(JSON.parse(body(p.pts)), ow.o)) });
       ok = false; allPlots = null;
-      $("verdict").innerHTML = verdict("ok", "Registered", "Title code: <b>" + esc(d.title_code) + "</b><br>Area: <b>" + fmt(d.area_m2, 2) + ' m²</b></p><div class="row2"><a class="act" href="/report/' + encodeURIComponent(d.title_code) + '">View parcel report</a></div><p style="display:none">');
+      $("verdict").innerHTML = verdict("ok", "Registered", "Title code: <b>" + esc(d.title_code) + "</b><br>Area: <b>" + fmt(d.area_m2, 2) + ' m²</b></p><div class="row2"><a class="act" href="/report/' + encodeURIComponent(d.title_code) + '">View parcel report</a><button class="act" type="button" data-photo="' + esc(d.title_code) + '">Add a beacon photo</button></div><p style="display:none">');
       me = Object.assign(me, await api("/api/client/me")); who(); mine();
     } catch (err) {
       if (err.status === 401) return fail(err);
       $("verdict").innerHTML = verdict("no", "Not registered", esc(err.message));
     } finally { busy(false); $("regBtn").textContent = "Register this plot"; $("regBtn").disabled = !ok; }
+  });
+
+  /* beacon photos: one hidden file picker, shared by every "Add photo" button */
+  let photoFor = null;
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-photo]");
+    if (!b || b.disabled) return;
+    photoFor = b.dataset.photo;
+    $("photoFile").value = "";
+    $("photoFile").click();
+  });
+  $("photoFile").addEventListener("change", async () => {
+    const file = $("photoFile").files[0];
+    if (!file || !photoFor) return;
+    const msg = $("photoMsg");
+    msg.style.display = "block";
+    if (file.size > 10 * 1024 * 1024) { msg.textContent = "That photo is over 10 MB. Please pick a smaller one."; return; }
+    msg.textContent = "Uploading the photo for " + photoFor + "…";
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const d = await api("/client/plots/" + encodeURIComponent(photoFor) + "/photo", { method: "POST", body: fd });
+      msg.textContent = "Photo added to " + photoFor + ". " + (!d.has_gps
+        ? "It has no GPS location, so we could not check where it was taken. Turn on location for your camera next time."
+        : d.distance_m === 0 ? "It was taken inside the plot."
+        : "It was taken " + fmt(d.distance_m, 1) + " m from the plot" + (d.distance_m > 50 ? ". That is far away: please check it is the right plot." : "."));
+      mine();
+    } catch (err) {
+      if (err.status === 401) return fail(err);
+      msg.textContent = "Photo not added: " + err.message;
+    }
+    msg.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
 
   (async () => {

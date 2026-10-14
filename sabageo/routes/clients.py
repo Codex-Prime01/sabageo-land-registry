@@ -1,7 +1,7 @@
 """Clients: log in with a code, then register plots (Register New Plot)."""
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 
 from sabageo.codes import code_hash
 from sabageo.db import connect
@@ -9,9 +9,12 @@ from sabageo.geo import find_overlaps, next_code, prepare
 from sabageo.helpers import clean_contact, sha
 from sabageo.ledger import add_ledger_record
 from sabageo.models import ClientPlot, LoginIn
+from sabageo.photos import read_upload, save_photo
 from sabageo.security import check_limit, record_fail, require_client
 
 router = APIRouter()
+
+MAX_CLIENT_PHOTOS = 5  # per plot, to keep the free database small
 
 
 @router.post("/api/client/login")
@@ -98,7 +101,8 @@ def client_plots(client=Depends(require_client)):
     with connect() as conn:
         rows = conn.execute(
             """
-            SELECT p.title_code, r.name, p.area_m2, p.registered_at, p.owner_name, p.owner_type
+            SELECT p.title_code, r.name, p.area_m2, p.registered_at, p.owner_name, p.owner_type,
+                   (SELECT COUNT(*) FROM photos ph WHERE ph.title_code = p.title_code)
             FROM plots p JOIN regions r ON r.code = p.region_code
             WHERE p.client_id = %s ORDER BY p.id DESC
             """,
@@ -107,6 +111,24 @@ def client_plots(client=Depends(require_client)):
     return [
         {"code": r[0], "region": r[1], "area_m2": r[2],
          "registered_at": r[3].isoformat() if r[3] else None,
-         "owner_name": r[4], "owner_type": r[5]}
+         "owner_name": r[4], "owner_type": r[5], "photos": r[6], "photos_left": max(0, MAX_CLIENT_PHOTOS - r[6])}
         for r in rows
     ]
+
+
+@router.post("/client/plots/{title_code}/photo")
+async def client_photo(title_code: str, file: UploadFile = File(...), client=Depends(require_client)):
+    """A client adds a beacon photo to one of THEIR OWN plots. The GPS check runs as for the admin."""
+    data = await read_upload(file)
+    with connect() as conn:
+        # lock the plot row, so two uploads at once cannot get past the photo limit
+        owner_row = conn.execute(
+            "SELECT client_id FROM plots WHERE title_code = %s FOR UPDATE", (title_code,)
+        ).fetchone()
+        if not owner_row or owner_row[0] != client["client_id"]:
+            # the same answer for "no such plot" and "not yours", so codes cannot be probed
+            raise HTTPException(status_code=404, detail="That plot is not one of yours.")
+        count = conn.execute("SELECT COUNT(*) FROM photos WHERE title_code = %s", (title_code,)).fetchone()[0]
+        if count >= MAX_CLIENT_PHOTOS:
+            raise HTTPException(status_code=400, detail=f"This plot already has {MAX_CLIENT_PHOTOS} photos, the most allowed.")
+        return save_photo(conn, title_code, data)
