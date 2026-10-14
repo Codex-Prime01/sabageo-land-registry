@@ -344,7 +344,6 @@ function checkPlot() {
         );
         showRegister(true);
       }
-      placeMark(isRed);
       setTimeout(() => flyTo(newLayer.getBounds()), 500);
     })
     .catch(() =>
@@ -687,31 +686,6 @@ function verifyAnchors() {
     });
 }
 
-/* Green tick for 0 overlap, red X for overlap, shown on the map */
-let mark = null;
-function clearMark() {
-  if (mark) {
-    map.removeLayer(mark);
-    mark = null;
-  }
-}
-function placeMark(isRed) {
-  clearMark();
-  const icon = isRed
-    ? '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
-    : '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-  mark = L.marker(newLayer.getBounds().getCenter(), {
-    icon: L.divIcon({
-      className: "verdict-marker",
-      html: '<div class="vm ' + (isRed ? "bad" : "ok") + '">' + icon + "</div>",
-      iconSize: [46, 46],
-      iconAnchor: [23, 23],
-    }),
-    interactive: false,
-    keyboard: false,
-  }).addTo(map);
-}
-document.getElementById("corners").addEventListener("input", clearMark);
 /* one thing open at a time: panel, plots list, menu */
 let panelMemory = null;
 function tuck() {
@@ -876,7 +850,6 @@ function onPickersChange() {
   updateTypeUI();
   updateRegionNote();
   onCornersChange();
-  clearMark();
 }
 function loadExample(kind) {
   document.getElementById("crsSel").value = "wgs84";
@@ -1124,7 +1097,6 @@ function onPickersChange() {
   updateTypeUI();
   updateRegionNote();
   onCornersChange();
-  clearMark();
   syncSeg();
   if (shownCode && panel.classList.contains("viewing")) showPlotCard(shownCode);
 }

@@ -659,30 +659,6 @@
         list-style: none;
       }
 
-      .verdict-marker {
-        background: none;
-        border: 0;
-      }
-      .vm {
-        width: 46px;
-        height: 46px;
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        border: 3px solid #fff;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-        animation: stamp 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
-      }
-      .vm.ok {
-        background: #00c853;
-      }
-      .vm.bad {
-        background: #ff1a3c;
-      }
-      .vm svg {
-        stroke: #fff;
-      }
-
       /* light theme */
       [data-theme="light"] {
         --glass: rgba(255, 255, 255, 0.9);
