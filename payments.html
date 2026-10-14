@@ -164,15 +164,15 @@ td small{display:block;color:var(--mute)}
   <h2>Pay online <span class="b test" id="payMode" style="vertical-align:3px;margin-left:6px">Test mode: no real money</span></h2>
   <p>Pay with a card, bank transfer or USSD through Paystack. When the payment goes through you come straight back to your SABAGeo receipt, with your login code on it.</p>
   <p class="msg" id="payBack" role="status"></p>
-  <form id="payForm">
+  <form id="olForm">
     <div class="form">
       <div class="fld"><label for="p_plan">Plan</label><select id="p_plan"><option value="individual">Individual</option><option value="corporate">Corporate real estate retainer</option></select></div>
       <div class="fld"><label for="p_name">Your name or company name</label><input id="p_name" maxlength="120" required autocomplete="name"></div>
       <div class="fld"><label for="p_email">Email <small>(Paystack sends your payment receipt here)</small></label><input id="p_email" type="email" maxlength="120" required autocomplete="email"></div>
       <div class="fld"><label for="p_phone">Phone <small>(optional)</small></label><input id="p_phone" type="tel" maxlength="40" placeholder="0803 123 4567" autocomplete="tel"></div>
     </div>
-    <p class="msg" id="payMsg"></p>
-    <button class="btnp" id="payBtn" style="margin-top:12px" type="submit">Pay <span id="payAmt"></span> with Paystack</button>
+    <p class="msg" id="olMsg"></p>
+    <button class="btnp" id="olBtn" style="margin-top:12px" type="submit">Pay <span id="payAmt"></span> with Paystack</button>
   </form>
 </section>
 
@@ -370,10 +370,10 @@ td small{display:block;color:var(--mute)}
     })
     .catch(() => {});
   $("p_plan").addEventListener("change", showAmount);
-  $("payForm").addEventListener("submit", async (e) => {
+  $("olForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    $("payMsg").textContent = "";
-    $("payBtn").disabled = true;
+    $("olMsg").textContent = "";
+    $("olBtn").disabled = true;
     try {
       const r = await fetch("/api/pay/start", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -383,8 +383,8 @@ td small{display:block;color:var(--mute)}
       if (!r.ok || !d.authorization_url) throw new Error(typeof d.detail === "string" ? d.detail : "Please check your details and try again.");
       location.href = d.authorization_url; // Paystack's own secure checkout page
     } catch (err) {
-      $("payMsg").textContent = err.message;
-      $("payBtn").disabled = false;
+      $("olMsg").textContent = err.message;
+      $("olBtn").disabled = false;
     }
   });
 })();

@@ -24,3 +24,16 @@ def test_prices(client):
     plans = client.get("/api/prices").json()["plans"]
     assert plans["individual"]["amount"] == 15000
     assert plans["corporate"]["amount"] == 200000
+
+
+def test_no_duplicate_ids_on_any_page():
+    """Two elements with the same id break the page scripts (getElementById finds only the first)."""
+    import re
+    from collections import Counter
+    from pathlib import Path
+    for page in Path(".").glob("*.html"):
+        if page.name.startswith("index.before"):
+            continue
+        ids = re.findall(r'\sid="([^"]+)"', page.read_text(encoding="utf-8"))
+        dupes = [i for i, n in Counter(ids).items() if n > 1]
+        assert not dupes, f"{page.name} has duplicate ids: {dupes}"

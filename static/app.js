@@ -676,7 +676,8 @@ function syncTitles() {
     const links = d.batches.map((b, i) => '<a href="' + b.url + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">transaction ' + (i + 1) + "</a>").join(", ");
     showResult("clear", d.sent ? d.sent + " titles written on-chain" : "All titles already on-chain",
       (d.sent ? "Sent in " + links + ". " : "") +
-      (d.remaining ? d.remaining + " more to go: tap Write titles again. " : "") +
+      (d.out_of_funds ? "The wallet ran out of test POL with " + d.remaining + " titles still to go. Get free test POL for " + d.wallet + " at faucet.polygon.technology (Amoy), then tap again. "
+        : d.remaining ? d.remaining + " more to go: tap Write titles again. " : "") +
       '<a href="' + d.contract + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">See the contract</a>');
   }).catch(() => { s.textContent = "Failed"; });
 }

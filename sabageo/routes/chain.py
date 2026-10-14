@@ -34,6 +34,8 @@ def sync_titles():
     address = need_contract()
     key = wallet_key()
     sent = []
+    out_of_funds = False
+    wallet = None
     with connect() as conn:
         try:
             with conn.transaction():
@@ -45,9 +47,20 @@ def sync_titles():
         try:
             w3 = chain.connect_chain()
             account = w3.eth.account.from_key(key)
+            wallet = account.address
             contract = chain.get_contract(w3, address)
             for _ in range(chain.MAX_BATCHES):
-                rows = chain.pending_titles(conn, chain.BATCH)
+                # only send as many titles as the wallet can pay for, so a low balance still makes progress
+                can_pay = chain.affordable(w3, account)
+                if can_pay == 0:
+                    out_of_funds = True
+                    if not sent:
+                        raise HTTPException(status_code=402, detail=(
+                            "The test wallet has run out of test POL, so no titles could be written. "
+                            f"Each title costs about {chain.cost_per_title_pol(w3):.4f} test POL. Get free test POL "
+                            f"for wallet {wallet} at https://faucet.polygon.technology (choose Amoy), then try again."))
+                    break
+                rows = chain.pending_titles(conn, can_pay)
                 if not rows:
                     break
                 tx_hash = chain.send_batch(w3, account, contract, rows)
@@ -63,7 +76,8 @@ def sync_titles():
                 raise chain_error(e, "write the titles")
         remaining = chain.count_pending(conn)
     return {"sent": sum(b["count"] for b in sent), "batches": sent, "remaining": remaining,
-            "contract": EXPLORER_ADDRESS + address}
+            "contract": EXPLORER_ADDRESS + address, "out_of_funds": out_of_funds and remaining > 0,
+            "wallet": wallet}
 
 
 @router.get("/api/verify/{title_code}/chain")

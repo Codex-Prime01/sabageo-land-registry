@@ -80,6 +80,24 @@ def batch_args(rows):
     return ids, hashes, ledger_ids, removed
 
 
+# Rough gas cost, measured on Amoy: each new title writes two storage slots (~55k gas),
+# and every transaction has a fixed part. Kept on the generous side so we never under-budget.
+GAS_PER_TITLE = 70_000
+GAS_PER_TX = 60_000
+
+
+def affordable(w3, account):
+    """How many titles the wallet can pay for in one transaction right now (0 = not even one)."""
+    price = int(w3.eth.gas_price * 1.3)  # the same price send_batch uses
+    gas_we_can_buy = w3.eth.get_balance(account.address) // price
+    usable = gas_we_can_buy / 1.2 - GAS_PER_TX  # send_batch adds 20% headroom to the estimate
+    return max(0, min(BATCH, int(usable // GAS_PER_TITLE)))
+
+
+def cost_per_title_pol(w3):
+    return float(w3.from_wei(int(w3.eth.gas_price * 1.3) * GAS_PER_TITLE * 1.2, "ether"))
+
+
 def send_batch(w3, account, contract, rows):
     """Send one write() transaction and wait for it. Returns the transaction hash ("0x...")."""
     tx = contract.functions.write(*batch_args(rows)).build_transaction({

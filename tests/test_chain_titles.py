@@ -55,6 +55,9 @@ def fake_chain(monkeypatch):
 
     monkeypatch.setattr(chain, "send_batch", send)
     monkeypatch.setattr(chain, "read_title", read)
+    c.can_pay = None  # None = the wallet can always pay for a full batch
+    monkeypatch.setattr(chain, "affordable", lambda w3, account: chain.BATCH if c.can_pay is None else c.can_pay)
+    monkeypatch.setattr(chain, "cost_per_title_pol", lambda w3: 0.0027)
     return c
 
 
@@ -170,3 +173,34 @@ def test_contract_artifact_is_compiled():
     names = {f["name"] for f in art["abi"] if f.get("type") == "function"}
     assert {"write", "get", "owner", "titleCount"} <= names
     assert art["bytecode"].startswith("0x") and len(art["bytecode"]) > 1000
+
+
+def test_empty_wallet_gives_a_plain_message(client, admin, fake_chain):
+    register(client, admin, rect())
+    fake_chain.can_pay = 0
+    r = client.post("/ledger/sync-titles", headers=admin)
+    assert r.status_code == 402
+    assert "run out of test POL" in r.json()["detail"] and "faucet" in r.json()["detail"]
+
+
+def test_low_wallet_still_makes_progress(client, admin, fake_chain):
+    for i in range(5):
+        register(client, admin, rect(n=N0 + 100 * i))
+    fake_chain.can_pay = 2  # only 2 titles affordable per transaction
+    d = sync(client, admin)
+    assert d["sent"] == 5 and all(b["count"] <= 2 for b in d["batches"]) and d["out_of_funds"] is False
+
+
+def test_running_out_halfway_is_reported(client, admin, fake_chain, monkeypatch):
+    for i in range(4):
+        register(client, admin, rect(n=N0 + 100 * i))
+    budget = iter([2, 0])  # money for one batch of 2, then nothing
+    monkeypatch.setattr(chain, "affordable", lambda w3, account: next(budget))
+    d = sync(client, admin)
+    assert d["sent"] == 2 and d["remaining"] == 2 and d["out_of_funds"] is True and d["wallet"]
+
+
+def test_network_allowance_error_is_readable():
+    from sabageo.routes.ledger import chain_error
+    e = chain_error(Exception("{'code': -32000, 'message': 'gas required exceeds allowance (511623)'}"), "write")
+    assert "not have enough test POL" in e.detail

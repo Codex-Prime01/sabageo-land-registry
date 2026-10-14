@@ -28,8 +28,8 @@ def chain_error(e, action):
     msg = str(e)
     if "NameResolution" in msg or "Max retries" in msg or "timed out" in msg:
         hint = "Cannot reach the Polygon network. Check your internet or try another POLYGON_RPC."
-    elif "insufficient funds" in msg.lower():
-        hint = "The wallet has no test POL. Get some from the faucet."
+    elif "insufficient funds" in msg.lower() or "exceeds allowance" in msg.lower():
+        hint = "The test wallet does not have enough test POL. Get some free at https://faucet.polygon.technology (choose Amoy)."
     else:
         hint = "Could not " + action + " on Polygon."
     return HTTPException(status_code=502, detail=hint + " (" + msg[:100] + ")")
