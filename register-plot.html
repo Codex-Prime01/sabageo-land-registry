@@ -142,6 +142,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
   <a class="map-btn" href="/">Open map</a>
 </header>
 <script src="/static/site.js"></script>
+<script src="/static/csv.js"></script>
 <main class="">
 <p class="eyebrow">Register New Plot</p>
 <h1>Register your land parcel.</h1>
@@ -175,7 +176,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
   <section class="card" style="--k:3">
     <h2>Plot coordinates</h2>
     <div class="form">
-      <div class="fld"><label for="crs">Coordinate type</label><select id="crs"><option value="wgs84">Lat / Long (WGS84)</option><option value="utm31">UTM 31N (WGS84)</option><option value="utm32">UTM 32N (WGS84)</option><option value="utm33">UTM 33N (WGS84)</option></select></div>
+      <div class="fld"><label for="crs">Coordinate type</label><select id="crs"><option value="wgs84">Lat / Long (WGS84)</option><option value="utm31">UTM 31N (WGS84)</option><option value="utm32">UTM 32N (WGS84)</option><option value="utm33">UTM 33N (WGS84)</option><optgroup label="Minna datum (older Nigerian surveys)"><option value="minna">Lat / Long (Minna)</option><option value="minna_utm31">UTM 31N (Minna)</option><option value="minna_utm32">UTM 32N (Minna)</option><option value="minna_utm33">UTM 33N (Minna)</option><option value="minna_west">Nigeria West Belt (Minna)</option><option value="minna_mid">Nigeria Mid Belt (Minna)</option><option value="minna_east">Nigeria East Belt (Minna)</option></optgroup></select></div>
       <div class="fld"><label for="region">Where is the plot?</label><select id="region"></select></div>
       <div class="fld full"><label for="corners">Plot corners</label><textarea id="corners" spellcheck="false" autocomplete="off"></textarea><small id="hint"></small></div>
     </div>
@@ -209,8 +210,16 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
     utm31: "One corner per line: easting, northing in metres (UTM Zone 31N). Use at least 3 corners.",
     utm32: "One corner per line: easting, northing in metres (UTM Zone 32N). Use at least 3 corners.",
     utm33: "One corner per line: easting, northing in metres (UTM Zone 33N). Use at least 3 corners.",
+    minna: "One corner per line: latitude, longitude (decimal degrees) on the Minna datum. Use at least 3 corners. Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.",
+    minna_utm31: "One corner per line: easting, northing in metres (Minna / UTM 31N). Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.",
+    minna_utm32: "One corner per line: easting, northing in metres (Minna / UTM 32N). Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.",
+    minna_utm33: "One corner per line: easting, northing in metres (Minna / UTM 33N, for Biu and Maiduguri). Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.",
+    minna_west: "One corner per line: easting, northing in metres (Minna / Nigeria West Belt). Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.",
+    minna_mid: "One corner per line: easting, northing in metres (Minna / Nigeria Mid Belt). Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.",
+    minna_east: "One corner per line: easting, northing in metres (Minna / Nigeria East Belt). Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.",
   };
   let me = null, ok = false, map = null, layers = [], allPlots = null;
+  const DEG = new Set(["wgs84", "minna"]); // typed as latitude, longitude
   const token = () => sessionStorage.getItem("clientToken") || "";
   const verdict = (kind, title, html) => '<div class="verdict ' + kind + '"><span class="seal ' + (kind === "ok" ? "ok" : "no") + '">' + (kind === "ok" ? TICK : CROSS) + '</span><div><b class="t">' + title + "</b><p>" + html + "</p></div></div>";
 
@@ -279,12 +288,12 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
       $("mine").innerHTML = rows.length ? rows.map((p) => '<li><div><span class="code">' + esc(p.code) + "</span><small>" + (p.owner_name ? esc(p.owner_name) + " | " : "") + esc(p.region) + " | " + fmt(p.area_m2) + " m² | " + (p.registered_at ? day(p.registered_at) : "") + " | " + p.photos + (p.photos === 1 ? " photo" : " photos") + '</small></div><div class="row2" style="margin:0"><button class="act" type="button" data-photo="' + esc(p.code) + '"' + (p.photos_left ? "" : " disabled") + ">" + (p.photos_left ? "Add photo" : "Photos full") + '</button><a class="act" href="/report/' + encodeURIComponent(p.code) + '">Report</a></div></li>').join("") : "<li>No plots registered yet.</li>";
     } catch (err) { fail(err); }
   }
-  function hint() { $("hint").textContent = HINTS[$("crs").value]; $("corners").placeholder = $("crs").value === "wgs84" ? "10.6120, 12.1950\n10.6120, 12.1954\n10.6124, 12.1954\n10.6124, 12.1950" : "850040, 1172010\n850090, 1172010\n850090, 1172040\n850040, 1172040"; }
+  function hint() { $("hint").textContent = HINTS[$("crs").value]; $("corners").placeholder = DEG.has($("crs").value) ? "10.6120, 12.1950\n10.6120, 12.1954\n10.6124, 12.1954\n10.6124, 12.1950" : "850040, 1172010\n850090, 1172010\n850090, 1172040\n850040, 1172040"; }
   function invalidate() { ok = false; $("regBtn").disabled = true; $("verdict").innerHTML = ""; $("formMsg").textContent = ""; }
   ["corners", "crs", "region"].forEach((id) => $(id).addEventListener(id === "corners" ? "input" : "change", () => { if (id === "crs") hint(); invalidate(); }));
 
   function parse() {
-    const wgs = $("crs").value === "wgs84", num = /^-?\d+(\.\d+)?$/;
+    const wgs = DEG.has($("crs").value), num = /^-?\d+(\.\d+)?$/;
     const lines = $("corners").value.split("\n").map((l) => l.trim()).filter(Boolean), pts = [];
     for (let i = 0; i < lines.length; i++) {
       const p = lines[i].split(",").map((s) => s.trim());
@@ -302,12 +311,17 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
     const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const rows = reader.result.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((l) => l.split(/[,;\t]/).map((x) => x.trim()))
-        .filter((c) => c.length >= 2 && c[0] !== "" && c[1] !== "" && !isNaN(Number(c[0])) && !isNaN(Number(c[1])));
+      const res = parseCornerCsv(reader.result);
       const note = $("csvNote"); note.style.display = "block";
-      if (rows.length < 3) { note.textContent = "Found " + rows.length + " valid corners in " + file.name + ". A plot needs at least 3."; return; }
-      $("corners").value = rows.map((c) => c[0] + ", " + c[1]).join("\n"); invalidate();
-      note.textContent = rows.length + " corners loaded from " + file.name + ". The columns must be in the same order as the coordinate type.";
+      if (res.pairs.length < 3) { note.textContent = "Found " + res.pairs.length + " valid corners in " + file.name + ". A plot needs at least 3."; return; }
+      // pick the coordinate type the file asks for; warn when the columns and the type disagree
+      const sel = $("crs"); let typeNote = "";
+      if (res.crs && [...sel.options].some((o) => o.value === res.crs)) { sel.value = res.crs; typeNote = " Coordinate type set to " + sel.options[sel.selectedIndex].text + ", from the file."; }
+      else if (res.kind === "degrees" && !DEG.has(sel.value)) { sel.value = "wgs84"; typeNote = " The file has latitude/longitude, so the type is now Lat / Long (WGS84). Change it to Minna if the survey used Minna."; }
+      else if (res.kind === "metres" && DEG.has(sel.value)) typeNote = " The file has easting/northing: choose the right UTM zone or belt.";
+      else if (!res.kind) typeNote = " The columns must be in the same order as the coordinate type.";
+      $("corners").value = res.pairs.map((c) => c[0] + ", " + c[1]).join("\n"); hint(); invalidate();
+      note.textContent = res.pairs.length + " corners loaded from " + file.name + "." + typeNote;
     };
     reader.readAsText(file); e.target.value = "";
   });

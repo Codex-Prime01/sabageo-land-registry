@@ -11,6 +11,7 @@
         ["Register plot", "/register-plot"],
         ["Parcel report", "/report"],
         ["Verify a title", "/verify"],
+        ["Field kit", "/field-kit"],
       ],
     },
     {

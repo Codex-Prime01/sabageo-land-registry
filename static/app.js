@@ -41,12 +41,28 @@ const TYPES = {
   utm31: { hint: "One corner per line: easting, northing in metres. Use at least 3 corners. A CSV needs the same order.", foot: "UTM Zone 31N (EPSG:32631), in metres" },
   utm32: { hint: "One corner per line: easting, northing in metres. Use at least 3 corners. A CSV needs the same order.", foot: "UTM Zone 32N (EPSG:32632), in metres" },
   utm33: { hint: "One corner per line: easting, northing in metres. Use at least 3 corners. A CSV needs the same order.", foot: "UTM Zone 33N (EPSG:32633), in metres" },
+  minna: { hint: "One corner per line: latitude, longitude (decimal degrees) on the Minna datum. Use at least 3 corners. Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.", foot: "Minna latitude and longitude (EPSG:4263), converted to WGS84" },
+  minna_utm31: { hint: "One corner per line: easting, northing in metres. Use at least 3 corners. A CSV needs the same order. Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.", foot: "Minna / UTM Zone 31N (EPSG:26331), in metres" },
+  minna_utm32: { hint: "One corner per line: easting, northing in metres. Use at least 3 corners. A CSV needs the same order. Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.", foot: "Minna / UTM Zone 32N (EPSG:26332), in metres" },
+  minna_utm33: { hint: "One corner per line: easting, northing in metres. Use at least 3 corners. A CSV needs the same order. Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.", foot: "Minna / UTM Zone 33N (Biu, Maiduguri), in metres" },
+  minna_west: { hint: "One corner per line: easting, northing in metres. Use at least 3 corners. A CSV needs the same order. Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.", foot: "Minna / Nigeria West Belt (EPSG:26391), in metres" },
+  minna_mid: { hint: "One corner per line: easting, northing in metres. Use at least 3 corners. A CSV needs the same order. Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.", foot: "Minna / Nigeria Mid Belt (EPSG:26392), in metres" },
+  minna_east: { hint: "One corner per line: easting, northing in metres. Use at least 3 corners. A CSV needs the same order. Minna is converted to WGS84 with the standard Nigeria shift, good to a few metres. Ask the surveyor which datum the coordinates are in.", foot: "Minna / Nigeria East Belt (EPSG:26393), in metres" },
 };
+// typed as latitude, longitude (the rest are easting, northing)
+const DEGREES = new Set(["wgs84", "minna"]);
 const CRS_NAMES = {
   wgs84: { head: "Latitude, Longitude", sub: "WGS84, decimal degrees" },
   utm31: { head: "Easting, Northing", sub: "UTM Zone 31N, metres" },
   utm32: { head: "Easting, Northing", sub: "UTM Zone 32N, metres" },
   utm33: { head: "Easting, Northing", sub: "UTM Zone 33N, metres" },
+  minna: { head: "Latitude, Longitude", sub: "Minna datum, decimal degrees" },
+  minna_utm31: { head: "Easting, Northing", sub: "Minna / UTM 31N, metres" },
+  minna_utm32: { head: "Easting, Northing", sub: "Minna / UTM 32N, metres" },
+  minna_utm33: { head: "Easting, Northing", sub: "Minna / UTM 33N, metres" },
+  minna_west: { head: "Easting, Northing", sub: "Minna / West Belt, metres" },
+  minna_mid: { head: "Easting, Northing", sub: "Minna / Mid Belt, metres" },
+  minna_east: { head: "Easting, Northing", sub: "Minna / East Belt, metres" },
 };
 const EXAMPLES = {
   overlap: "10.61115, 12.19360\n10.61115, 12.19390\n10.61145, 12.19390\n10.61145, 12.19360",
@@ -55,7 +71,7 @@ const EXAMPLES = {
 const CT_SHORT = { DISJOINT_NODE: "DISJOINT", ADJOINING_CLUSTER: "ADJOINING" };
 // menu groups; the ledger tool buttons from index.html go under "Ledger tools"
 const MENU = [
-  ["Registry", [["Registered plots", "/registry"], ["Register New Plot", "/register-plot"], ["Parcel report", "/report"], ["Verify a title", "/verify"]]],
+  ["Registry", [["Registered plots", "/registry"], ["Register New Plot", "/register-plot"], ["Parcel report", "/report"], ["Verify a title", "/verify"], ["Field kit", "/field-kit"]]],
   ["Payments", [["Token payment", "/payments"], ["Payment receipt", "/receipt"]]],
   ["About", [["About us", "/about"], ["How it works", "/how-it-works"], ["Architecture", "/architecture"]]],
   ["Admin", [["Dashboard", "/admin"]]],
@@ -371,7 +387,7 @@ function loadExample(kind) {
 /* ---------- Corner box ---------- */
 /* lat/long is typed as latitude, longitude. UTM is typed as easting, northing. */
 function getCorners() {
-  const wgs = $("crsSel").value === "wgs84";
+  const wgs = DEGREES.has($("crsSel").value);
   return $("corners").value.split("\n").filter((l) => l.trim() !== "").map((line) => {
     const [a, b] = line.split(",").map(Number);
     return wgs ? { easting: b, northing: a } : { easting: a, northing: b };
@@ -380,7 +396,7 @@ function getCorners() {
 function syncGutter() { $("gutter").scrollTop = $("corners").scrollTop; }
 function onCornersChange() {
   showRegister(false);
-  const wgs = $("crsSel").value === "wgs84";
+  const wgs = DEGREES.has($("crsSel").value);
   const lines = $("corners").value.split("\n");
   const n = lines.filter((l) => l.trim() !== "").length;
   const num = "-?\\d+(?:\\.\\d+)?";
@@ -546,24 +562,37 @@ function registerPlot() {
     .finally(() => { b.disabled = false; if (b.classList.contains("show")) showRegister(true); });
 }
 
-/* ---------- CSV import: first two columns, in the same order as the coordinate type ---------- */
+/* ---------- CSV import (static/csv.js): plain two-column files, or the field kit template ---------- */
+function csvTypeNote(res) {
+  // pick the coordinate type the file asks for; warn when the columns and the type disagree
+  const sel = $("crsSel");
+  if (res.crs && [...sel.options].some((o) => o.value === res.crs)) {
+    sel.value = res.crs;
+    return " Coordinate type set to " + sel.options[sel.selectedIndex].text + ", from the file.";
+  }
+  if (res.kind === "degrees" && !DEGREES.has(sel.value)) {
+    sel.value = "wgs84";
+    return " The file has latitude/longitude, so the type is now Lat / Long (WGS84). Change it to Minna if the survey used Minna.";
+  }
+  if (res.kind === "metres" && DEGREES.has(sel.value)) return " The file has easting/northing: choose the right UTM zone or belt above.";
+  return "";
+}
 function importCsv(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = () => {
-    const rows = reader.result.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
-      .map((l) => l.split(/[,;\t]/).map((x) => x.trim()))
-      .filter((c) => c.length >= 2 && c[0] !== "" && c[1] !== "" && !isNaN(Number(c[0])) && !isNaN(Number(c[1])));
+    const res = parseCornerCsv(reader.result);
     const note = $("csvNote");
-    if (rows.length < 3) {
-      note.textContent = "Found " + rows.length + " valid corners in " + file.name + ". A plot needs at least 3.";
+    if (res.pairs.length < 3) {
+      note.textContent = "Found " + res.pairs.length + " valid corners in " + file.name + ". A plot needs at least 3.";
       return;
     }
-    $("corners").value = rows.map((c) => c[0] + ", " + c[1]).join("\n");
-    onCornersChange();
+    const typeNote = csvTypeNote(res);
+    $("corners").value = res.pairs.map((c) => c[0] + ", " + c[1]).join("\n");
+    onPickersChange();
     setPanel(true);
-    note.textContent = rows.length + " corners loaded from " + file.name + ". Now press Check for overlap.";
+    note.textContent = res.pairs.length + " corners loaded from " + file.name + "." + typeNote + " Now press Check for overlap.";
   };
   reader.readAsText(file);
   input.value = "";

@@ -17,7 +17,7 @@ def prepare(conn, plot: NewPlot):
         raise HTTPException(status_code=400, detail="Unknown coordinate type.")
 
     pts = [(c.easting, c.northing) for c in plot.corners]
-    if plot.crs == "wgs84" and any(abs(x) > 180 or abs(y) > 90 for x, y in pts):
+    if plot.crs in config.GEOGRAPHIC and any(abs(x) > 180 or abs(y) > 90 for x, y in pts):
         raise HTTPException(status_code=400, detail="Latitude must be within 90 and longitude within 180.")
     if pts[0] != pts[-1]:
         pts.append(pts[0])

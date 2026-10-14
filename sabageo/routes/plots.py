@@ -71,22 +71,26 @@ def plot_coordinates(title_code: str, crs: str = "wgs84"):
     if srid is None:
         raise HTTPException(status_code=400, detail="Unknown coordinate type.")
     with connect() as conn:
-        row = conn.execute(
-            """
-            SELECT p.title_code, p.label, p.source, r.name, p.area_m2,
-                   ST_AsGeoJSON(ST_Transform(p.geom, %s::int), 8),
-                   (SELECT COUNT(*) FROM photos ph WHERE ph.title_code = p.title_code),
-                   p.cluster_type, p.ref_lat, p.ref_lon
-            FROM plots p JOIN regions r ON r.code = p.region_code
-            WHERE p.title_code = %s AND p.geom IS NOT NULL
-            """,
-            (srid, title_code),
-        ).fetchone()
+        try:
+            row = conn.execute(
+                """
+                SELECT p.title_code, p.label, p.source, r.name, p.area_m2,
+                       ST_AsGeoJSON(ST_Transform(p.geom, %s::int), 8),
+                       (SELECT COUNT(*) FROM photos ph WHERE ph.title_code = p.title_code),
+                       p.cluster_type, p.ref_lat, p.ref_lon
+                FROM plots p JOIN regions r ON r.code = p.region_code
+                WHERE p.title_code = %s AND p.geom IS NOT NULL
+                """,
+                (srid, title_code),
+            ).fetchone()
+        except psycopg.Error:
+            # e.g. Minna / UTM 33N before phase_h.sql has added it to this database
+            raise HTTPException(status_code=400, detail="This coordinate type is not set up on the server yet.")
     if not row:
         raise HTTPException(status_code=404, detail="Plot not found.")
 
     ring = json.loads(row[5])["coordinates"][0][:-1]  # drop the repeated closing corner
-    if srid == 4326:
+    if crs in config.GEOGRAPHIC:
         corners = [[round(y, 6), round(x, 6)] for x, y in ring]  # latitude, longitude
     else:
         corners = [[round(x, 2), round(y, 2)] for x, y in ring]  # easting, northing

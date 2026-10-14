@@ -60,3 +60,8 @@ def receipt_page(receipt_no: str = ""):
 @router.get("/register-plot")
 def register_plot_page():
     return page("register-plot.html")
+
+
+@router.get("/field-kit")
+def field_kit_page():
+    return page("field-kit.html")

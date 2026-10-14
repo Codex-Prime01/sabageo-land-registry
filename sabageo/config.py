@@ -18,7 +18,15 @@ DB = os.getenv("DATABASE_URL") or make_conninfo(
 MAX_PHOTO_BYTES = 10 * 1024 * 1024
 
 # Coordinate types the website can send. Plots are always STORED as WGS84 (EPSG:4326).
-CRS_CHOICES = {"wgs84": 4326, "utm31": 32631, "utm32": 32632, "utm33": 32633}
+# Minna is Nigeria's old survey datum; it is converted to WGS84 with the standard Nigeria shift
+# (good to a few metres). 926333 = Minna / UTM 33N, added by phase_h.sql (PostGIS lacks it).
+CRS_CHOICES = {
+    "wgs84": 4326, "utm31": 32631, "utm32": 32632, "utm33": 32633,
+    "minna": 4263, "minna_utm31": 26331, "minna_utm32": 26332, "minna_utm33": 926333,
+    "minna_west": 26391, "minna_mid": 26392, "minna_east": 26393,
+}
+# types typed as latitude/longitude in degrees (all the others are easting/northing in metres)
+GEOGRAPHIC = {"wgs84", "minna"}
 
 # Rough box around Nigeria (west, south, east, north). Catches wrong-zone mistakes.
 NIGERIA = (2.6, 4.2, 14.8, 13.95)

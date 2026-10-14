@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Field data kit | SABAGeo Land Registry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1628">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='8,12 34,7 37,32 11,37' fill='%23D9A441' fill-opacity='.4' stroke='%230A1628' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark"}catch(e){}</script>
+<style>
+:root{--bg:#0a1628;--text:#f4f6fa;--mute:#9fb0c8;--line:rgba(255,255,255,.12);--card:rgba(255,255,255,.05);--brass:#d9a441;--ease:cubic-bezier(.22,.8,.2,1)}
+[data-theme=light]{--bg:#f1f4f9;--text:#0a1628;--mute:#52627a;--line:rgba(10,22,40,.14);--card:rgba(10,22,40,.04)}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.top{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:var(--bg);background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:"Fraunces",Georgia,serif;font-size:19px;font-weight:700}
+nav{margin-left:auto;display:flex;gap:4px;overflow-x:auto}
+nav a{padding:9px 12px;border-radius:10px;color:var(--mute);text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap}
+.map-btn{flex:none;padding:9px 14px;border-radius:999px;background:var(--brass);color:#1a1204;text-decoration:none;font-size:14px;font-weight:600}
+main{max-width:820px;margin:0 auto;padding:44px 20px 72px}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+h1{margin:0;font-family:"Fraunces",Georgia,serif;font-size:clamp(28px,6vw,42px);line-height:1.12}
+.lead{margin:16px 0 0;font-size:17px;color:var(--mute)}
+.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .6s var(--ease) backwards;animation-delay:calc(var(--k,0)*70ms)}
+.card h2{margin:0 0 8px;font-family:"Fraunces",Georgia,serif;font-size:21px}
+.card p,.card li{color:var(--mute)}
+.card p{margin:8px 0 0}
+.card ul,.card ol{margin:10px 0 0;padding-left:22px}
+.card li{margin:5px 0}
+.card b{color:var(--text)}
+.tbl{margin-top:12px;overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);color:var(--mute)}
+th{color:var(--text);font-weight:600;background:var(--card)}
+tr:last-child td{border-bottom:0}
+code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btnp{display:inline-flex;align-items:center;height:48px;padding:0 20px;border:0;border-radius:12px;background:var(--brass);color:#1a1204;font:inherit;font-weight:600;text-decoration:none;cursor:pointer}
+.act{display:inline-flex;align-items:center;height:48px;padding:0 18px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--text);font:inherit;font-weight:600;text-decoration:none;cursor:pointer}
+.act:hover{border-color:var(--brass)}
+.warn{margin-top:16px;padding:16px 18px;border-left:3px solid var(--brass);border-radius:0 12px 12px 0;background:var(--card);color:var(--mute)}
+.warn b{color:var(--text)}
+/* the printable field sheet */
+.sheet{margin-top:16px;padding:26px;border-radius:18px;background:#fff;color:#111;font-size:13px;line-height:1.45}
+.sheet h2{margin:0;font-family:"Fraunces",Georgia,serif;font-size:20px;color:#0a1628}
+.sheet .sh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:10px;border-bottom:2px solid #d9a441}
+.sheet .sh small{display:block;color:#555}
+.sheet .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;margin-top:12px}
+.sheet .f{border-bottom:1px solid #999;padding:14px 0 2px;color:#444;font-size:12px}
+.sheet .f.wide{grid-column:1/-1}
+.sheet .tick{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:12.5px}
+.sheet .tick span::before{content:"";display:inline-block;width:12px;height:12px;border:1.5px solid #333;border-radius:2px;margin-right:6px;vertical-align:-2px}
+.sheet h3{margin:16px 0 6px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#7a5a12}
+.sheet table{min-width:0;font-size:12px}
+.sheet th,.sheet td{border:1px solid #999;color:#111;padding:9px 8px;background:#fff}
+.sheet th{background:#f4efe3}
+.sheet .sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:14px}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@media (max-width:560px){.brand span{display:none}main{padding-top:32px}.card{padding:18px}.sheet{padding:16px}.sheet .grid,.sheet .sign{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}}
+@media print{
+  @page{size:A4;margin:10mm}
+  html[data-theme]{--bg:#fff}
+  body{background:#fff!important}
+  .top,footer,main>*:not(.sheet){display:none!important}
+  main{padding:0;max-width:none}
+  .sheet{margin:0;padding:0;border-radius:0}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+<link rel="stylesheet" href="/static/site.css" />
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/" aria-label="Back to the map">
+    <svg width="30" height="30" viewBox="0 0 44 44" aria-hidden="true"><polygon points="8,12 34,7 37,32 11,37" fill="rgba(217,164,65,.18)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8" cy="12" r="3.6" fill="#D9A441"/><circle cx="34" cy="7" r="3.6" fill="#D9A441"/><circle cx="37" cy="32" r="3.6" fill="#D9A441"/><circle cx="11" cy="37" r="3.6" fill="#D9A441"/></svg>
+    <span>SABAGeo</span>
+  </a>
+  <nav aria-label="Pages"><a href="/registry">Registry</a><a href="/field-kit" class="on" aria-current="page">Field kit</a></nav>
+  <a class="map-btn" href="/">Open map</a>
+</header>
+<script src="/static/site.js"></script>
+<main>
+  <p class="eyebrow">Field data kit</p>
+  <h1>Collecting real plot corners in the field.</h1>
+  <p class="lead">Everything a survey team needs to measure a plot and bring the corners back to SABAGeo: a field sheet to print, a CSV template to fill in, and the one question that must be answered before you start.</p>
+
+  <section class="card" style="--k:1">
+    <h2>First: which datum?</h2>
+    <p>The same numbers mean different places on the ground depending on the <b>datum</b> they were measured in. In Nigeria that is usually either <b>WGS84</b> (GPS, phones, most modern receivers) or <b>Minna</b> (older survey plans and many government records).</p>
+    <p>Near Biu, the same coordinates read as Minna instead of WGS84 land about <b>70 metres</b> apart. That is enough to put a plot on the wrong street, so always write the datum down.</p>
+    <div class="tbl"><table>
+      <tr><th>If the coordinates are…</th><th>Choose this type in SABAGeo</th></tr>
+      <tr><td>From a phone or handheld GPS, in degrees</td><td>Lat / Long (WGS84)</td></tr>
+      <tr><td>From a GNSS receiver set to WGS84 UTM</td><td>UTM 31N, 32N or 33N (WGS84)</td></tr>
+      <tr><td>From an old survey plan, in degrees</td><td>Lat / Long (Minna)</td></tr>
+      <tr><td>From a plan in Minna UTM</td><td>UTM 31N, 32N or 33N (Minna)</td></tr>
+      <tr><td>From a plan in Nigerian belts</td><td>Nigeria West, Mid or East Belt (Minna)</td></tr>
+    </table></div>
+    <p><b>Which UTM zone?</b> West of 6°E is zone 31N (Lagos, Ibadan, Ilorin, Benin City). From 6°E to 12°E is 32N (Abuja, Kano, Gombe, Owerri, Port Harcourt). East of 12°E is <b>33N: Biu and Maiduguri</b>.</p>
+    <div class="warn"><b>Honest note:</b> SABAGeo converts Minna to WGS84 with the standard Nigeria shift. That is good to a few metres, not centimetres. For legal-grade work, use coordinates already in WGS84 from a GNSS receiver, or a local transformation from a licensed surveyor.</div>
+  </section>
+
+  <section class="card" style="--k:2">
+    <h2>The CSV template</h2>
+    <p>One row per corner, in order around the plot. Fill in <b>either</b> easting and northing (metres) <b>or</b> latitude and longitude (degrees). Put the datum and the zone or belt on the first row; SABAGeo reads them and picks the right coordinate type for you.</p>
+    <div class="tbl"><table>
+      <tr><th>corner</th><th>easting</th><th>northing</th><th>latitude</th><th>longitude</th><th>datum</th><th>zone</th><th>notes</th></tr>
+      <tr><td>1</td><td>302000.00</td><td>1173000.00</td><td></td><td></td><td>Minna</td><td>33N</td><td>Beacon BC 1</td></tr>
+      <tr><td>2</td><td>302018.00</td><td>1173000.00</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>3</td><td>302018.00</td><td>1173030.00</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>4</td><td>302000.00</td><td>1173030.00</td><td></td><td></td><td></td><td></td><td></td></tr>
+    </table></div>
+    <p>Zone can be <code>31N</code>, <code>32N</code>, <code>33N</code>, <code>West Belt</code>, <code>Mid Belt</code> or <code>East Belt</code>. Datum is <code>WGS84</code> or <code>Minna</code>.</p>
+    <div class="acts"><a class="btnp" href="/static/field-kit-template.csv" download="sabageo-corners-template.csv">Download the CSV template</a><button class="act" type="button" onclick="window.print()">Print the field sheet</button></div>
+  </section>
+
+  <section class="card" style="--k:3">
+    <h2>In the field</h2>
+    <ol>
+      <li>Find every beacon. Number them going round the plot, one way only (clockwise is fine).</li>
+      <li>Measure each beacon and write it on the field sheet straight away, with the datum and zone.</li>
+      <li>Take a photo at each beacon with the phone's <b>location turned on</b>. SABAGeo checks the photo's GPS tag against the plot.</li>
+      <li>Check the side lengths on the ground with a tape. They should match the coordinates to within a few centimetres.</li>
+      <li>Note anything odd: a missing beacon, a fence off the line, a building on the boundary.</li>
+    </ol>
+  </section>
+
+  <section class="card" style="--k:4">
+    <h2>Sending it in</h2>
+    <ul>
+      <li><b>Pilot plots (NAUB):</b> the administrator opens the map, unlocks with the admin key, chooses the NAUB region, uploads the CSV and registers it. It fills the next pilot slot.</li>
+      <li><b>Clients:</b> log in on <a href="/register-plot">Register New Plot</a>, upload the CSV, check for overlap, register, then add the beacon photos.</li>
+      <li>Keep the paper field sheet. It is the record of who measured what, and when.</li>
+    </ul>
+  </section>
+
+  <section class="sheet" aria-label="Printable field sheet">
+    <div class="sh"><div><h2>SABAGeo field sheet</h2><small>Plot corner survey. One sheet per plot.</small></div><div style="text-align:right"><b>SABAGeo Technology Limited</b><small>Land Registry</small></div></div>
+    <div class="grid">
+      <div class="f">Plot name / location:</div><div class="f">Region / town:</div>
+      <div class="f">Surveyor:</div><div class="f">Date:</div>
+      <div class="f">Instrument (make, model):</div><div class="f">Owner (if known):</div>
+    </div>
+    <h3>Datum and coordinate type (tick one of each)</h3>
+    <div class="tick"><span>WGS84</span><span>Minna</span><span>Not sure (ask before entering)</span></div>
+    <div class="tick"><span>Lat / Long</span><span>UTM 31N</span><span>UTM 32N</span><span>UTM 33N</span><span>West Belt</span><span>Mid Belt</span><span>East Belt</span></div>
+    <h3>Corners, in order around the plot</h3>
+    <table>
+      <tr><th style="width:9%">Corner</th><th>Beacon no.</th><th>Easting / Latitude</th><th>Northing / Longitude</th><th style="width:10%">Photo ✓</th><th>Notes</th></tr>
+      <tr><td>1</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>2</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>3</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>4</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>5</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>6</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>7</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>8</td><td></td><td></td><td></td><td></td><td></td></tr>
+    </table>
+    <h3>Taped side lengths (metres)</h3>
+    <div class="grid"><div class="f">1 → 2:</div><div class="f">2 → 3:</div><div class="f">3 → 4:</div><div class="f">4 → 1:</div></div>
+    <h3>Checklist</h3>
+    <div class="tick"><span>All beacons found</span><span>Datum written down</span><span>Photos taken with location on</span><span>Sides taped</span><span>Owner present</span></div>
+    <div class="f wide" style="margin-top:8px">Remarks:</div>
+    <div class="sign"><div class="f">Surveyor signature:</div><div class="f">Owner / witness:</div><div class="f">Entered into SABAGeo (date):</div></div>
+  </section>
+</main>
+<footer style="max-width:820px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-inset-bottom));color:var(--mute);font-size:13px">SABAGeo Land Registry. A research prototype from the Nigerian Army University Biu.</footer>
+</body>
+</html>
