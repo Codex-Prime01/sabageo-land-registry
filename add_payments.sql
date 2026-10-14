@@ -50,3 +50,13 @@ CREATE TABLE IF NOT EXISTS client_sessions (
   expires_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Phase E: clients register their own plots.
+-- client_id stays empty (NULL) for plots added by the admin.
+ALTER TABLE plots ADD COLUMN IF NOT EXISTS client_id INTEGER REFERENCES clients(id);
+CREATE INDEX IF NOT EXISTS plots_client_idx ON plots (client_id);
+
+-- Clients can be anywhere in Nigeria, so they need a region for land outside the dataset cities.
+INSERT INTO regions (code, name, sort_order, is_pilot)
+VALUES ('OTH', 'Other locations, Nigeria', 90, FALSE)
+ON CONFLICT (code) DO NOTHING;

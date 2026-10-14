@@ -574,7 +574,7 @@ def verify_ledger():
 
 
 # ---------- Polygon anchoring ----------
-RPC = os.getenv("POLYGON_RPC", "https://rpc-amoy.polygon.technology")
+RPC = os.getenv("POLYGON_RPC", "https://polygon-amoy.drpc.org")
 CHAIN_ID = 80002  # Polygon Amoy test network
 EXPLORER_TX = "https://amoy.polygonscan.com/tx/"
 
@@ -953,3 +953,70 @@ def require_client(x_client_token: str | None = Header(default=None)):
 @app.get("/api/client/me")
 def client_me(client=Depends(require_client)):
     return client
+
+
+
+# =====================================================================
+# PHASE E: paste ALL of this at the very bottom of main.py
+# (below the Phase D code). No new imports are needed.
+# =====================================================================
+
+@app.get("/register-plot")
+def register_plot_page():
+    return FileResponse("register-plot.html")
+
+
+@app.post("/client/register")
+def client_register(plot: NewPlot, client=Depends(require_client)):
+    with psycopg.connect(DB) as conn:
+        # lock so two registrations can't overlap each other at the same moment
+        conn.execute("LOCK TABLE plots IN SHARE ROW EXCLUSIVE MODE")
+
+        region = conn.execute("SELECT is_pilot FROM regions WHERE code = %s", (plot.region,)).fetchone()
+        if not region or region[0] or plot.region == "TST":
+            raise HTTPException(status_code=400, detail="Please choose one of the listed regions.")
+
+        # read the latest plot count while holding the lock, so the limit cannot be beaten
+        limits = conn.execute(
+            "SELECT plots_used, plots_allowed FROM login_codes WHERE id = %s FOR UPDATE", (client["code_id"],)
+        ).fetchone()
+        if limits[1] is not None and limits[0] >= limits[1]:
+            raise HTTPException(
+                status_code=403,
+                detail="This login code has no plots left. Please ask the administrator for a new one.",
+            )
+
+        info = prepare(conn, plot)
+        if find_overlaps(conn, info["wkt"], info["utm"]):
+            raise HTTPException(status_code=409, detail="This plot overlaps a registered plot. Not saved.")
+
+        code, area, wkt = conn.execute(
+            """ 
+            INSERT INTO plots (title_code, region_code, source, status, geom, area_m2, client_id)
+            VALUES (%s, %s, 'field', 'registered', ST_GeomFromText(%s, 4326), %s, %s)
+            RETURNING title_code, area_m2, ST_AsText(geom)
+            """,
+            (next_code(conn, plot.region, "CLT"), plot.region, info["wkt"], info["area"], client["client_id"]),
+        ).fetchone()
+        conn.execute("UPDATE login_codes SET plots_used = plots_used + 1 WHERE id = %s", (client["code_id"],))
+        add_ledger_record(conn, code, wkt, area)
+
+    return {"status": "REGISTERED", "title_code": code, "area_m2": round(area, 2), "region": plot.region}
+
+ 
+@app.get("/api/client/plots")
+def client_plots(client=Depends(require_client)):
+    with psycopg.connect(DB) as conn:
+        rows = conn.execute(
+            """
+            SELECT p.title_code, r.name, p.area_m2, p.registered_at
+            FROM plots p JOIN regions r ON r.code = p.region_code
+            WHERE p.client_id = %s ORDER BY p.id DESC
+            """,
+            (client["client_id"],),
+        ).fetchall()
+    return [
+        {"code": r[0], "region": r[1], "area_m2": r[2],
+         "registered_at": r[3].isoformat() if r[3] else None}
+        for r in rows
+    ]

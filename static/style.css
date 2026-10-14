@@ -1391,6 +1391,21 @@
         text-decoration: none;
         color: inherit;
       }
+      /* group labels in the menu */
+      .drawer-body > .menu-sec {
+        margin: 22px 4px 0;
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--brass);
+      }
+      .drawer-body > .menu-sec + .row {
+        margin-top: 8px;
+      }
+      .drawer-body > .row + .row {
+        margin-top: 6px;
+      }
       a.row:hover {
         border-color: var(--brass);
         transform: translateX(3px);

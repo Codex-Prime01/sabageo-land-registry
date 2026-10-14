@@ -84,5 +84,15 @@ CREATE TABLE anchors (
   record_hash  TEXT NOT NULL,
   tx_hash      TEXT NOT NULL,
   block_number BIGINT,
-  anchored_at  TIMESTAMP DEFAULT NOW()
+  anchored_at  TIMESTAMP DEFAULT NOW() 
 );
+
+
+-- SABAGeo Land Registry: Phase E (Register New Plot for clients)
+-- Safe to run on your existing database. Nothing is deleted.
+-- Also paste it at the end of schema.sql.
+
+-- Clients can be anywhere in Nigeria, so they need a region for land outside the dataset cities.
+INSERT INTO regions (code, name, sort_order, is_pilot)
+VALUES ('OTH', 'Other locations, Nigeria', 90, FALSE)
+ON CONFLICT (code) DO NOTHING;

@@ -1419,3 +1419,43 @@ function loadPlots(zoomToThem, focusCode) {
   rep.after(pay);
   pay.after(make("Payment receipt", "/receipt", 7));
 })();
+
+/* Menu: Register New Plot, right under Registered plots */
+(function () {
+  const registry = document.querySelector(
+    '.drawer-body > a.row[href="/registry"]',
+  );
+  if (!registry) return;
+  const a = document.createElement("a");
+  a.className = "row";
+  a.href = "/register-plot";
+  a.style.setProperty("--i", 5);
+  a.innerHTML =
+    '<span>Register New Plot</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>';
+  registry.after(a);
+})();
+
+/* Menu: sort the rows into labelled groups so the long list is easy to scan.
+   This only moves existing rows; their click handlers move with them. */
+(function () {
+  const body = document.querySelector(".drawer-body");
+  if (!body) return;
+  const link = (href) => body.querySelector('a.row[href="' + href + '"]');
+  const tools = [...body.querySelectorAll(":scope > button.row")];
+  const groups = [
+    ["Registry", ["/registry", "/register-plot", "/report"].map(link)],
+    ["Payments", ["/payments", "/receipt"].map(link)],
+    ["About", ["/about", "/how-it-works", "/architecture"].map(link)],
+    ["Ledger tools", tools],
+  ];
+  groups.forEach(([name, rows]) => {
+    rows = rows.filter(Boolean);
+    if (!rows.length) return;
+    const label = document.createElement("p");
+    label.className = "menu-sec";
+    label.textContent = name;
+    body.append(label, ...rows);
+  });
+  // renumber so the slide-in animation runs top to bottom
+  [...body.children].forEach((el, i) => el.style.setProperty("--i", i));
+})();

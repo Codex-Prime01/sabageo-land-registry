@@ -1,0 +1,412 @@
+/* SABAGeo shared look for the content pages (not the map page).
+   Loaded after each page's own <style>, so it only polishes; it never
+   changes layout that page scripts rely on. Theme: survey sheet in navy + brass. */
+
+:root {
+  --brass-soft: rgba(217, 164, 65, 0.14);
+  --brass-line: rgba(217, 164, 65, 0.5);
+  --grid: rgba(255, 255, 255, 0.032);
+  --panel: #0c1a2e;
+  --lift: 0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 22px 44px -30px rgba(0, 0, 0, 0.9);
+}
+[data-theme="light"] {
+  --card: rgba(255, 255, 255, 0.82);
+  --line: rgba(10, 22, 40, 0.12);
+  --grid: rgba(10, 22, 40, 0.045);
+  --panel: #ffffff;
+  --brass-soft: rgba(217, 164, 65, 0.18);
+  --lift: 0 1px 2px rgba(10, 22, 40, 0.05),
+    0 16px 34px -26px rgba(10, 22, 40, 0.35);
+}
+
+/* ---------- page background: faint survey grid + warm glow ---------- */
+html {
+  scrollbar-color: rgba(217, 164, 65, 0.35) transparent;
+}
+body {
+  min-height: 100vh;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1100px 520px at 88% -12%, rgba(217, 164, 65, 0.11), transparent 62%),
+    radial-gradient(900px 520px at -12% 8%, rgba(70, 120, 200, 0.12), transparent 60%),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: auto, auto, 44px 44px, 44px 44px;
+  background-attachment: fixed;
+}
+::selection {
+  background: rgba(217, 164, 65, 0.35);
+}
+
+/* ---------- top bar ---------- */
+.top {
+  border-bottom-color: transparent;
+}
+.top::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--brass-line) 25%,
+    var(--brass-line) 75%,
+    transparent
+  );
+}
+.top nav {
+  align-items: center;
+  scrollbar-width: none;
+}
+.top nav::-webkit-scrollbar {
+  display: none;
+}
+.top nav.sx-fade-r {
+  -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent);
+  mask-image: linear-gradient(90deg, #000 82%, transparent);
+}
+.top nav.sx-fade-l {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%);
+  mask-image: linear-gradient(90deg, transparent, #000 18%);
+}
+.top nav.sx-fade-l.sx-fade-r {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+}
+.top nav a {
+  position: relative;
+  font-size: 13.5px;
+}
+.top nav a:hover {
+  background: var(--card);
+}
+.top nav a.on {
+  color: var(--text);
+  background: var(--brass-soft);
+}
+.top nav a.on::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brass);
+}
+.sx-sep {
+  flex: none;
+  align-self: stretch;
+  width: 1px;
+  margin: 8px 6px;
+  background: var(--line);
+}
+.sx-menu {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    border-color 0.25s,
+    background 0.25s;
+}
+.sx-menu:hover {
+  border-color: var(--brass);
+  background: var(--brass-soft);
+}
+.map-btn {
+  background: linear-gradient(180deg, #e4b456, #d09a33);
+}
+
+/* ---------- headings ---------- */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.eyebrow::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brass);
+  box-shadow: 0 0 0 4px var(--brass-soft);
+}
+.eyebrow::after {
+  content: "";
+  width: 36px;
+  height: 1px;
+  background: var(--brass-line);
+}
+
+/* ---------- cards: survey sheet with corner registration marks ---------- */
+.card,
+.steps li {
+  box-shadow: var(--lift);
+  background-image:
+    linear-gradient(var(--brass-line), var(--brass-line)),
+    linear-gradient(var(--brass-line), var(--brass-line)),
+    linear-gradient(var(--brass-line), var(--brass-line)),
+    linear-gradient(var(--brass-line), var(--brass-line));
+  background-size: 12px 1.5px, 1.5px 12px, 12px 1.5px, 1.5px 12px;
+  background-position:
+    10px 10px,
+    10px 10px,
+    calc(100% - 10px) calc(100% - 10px),
+    calc(100% - 10px) calc(100% - 10px);
+  background-repeat: no-repeat;
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+.card:hover,
+.steps li:hover {
+  border-color: rgba(217, 164, 65, 0.32);
+}
+.note {
+  box-shadow: var(--lift);
+}
+
+/* ---------- forms and buttons ---------- */
+.fld input:hover,
+.fld select:hover,
+.srch input:hover {
+  border-color: rgba(217, 164, 65, 0.4);
+}
+.btnp {
+  background: linear-gradient(180deg, #e4b456, #d09a33);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+}
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+}
+
+/* ---------- tables ---------- */
+.tbl {
+  background: var(--card);
+  box-shadow: var(--lift);
+}
+th {
+  font-size: 11.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+tbody tr {
+  transition: background 0.2s;
+}
+tbody tr:hover {
+  background: var(--brass-soft);
+}
+
+/* ---------- footer ---------- */
+footer {
+  padding-top: 30px;
+  border-top: 1px solid var(--line);
+}
+.sx-foot {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.sx-foot b {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.sx-foot a {
+  display: block;
+  padding: 3px 0;
+  color: var(--mute);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.sx-foot a:hover {
+  color: var(--text);
+}
+
+/* ---------- slide-out menu ---------- */
+body.sx-lock {
+  overflow: hidden;
+}
+.sx-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(5, 10, 20, 0.55);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.4s ease,
+    visibility 0s 0.4s;
+}
+.sx-scrim.open {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.sx-drawer {
+  position: fixed;
+  z-index: 2100;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(330px, 86vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  color: var(--text);
+  border-right: 1px solid var(--line);
+  box-shadow: 24px 0 60px -20px rgba(0, 0, 0, 0.7);
+  transform: translateX(-104%);
+  visibility: hidden;
+  transition:
+    transform 0.5s var(--ease),
+    visibility 0s 0.5s;
+}
+.sx-drawer.open {
+  transform: none;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.sx-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 12px 14px 18px;
+  padding-top: max(14px, env(safe-area-inset-top));
+  border-bottom: 1px solid var(--line);
+}
+.sx-head strong {
+  flex: 1;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 19px;
+}
+.sx-x {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.sx-x:hover {
+  background: var(--card);
+}
+.sx-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 14px calc(28px + env(safe-area-inset-bottom));
+}
+.sx-map {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 4px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #e4b456, #d09a33);
+  color: #1a1204;
+  font-weight: 600;
+  text-decoration: none;
+}
+.sx-label {
+  margin: 20px 8px 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.sx-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition:
+    background 0.2s,
+    transform 0.3s var(--ease);
+}
+.sx-link svg {
+  opacity: 0.45;
+}
+.sx-link:hover {
+  background: var(--card);
+  transform: translateX(3px);
+}
+.sx-link.on {
+  background: var(--brass-soft);
+  box-shadow: inset 3px 0 0 var(--brass);
+}
+.sx-theme {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+.sx-theme:hover {
+  border-color: var(--brass);
+}
+.sx-theme em {
+  font-style: normal;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--brass);
+}
+.sx-drawer.open .sx-body > * {
+  animation: sx-in 0.45s var(--ease) backwards;
+  animation-delay: calc(var(--i, 0) * 30ms + 120ms);
+}
+@keyframes sx-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+}
+
+@media (max-width: 560px) {
+  .top {
+    gap: 8px;
+  }
+  .sx-foot {
+    grid-template-columns: 1fr 1fr;
+  }
+}
