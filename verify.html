@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Verify a title | SABAGeo Land Registry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1628">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='8,12 34,7 37,32 11,37' fill='%23D9A441' fill-opacity='.4' stroke='%230A1628' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark"}catch(e){}</script>
+<style>
+:root{--bg:#0a1628;--text:#f4f6fa;--mute:#9fb0c8;--line:rgba(255,255,255,.12);--card:rgba(255,255,255,.05);--brass:#d9a441;--clear:#2bff88;--flag:#ff2d4d;--ease:cubic-bezier(.22,.8,.2,1)}
+[data-theme=light]{--bg:#f1f4f9;--text:#0a1628;--mute:#52627a;--line:rgba(10,22,40,.14);--card:rgba(10,22,40,.04);--clear:#0b8f4a;--flag:#d0112b}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.top{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:var(--bg);background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:"Fraunces",Georgia,serif;font-size:19px;font-weight:700}
+nav{margin-left:auto;display:flex;gap:4px;overflow-x:auto}
+nav a{padding:9px 12px;border-radius:10px;color:var(--mute);text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap}
+.map-btn{flex:none;padding:9px 14px;border-radius:999px;background:var(--brass);color:#1a1204;text-decoration:none;font-size:14px;font-weight:600}
+main{max-width:620px;margin:0 auto;padding:40px 20px 72px}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+h1{margin:0;font-family:"Fraunces",Georgia,serif;font-size:clamp(26px,6vw,40px);line-height:1.12}
+.lead{margin:14px 0 0;font-size:16.5px;color:var(--mute)}
+.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .6s var(--ease) backwards;animation-delay:calc(var(--k,0)*70ms)}
+.card h2{margin:0 0 8px;font-family:"Fraunces",Georgia,serif;font-size:20px}
+.card p{margin:8px 0 0;color:var(--mute)}
+.verdict{display:flex;align-items:center;gap:16px}
+.seal{flex:none;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;animation:stamp .5s cubic-bezier(.2,1.4,.4,1) backwards}
+.seal.ok{background:var(--clear);box-shadow:0 0 24px rgba(43,255,136,.45)}
+.seal.no{background:var(--flag);box-shadow:0 0 24px rgba(255,45,77,.5)}
+.seal.wait{background:var(--brass)}
+.seal svg{stroke:#06210f}.seal.no svg,.seal.wait svg{stroke:#fff}
+.verdict b{display:block;font-family:"Fraunces",Georgia,serif;font-size:22px;line-height:1.2}
+.verdict small{color:var(--mute);font-size:14px}
+.code{font-family:"IBM Plex Mono",monospace;font-size:clamp(20px,6vw,28px);color:var(--brass);letter-spacing:.02em;word-break:break-all}
+dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:14px 0 0;font-size:15px}
+dt{color:var(--mute)}dd{margin:0;text-align:right;font-weight:500}
+.hash{font-family:"IBM Plex Mono",monospace;font-size:12px;word-break:break-all;color:var(--mute)}
+.ok-t{color:var(--clear)}.no-t{color:var(--flag)}
+.form{display:flex;gap:10px;margin-top:18px}
+.form input{flex:1;min-width:0;height:48px;padding:0 14px;font:inherit;font-size:16px;color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px;text-transform:uppercase}
+.form input:focus{outline:none;border-color:var(--brass)}
+.btn{height:48px;padding:0 20px;border:0;border-radius:12px;background:var(--brass);color:#1a1204;font:inherit;font-weight:600;cursor:pointer}
+.links{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.links a{padding:10px 16px;border:1px solid var(--line);border-radius:12px;text-decoration:none;font-weight:600;font-size:14px}
+.links a:hover{border-color:var(--brass)}
+.msg{margin-top:12px;color:var(--flag)}
+footer{max-width:620px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-inset-bottom));color:var(--mute);font-size:13px}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes stamp{from{opacity:0;transform:scale(1.6) rotate(-12deg)}}
+@media (max-width:560px){.brand span{display:none}main{padding-top:28px}.card{padding:18px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}}
+</style>
+<link rel="stylesheet" href="/static/site.css" />
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/" aria-label="Back to the map">
+    <svg width="30" height="30" viewBox="0 0 44 44" aria-hidden="true"><polygon points="8,12 34,7 37,32 11,37" fill="rgba(217,164,65,.18)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8" cy="12" r="3.6" fill="#D9A441"/><circle cx="34" cy="7" r="3.6" fill="#D9A441"/><circle cx="37" cy="32" r="3.6" fill="#D9A441"/><circle cx="11" cy="37" r="3.6" fill="#D9A441"/></svg>
+    <span>SABAGeo</span>
+  </a>
+  <nav aria-label="Pages"><a href="/registry">Registry</a><a href="/verify" class="on" aria-current="page">Verify a title</a></nav>
+  <a class="map-btn" href="/">Open map</a>
+</header>
+<script src="/static/site.js"></script>
+<main>
+  <p class="eyebrow">Verify a title</p>
+  <div id="app"></div>
+</main>
+<footer>SABAGeo Land Registry. A research prototype from the Nigerian Army University Biu. Test data and test-network records are for demonstration only.</footer>
+<script>
+(() => {
+  const app = document.getElementById("app");
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const date = (s) => s ? new Date(s).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }) : "";
+  const TICK = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const CROSS = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  const DOTS = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg>';
+
+  function askForm(msg) {
+    app.innerHTML =
+      '<h1>Is this land title real?</h1><p class="lead">Type the title code printed on a SABAGeo parcel report, or scan the QR code on it.</p>' +
+      '<form class="form" id="f"><input id="c" placeholder="SABA-LAG-SYN-001" autocomplete="off" required aria-label="Title code"><button class="btn">Verify</button></form>' +
+      (msg ? '<p class="msg">' + esc(msg) + "</p>" : "");
+    document.getElementById("f").onsubmit = (e) => {
+      e.preventDefault();
+      const code = document.getElementById("c").value.trim().toUpperCase();
+      if (code) location.href = "/verify/" + encodeURIComponent(code);
+    };
+  }
+
+  async function show(code) {
+    app.innerHTML = '<h1 class="code">' + esc(code) + '</h1><p class="lead">Checking the registry and the ledger…</p>';
+    let d;
+    try {
+      const r = await fetch("/api/verify/" + encodeURIComponent(code));
+      if (r.status === 404) return askForm("No title with the code " + code + " is in the registry.");
+      d = await r.json();
+    } catch (e) {
+      return askForm("Could not reach the registry. Please try again.");
+    }
+    let seal, head, sub;
+    if (d.intact) {
+      seal = "ok"; head = "Registered. Record intact."; sub = "This title is in the registry and its record has not been changed since it was written.";
+    } else if (d.status === "removed") {
+      seal = "no"; head = "This title was removed."; sub = d.record && d.record.removed_reason ? esc(d.record.removed_reason) : "It is no longer in the registry.";
+    } else if (d.status === "reserved") {
+      seal = "wait"; head = "Reserved slot, not yet surveyed."; sub = "This pilot slot is waiting for real field measurements.";
+    } else if (d.status === "registered") {
+      seal = "no"; head = "Registered, but the record does not match."; sub = "Do not rely on this title. Contact SABAGeo.";
+    } else {
+      seal = "no"; head = "Not found in the registry."; sub = "";
+    }
+    const icon = seal === "ok" ? TICK : seal === "wait" ? DOTS : CROSS;
+    const rows = [];
+    if (d.region) rows.push(["Region", esc(d.region)]);
+    if (d.area_m2 != null) rows.push(["Area", d.area_m2.toLocaleString("en") + " m²"]);
+    if (d.source) rows.push(["Data", d.source === "synthetic" ? "Synthetic (test data)" : "Field survey"]);
+    if (d.registered_at) rows.push(["Registered", date(d.registered_at)]);
+    rows.push(["Whole ledger", d.ledger_intact ? '<span class="ok-t">Intact</span>' : '<span class="no-t">Broken</span>']);
+    if (d.record && d.status === "registered") rows.push(["This record", d.record.matches_plot ? '<span class="ok-t">Matches the plot</span>' : '<span class="no-t">Does not match</span>']);
+    rows.push(["On Polygon", d.onchain ? '<a href="' + esc(d.onchain.url) + '" target="_blank" rel="noopener">Title record ✓</a>' : d.anchor ? '<a href="' + esc(d.anchor.url) + '" target="_blank" rel="noopener">Ledger anchored ✓</a>' : "Not yet"]);
+
+    app.innerHTML =
+      '<h1 class="code">' + esc(d.title_code) + "</h1>" +
+      '<section class="card" style="--k:1"><div class="verdict"><div class="seal ' + seal + '">' + icon + "</div><div><b>" + head + "</b><small>" + sub + "</small></div></div>" +
+      "<dl>" + rows.map((r) => "<dt>" + r[0] + "</dt><dd>" + r[1] + "</dd>").join("") + "</dl></section>" +
+      (d.record ? '<section class="card" style="--k:2"><h2>Ledger fingerprint</h2><p>Record ' + d.record.id + ", written " + date(d.record.written_at) + '.</p><p class="hash">' + esc(d.record.hash) + "</p></section>" : "") +
+      '<div class="links">' + (d.status === "registered" ? '<a href="/report/' + encodeURIComponent(d.title_code) + '">Full parcel report</a><a href="/?plot=' + encodeURIComponent(d.title_code) + '">See it on the map</a>' : "") + '<a href="/verify">Check another title</a></div>' +
+      '<p class="lead" style="font-size:13.5px;margin-top:20px">A matching record shows the title has not changed since SABAGeo registered it. It does not prove the original survey was correct.</p>';
+    document.title = d.title_code + " | Verify a title | SABAGeo";
+  }
+
+  const code = decodeURIComponent(location.pathname.replace(/^\/verify\/?/, "")).trim().toUpperCase();
+  code ? show(code) : askForm("");
+})();
+</script>
+</body>
+</html>

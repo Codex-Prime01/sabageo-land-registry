@@ -47,6 +47,10 @@ PLANS = {
     },
 }
 
+# The site's public address, e.g. https://sabageo.onrender.com (used in QR codes and payment
+# return links). When empty, the address the request came in on is used.
+PUBLIC_URL = os.getenv("PUBLIC_URL", "").rstrip("/")
+
 # Polygon Amoy test network
 RPC = os.getenv("POLYGON_RPC", "https://polygon-amoy.drpc.org")
 CHAIN_ID = 80002

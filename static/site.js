@@ -10,6 +10,7 @@
         ["Registry", "/registry"],
         ["Register plot", "/register-plot"],
         ["Parcel report", "/report"],
+        ["Verify a title", "/verify"],
       ],
     },
     {

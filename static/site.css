@@ -430,3 +430,41 @@ body.sx-lock {
     box-shadow: none;
   }
 }
+
+/* ---------- QR "scan to verify" block (parcel report) ---------- */
+.qrbox {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px dashed var(--brass-line);
+  border-radius: 14px;
+}
+.qrbox img {
+  flex: none;
+  border-radius: 8px;
+  background: #fff;
+}
+.qrbox b {
+  display: block;
+  color: var(--text);
+}
+.qrbox small {
+  display: block;
+  color: var(--mute);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.qrbox a {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--brass);
+  font-size: 13px;
+  font-weight: 600;
+}
+@media print {
+  .qrbox {
+    break-inside: avoid;
+  }
+}
