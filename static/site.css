@@ -1,26 +1,25 @@
 /* SABAGeo shared look for the content pages (not the map page).
-   Loaded after each page's own <style>, so it only polishes; it never
-   changes layout that page scripts rely on. Theme: survey sheet in navy + brass. */
+   Loaded after each page's own <style>, so it only restyles; it never changes layout that
+   page scripts rely on. Look: flat and calm. Solid surfaces instead of glass, space instead
+   of borders, one accent colour (brass) used sparingly. */
 
 :root {
   --brass-soft: rgba(217, 164, 65, 0.14);
   --brass-line: rgba(217, 164, 65, 0.5);
-  --grid: rgba(255, 255, 255, 0.032);
+  --line: rgba(255, 255, 255, 0.08);
+  --card: #0f1f35;          /* solid surface: no see-through glass */
+  --surface-2: #142741;
   --panel: #0c1a2e;
-  --lift: 0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 22px 44px -30px rgba(0, 0, 0, 0.9);
 }
 [data-theme="light"] {
-  --card: rgba(255, 255, 255, 0.82);
-  --line: rgba(10, 22, 40, 0.12);
-  --grid: rgba(10, 22, 40, 0.045);
+  --card: #ffffff;
+  --surface-2: #eef2f7;
+  --line: rgba(10, 22, 40, 0.1);
   --panel: #ffffff;
   --brass-soft: rgba(217, 164, 65, 0.18);
-  --lift: 0 1px 2px rgba(10, 22, 40, 0.05),
-    0 16px 34px -26px rgba(10, 22, 40, 0.35);
 }
 
-/* ---------- page background: faint survey grid + warm glow ---------- */
+/* ---------- page background: plain, with a barely-there survey grid ---------- */
 html {
   scrollbar-color: rgba(217, 164, 65, 0.35) transparent;
 }
@@ -28,36 +27,23 @@ body {
   min-height: 100vh;
   background-color: var(--bg);
   background-image:
-    radial-gradient(1100px 520px at 88% -12%, rgba(217, 164, 65, 0.11), transparent 62%),
-    radial-gradient(900px 520px at -12% 8%, rgba(70, 120, 200, 0.12), transparent 60%),
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: auto, auto, 44px 44px, 44px 44px;
-  background-attachment: fixed;
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 44px 44px, 44px 44px;
+}
+[data-theme="light"] body {
+  background-image: none;
 }
 ::selection {
   background: rgba(217, 164, 65, 0.35);
 }
 
-/* ---------- top bar ---------- */
+/* ---------- top bar: solid, one hairline ---------- */
 .top {
-  border-bottom-color: transparent;
-}
-.top::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 1px;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--brass-line) 25%,
-    var(--brass-line) 75%,
-    transparent
-  );
+  background: var(--bg) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border-bottom: 1px solid var(--line);
 }
 .top nav {
   align-items: center;
@@ -81,20 +67,21 @@ body {
 .top nav a {
   position: relative;
   font-size: 13.5px;
+  background: transparent;
 }
 .top nav a:hover {
-  background: var(--card);
+  color: var(--text);
 }
 .top nav a.on {
   color: var(--text);
-  background: var(--brass-soft);
+  background: transparent;
 }
 .top nav a.on::after {
   content: "";
   position: absolute;
   left: 12px;
   right: 12px;
-  bottom: 3px;
+  bottom: 2px;
   height: 2px;
   border-radius: 2px;
   background: var(--brass);
@@ -103,7 +90,7 @@ body {
   flex: none;
   align-self: stretch;
   width: 1px;
-  margin: 8px 6px;
+  margin: 10px 6px;
   background: var(--line);
 }
 .sx-menu {
@@ -112,82 +99,84 @@ body {
   height: 40px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--line);
+  border: 0;
   border-radius: 12px;
-  background: var(--card);
+  background: var(--surface-2);
   color: var(--text);
   cursor: pointer;
-  transition:
-    border-color 0.25s,
-    background 0.25s;
+  transition: background 0.2s;
 }
 .sx-menu:hover {
-  border-color: var(--brass);
   background: var(--brass-soft);
 }
 .map-btn {
-  background: linear-gradient(180deg, #e4b456, #d09a33);
+  background: var(--brass);
+  box-shadow: none !important;
 }
 
 /* ---------- headings ---------- */
 .eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 .eyebrow::before {
   content: "";
   flex: none;
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--brass);
-  box-shadow: 0 0 0 4px var(--brass-soft);
-}
-.eyebrow::after {
-  content: "";
-  width: 36px;
-  height: 1px;
-  background: var(--brass-line);
 }
 
-/* ---------- cards: survey sheet with corner registration marks ---------- */
+/* ---------- cards: flat surfaces, no borders, no shadows ---------- */
 .card,
-.steps li {
-  box-shadow: var(--lift);
-  background-image:
-    linear-gradient(var(--brass-line), var(--brass-line)),
-    linear-gradient(var(--brass-line), var(--brass-line)),
-    linear-gradient(var(--brass-line), var(--brass-line)),
-    linear-gradient(var(--brass-line), var(--brass-line));
-  background-size: 12px 1.5px, 1.5px 12px, 12px 1.5px, 1.5px 12px;
-  background-position:
-    10px 10px,
-    10px 10px,
-    calc(100% - 10px) calc(100% - 10px),
-    calc(100% - 10px) calc(100% - 10px);
-  background-repeat: no-repeat;
-  transition:
-    border-color 0.3s,
-    box-shadow 0.3s;
+.steps li,
+.layer,
+.tile,
+.stat,
+.pc,
+.plist,
+.more,
+.note {
+  border-color: transparent !important;
+  background-color: var(--card);
+  background-image: none;
+  box-shadow: none;
 }
-.card:hover,
-.steps li:hover {
-  border-color: rgba(217, 164, 65, 0.32);
+.card .layer,
+.card .tile,
+.card .steps li {
+  background-color: var(--surface-2);
 }
 .note {
-  box-shadow: var(--lift);
+  border-left: 3px solid var(--brass) !important;
+}
+.seg {
+  border-color: transparent !important;
+  background-color: var(--surface-2) !important;
 }
 
 /* ---------- forms and buttons ---------- */
+.fld input,
+.fld select,
+.fld textarea,
+.srch input,
+.form input {
+  background-color: var(--bg);
+}
 .fld input:hover,
 .fld select:hover,
 .srch input:hover {
   border-color: rgba(217, 164, 65, 0.4);
 }
 .btnp {
-  background: linear-gradient(180deg, #e4b456, #d09a33);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+  background: var(--brass);
+  box-shadow: none !important;
+  border-radius: 999px;
+}
+.act {
+  border-radius: 999px;
 }
 :where(a, button, input, select, textarea, summary):focus-visible {
   outline: 2px solid var(--brass);
@@ -196,14 +185,16 @@ body {
 
 /* ---------- tables ---------- */
 .tbl {
-  background: var(--card);
-  box-shadow: var(--lift);
+  border-color: var(--line);
+  background: transparent;
+  box-shadow: none;
 }
 th {
   font-size: 11.5px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--mute);
+  background: transparent !important;
 }
 tbody tr {
   transition: background 0.2s;
@@ -467,4 +458,12 @@ body.sx-lock {
   .qrbox {
     break-inside: avoid;
   }
+}
+
+/* ---------- admin section tabs (Overview / Payments): underline only ---------- */
+nav.tabs a,
+nav.tabs a.on,
+nav.tabs a:hover {
+  background: transparent !important;
+  border-radius: 0;
 }

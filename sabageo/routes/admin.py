@@ -19,6 +19,12 @@ def admin_page():
     return FileResponse("admin.html")
 
 
+@router.get("/admin/payments")
+def admin_payments_page():
+    # the page itself is plain HTML; everything it shows comes from admin-key APIs
+    return FileResponse("admin-payments.html")
+
+
 def optional(conn, query, params=(), default=None):
     """Run a query on a Phase H table; give `default` if that table is not created yet."""
     try:

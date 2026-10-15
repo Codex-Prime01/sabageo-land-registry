@@ -62,6 +62,9 @@ td b{color:var(--text);font-weight:600}
 .ok-t{color:var(--clear)}.no-t{color:var(--flag)}
 .empty{padding:18px;color:var(--mute);text-align:center}
 .hidden{display:none!important}
+.tabs{display:flex;gap:4px;margin:0 0 26px;border-bottom:1px solid var(--line)}
+.tabs a{padding:10px 14px;margin-bottom:-1px;border-bottom:2px solid transparent;color:var(--mute);text-decoration:none;font-weight:600;font-size:14.5px}
+.tabs a.on{color:var(--text);border-bottom-color:var(--brass)}
 footer{max-width:1120px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-inset-bottom));color:var(--mute);font-size:13px}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}}
 @media (max-width:760px){.two{grid-template-columns:1fr}}
@@ -81,6 +84,7 @@ footer{max-width:1120px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-i
 </header>
 <script src="/static/site.js"></script>
 <main>
+  <nav class="tabs" aria-label="Admin sections"><a href="/admin" class="on" aria-current="page">Overview</a><a href="/admin/payments">Payments</a></nav>
   <div class="head">
     <div><p class="eyebrow">Admin dashboard</p><h1>Who registered what, and how the system is doing.</h1></div>
     <div class="acts hidden" id="acts"><button class="act" id="refresh">Refresh</button><button class="act" id="lock">Lock</button></div>

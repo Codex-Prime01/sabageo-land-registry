@@ -17,7 +17,7 @@
     {
       group: "Payments",
       links: [
-        ["Token payment", "/payments"],
+        ["Plans", "/payments"],
         ["Receipt", "/receipt"],
       ],
     },
@@ -31,13 +31,21 @@
     },
     {
       group: "Admin",
-      links: [["Dashboard", "/admin"]],
+      links: [
+        ["Dashboard", "/admin"],
+        ["Payments", "/admin/payments"],
+      ],
     },
   ];
 
   // /receipt/SABA-RCPT-... still counts as the Receipt page
-  const path = location.pathname.replace(/\/+$/, "") || "/";
-  const isOn = (href) => path === href || path.startsWith(href + "/");
+  const here = location.pathname.replace(/\/+$/, "") || "/";
+  const path = here.startsWith("/pay/") ? "/payments" : here; // checkout belongs to Plans
+  // the closest match wins, so /admin/payments lights up "Payments" and not "Dashboard" (/admin)
+  const best = PAGES.flatMap((g) => g.links.map((l) => l[1]))
+    .filter((h) => path === h || path.startsWith(h + "/"))
+    .sort((x, y) => y.length - x.length)[0];
+  const isOn = (href) => href === best;
   const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
   const arrow =
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';

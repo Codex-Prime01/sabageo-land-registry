@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Checkout | SABAGeo Land Registry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1628">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='8,12 34,7 37,32 11,37' fill='%23D9A441' fill-opacity='.4' stroke='%230A1628' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark"}catch(e){}</script>
+<link rel="stylesheet" href="/static/flow.css" />
+<link rel="stylesheet" href="/static/site.css" />
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/" aria-label="Back to the map">
+    <svg width="30" height="30" viewBox="0 0 44 44" aria-hidden="true"><polygon points="8,12 34,7 37,32 11,37" fill="rgba(217,164,65,.18)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8" cy="12" r="3.6" fill="#D9A441"/><circle cx="34" cy="7" r="3.6" fill="#D9A441"/><circle cx="37" cy="32" r="3.6" fill="#D9A441"/><circle cx="11" cy="37" r="3.6" fill="#D9A441"/></svg>
+    <span>SABAGeo</span>
+  </a>
+  <nav aria-label="Pages"><a href="/registry">Registry</a><a href="/payments" class="on" aria-current="page">Plans</a></nav>
+  <a class="map-btn" href="/">Open map</a>
+</header>
+<script src="/static/site.js"></script>
+<main>
+  <div class="checkout">
+    <aside class="summary" aria-label="Your plan">
+      <a class="back" href="/payments">← Change plan</a><br>
+      <span class="pill" id="s_tag">Your plan</span>
+      <h2 class="name" id="s_name">…</h2>
+      <ul id="s_list"></ul>
+      <div class="total"><span>Total</span><b id="s_price">…</b></div>
+      <p class="per" id="s_per" style="margin:4px 0 0;text-align:right;color:var(--mute);font-size:14px"></p>
+    </aside>
+
+    <section class="pane">
+      <h2>Your details</h2>
+      <p>Your login code and receipt are made out to these details.</p>
+
+      <form id="f" class="hidden" novalidate>
+        <label class="field"><span id="l_name">Full name</span><input id="name" autocomplete="name" maxlength="120" required></label>
+        <label class="field"><span>Email <small>(Paystack sends your payment receipt here)</small></span><input id="email" type="email" autocomplete="email" maxlength="120" required></label>
+        <label class="field"><span>Phone <small>(optional)</small></span><input id="phone" type="tel" autocomplete="tel" maxlength="40" placeholder="0803 123 4567"></label>
+        <p class="err" id="err" role="alert"></p>
+        <button class="btn" id="go" type="submit">Continue to payment</button>
+        <p class="secure"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Paid securely through Paystack. SABAGeo never sees your card.</p>
+        <p class="banner test hidden" id="testmode"><span class="pill">Test mode</span>No real money. Use a Paystack test card.</p>
+      </form>
+
+      <div class="offline hidden" id="offline">
+        <b>Pay SABAGeo directly</b>
+        <p>Online payment is not switched on yet. Pay the SABAGeo team by bank transfer, POS or cash. They record it and give you a receipt with your login code, and you can start registering straight away.</p>
+      </div>
+    </section>
+  </div>
+</main>
+<footer>SABAGeo Land Registry. A research prototype from the Nigerian Army University Biu.</footer>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const naira = (n) => "₦" + Number(n).toLocaleString("en", { maximumFractionDigits: 0 });
+  const plan = decodeURIComponent(location.pathname.replace(/^\/pay\/?/, "").replace(/\/$/, ""));
+  const COPY = {
+    individual: { name: "Individual", tag: "For one person", label: "Full name",
+      list: ["Check and register 1 plot", "Printable parcel report with a QR check", "Login code works for 30 days"] },
+    corporate: { name: "Corporate", tag: "For companies", label: "Company name",
+      list: ["Unlimited plots for 30 days", "Register plots for your buyers", "A parcel report for every plot"] },
+  };
+  const c = COPY[plan];
+  if (!c) { location.replace("/payments"); return; }
+  $("s_name").textContent = c.name;
+  $("s_tag").textContent = c.tag;
+  $("l_name").textContent = c.label;
+  $("s_list").innerHTML = c.list.map((t) => "<li>" + t + "</li>").join("");
+  document.title = c.name + " | Checkout | SABAGeo";
+
+  Promise.all([fetch("/api/prices").then((r) => r.json()), fetch("/api/pay/config").then((r) => r.json())])
+    .then(([prices, cfg]) => {
+      const p = prices.plans[plan];
+      $("s_price").textContent = naira(p.amount);
+      $("s_per").textContent = p.per;
+      $("go").textContent = "Pay " + naira(p.amount);
+      if (cfg.enabled) {
+        $("f").classList.remove("hidden");
+        $("testmode").classList.toggle("hidden", !cfg.test_mode);
+        $("name").focus();
+      } else {
+        $("offline").classList.remove("hidden");
+      }
+    })
+    .catch(() => {
+      $("offline").classList.remove("hidden");
+    });
+
+  $("f").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = $("name").value.trim(), email = $("email").value.trim(), phone = $("phone").value.trim();
+    // friendly checks first; the server checks everything again
+    if (name.length < 2) { $("err").textContent = "Please enter your " + c.label.toLowerCase() + "."; $("name").focus(); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $("err").textContent = "Please enter a valid email address."; $("email").focus(); return; }
+    $("err").textContent = "";
+    const btn = $("go"), label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Opening secure checkout…";
+    try {
+      const r = await fetch("/api/pay/start", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, name, email, phone: phone || null }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.authorization_url) throw new Error(typeof d.detail === "string" ? d.detail : "Please check your details and try again.");
+      location.href = d.authorization_url; // Paystack's own secure page
+    } catch (err) {
+      $("err").textContent = err.message;
+      btn.disabled = false;
+      btn.textContent = label;
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Payments (staff) | SABAGeo Land Registry</title>
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1628">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='8,12 34,7 37,32 11,37' fill='%23D9A441' fill-opacity='.4' stroke='%230A1628' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark"}catch(e){}</script>
+<style>
+:root{--bg:#0a1628;--text:#f4f6fa;--mute:#9fb0c8;--line:rgba(255,255,255,.12);--card:rgba(255,255,255,.05);--brass:#d9a441;--clear:#2bff88;--flag:#ff2d4d;--ease:cubic-bezier(.22,.8,.2,1)}
+[data-theme=light]{--bg:#f1f4f9;--text:#0a1628;--mute:#52627a;--line:rgba(10,22,40,.14);--card:rgba(10,22,40,.04)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.top{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:var(--bg);background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:"Fraunces",Georgia,serif;font-size:19px;font-weight:700}
+nav{margin-left:auto;display:flex;gap:4px;overflow-x:auto}
+nav a{padding:9px 12px;border-radius:10px;color:var(--mute);text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap;transition:background .3s,color .3s}
+nav a:hover{color:var(--text)}
+nav a.on{color:var(--text);background:var(--card)}
+.map-btn{flex:none;padding:9px 14px;border-radius:999px;background:var(--brass);color:#1a1204;text-decoration:none;font-size:14px;font-weight:600;transition:transform .3s var(--ease),box-shadow .3s}
+.map-btn:hover{box-shadow:0 8px 22px -8px rgba(217,164,65,.8)}
+.map-btn:active{transform:scale(.96)}
+main{max-width:760px;margin:0 auto;padding:44px 20px 72px}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+h1{margin:0;font-family:"Fraunces",Georgia,serif;font-size:clamp(28px,6vw,44px);line-height:1.12;letter-spacing:-.015em}
+.lead{margin:16px 0 0;font-size:17px;color:var(--mute)}
+.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .7s var(--ease) backwards;animation-delay:calc(var(--k,0)*80ms)}
+.card h2{margin:0 0 8px;font-family:"Fraunces",Georgia,serif;font-size:21px}
+.card p{margin:8px 0 0;color:var(--mute)}
+.card ul{margin:10px 0 0;padding-left:20px;color:var(--mute)}
+.card li{margin:4px 0}
+.card b{color:var(--text)}
+.steps{list-style:none;counter-reset:s;margin:20px 0 0;padding:0}
+.steps li{counter-increment:s;position:relative;margin-top:14px;padding:20px 20px 20px 70px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .7s var(--ease) backwards;animation-delay:calc(var(--k,0)*80ms)}
+.steps li::before{content:counter(s);position:absolute;left:20px;top:20px;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:var(--brass);color:#1a1204;font-weight:700}
+.steps h2{margin:0;font-family:"Fraunces",Georgia,serif;font-size:19px}
+.steps p{margin:6px 0 0;color:var(--mute)}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:8px;vertical-align:-1px}
+.note{margin-top:16px;padding:16px 18px;border-left:3px solid var(--brass);border-radius:0 12px 12px 0;background:var(--card);color:var(--mute);font-size:15px}
+.cta{display:inline-block;margin-top:26px;padding:14px 22px;border-radius:14px;background:var(--text);color:var(--bg);font-weight:600;text-decoration:none;transition:transform .3s var(--ease),box-shadow .3s}
+.cta:hover{box-shadow:0 12px 28px -12px rgba(0,0,0,.6)}
+.cta:active{transform:scale(.97)}
+footer{max-width:760px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-inset-bottom));color:var(--mute);font-size:13px}
+
+.layer{margin-top:14px;padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--card)}
+.card .layer{background:transparent}
+.layer h3{margin:0 0 10px;font-family:"Fraunces",Georgia,serif;font-size:17px}
+.item{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.18);font-size:14.5px;color:var(--mute)}
+[data-theme=light] .item{background:rgba(10,22,40,.05)}
+.item span:first-child{flex:1}
+.b{flex:none;display:inline-block;padding:2px 10px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.b.built{background:rgba(43,255,136,.15);color:#2bff88}
+.b.test{background:rgba(217,164,65,.2);color:#d9a441}
+.b.plan{background:rgba(159,176,200,.18);color:var(--mute)}
+[data-theme=light] .b.built{background:rgba(11,143,74,.12);color:#0b8f4a}
+[data-theme=light] .b.test{color:#9a6b10}
+.down{display:grid;place-items:center;height:34px;color:var(--brass)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.two-col .layer{margin-top:0}
+.verify{display:block;margin:12px auto 0;width:max-content;padding:10px 24px;border:1.5px solid var(--brass);border-radius:999px;color:var(--brass);font-weight:600;letter-spacing:.08em}
+.tbl{margin-top:12px;overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;min-width:560px;border-collapse:collapse;font-size:14px}
+th,td{padding:12px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);color:var(--mute)}
+th{color:var(--text);font-weight:600;background:var(--card)}
+tr:last-child td{border-bottom:0}
+code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
+@media (max-width:640px){.two-col{grid-template-columns:1fr}}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+@media (max-width:560px){.brand span{display:none}main{padding-top:32px}.steps li{padding:18px 16px 18px 62px}.steps li::before{left:16px;top:18px}.card{padding:18px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important}}
+</style>
+<style>
+.form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fld.full{grid-column:1/-1}
+.fld label{font-size:13px;font-weight:600}
+.fld small{font-size:12px;color:var(--mute)}
+.fld input,.fld select{width:100%;height:46px;padding:0 14px;font:inherit;font-size:15px;color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px;transition:border-color .25s,box-shadow .25s}
+.fld select option{color:#0a1628;background:#fff}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 4px rgba(217,164,65,.16)}
+.btnp{height:50px;padding:0 24px;border:0;border-radius:12px;background:var(--brass);color:#1a1204;font:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:transform .2s var(--ease),box-shadow .3s,opacity .2s}
+.btnp:hover{box-shadow:0 10px 24px -10px rgba(217,164,65,.8)}
+.btnp:active{transform:scale(.97)}
+.btnp:disabled{opacity:.6;cursor:progress}
+.msg{margin:12px 0 0;font-size:14px;color:#ff5c77}
+.b.bad{background:rgba(255,45,77,.15);color:#ff5c77}
+.seal{flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;animation:stamp .5s cubic-bezier(.2,1.4,.4,1) backwards}
+.seal.ok{background:#2bff88;box-shadow:0 0 22px rgba(43,255,136,.55)}
+.seal.no{background:#ff2d4d;box-shadow:0 0 22px rgba(255,45,77,.6)}
+.seal svg{stroke:#05260f}
+.seal.no svg{stroke:#fff}
+@keyframes stamp{from{opacity:0;transform:scale(1.6) rotate(-12deg)}to{opacity:1;transform:none}}
+.hidden{display:none!important}
+@media (max-width:640px){.form{grid-template-columns:1fr}}
+main.wide{max-width:1040px}
+.act{flex:none;padding:10px 16px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--text);font:inherit;font-size:13.5px;font-weight:600;text-decoration:none;cursor:pointer;transition:border-color .25s,background .25s,transform .25s var(--ease)}
+.act:hover{border-color:var(--brass);background:rgba(217,164,65,.08)}
+.act:active{transform:scale(.97)}
+.codebox{margin-top:16px;padding:22px;border:1.5px solid var(--brass);border-radius:18px;background:rgba(217,164,65,.08);animation:rise .6s var(--ease)}
+.codebox .the{display:block;margin:10px 0;font-family:"IBM Plex Mono",monospace;font-size:clamp(20px,5.2vw,30px);letter-spacing:.06em;color:var(--brass);word-break:break-all}
+.row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.tbl table{min-width:900px}
+.tbl .mono{font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+td small{display:block;color:var(--mute)}
+.ra{white-space:nowrap}
+.ra .act{display:inline-block;padding:6px 10px;margin-right:4px;font-size:12.5px}
+.verdict{display:flex;align-items:center;gap:12px;margin-top:14px;animation:rise .5s var(--ease)}
+.verdict b{font-family:"Fraunces",Georgia,serif;font-size:19px}
+.srch{position:relative;display:block;margin-top:12px}
+.srch input{width:100%;height:46px;padding:0 14px;font:inherit;font-size:15px;color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px}
+.srch input:focus{outline:none;border-color:var(--brass)}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.plan{position:relative;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .7s var(--ease) backwards;animation-delay:calc(var(--k,0)*80ms)}
+.plan.hi{border-color:rgba(217,164,65,.55);box-shadow:0 18px 40px -26px rgba(217,164,65,.7)}
+.plan .who{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+.plan .price{margin:8px 0 2px;font-family:"Fraunces",Georgia,serif;font-size:clamp(30px,6vw,38px);line-height:1.1}
+.plan .per{color:var(--mute);font-size:14px}
+.plan ul{margin:14px 0 0;padding-left:18px;color:var(--mute);font-size:14.5px}
+.plan li{margin:4px 0}
+.prov{margin-top:12px;font-size:13px;color:var(--mute)}
+.staff{margin-top:8px}
+.tabs{display:flex;gap:4px;margin:0 0 26px;border-bottom:1px solid var(--line)}
+.tabs a{padding:10px 14px;margin-bottom:-1px;border-bottom:2px solid transparent;color:var(--mute);text-decoration:none;font-weight:600;font-size:14.5px}
+.tabs a.on{color:var(--text);border-bottom-color:var(--brass)}
+@media (max-width:640px){.plans{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="/static/site.css" />
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/" aria-label="Back to the map">
+    <svg width="30" height="30" viewBox="0 0 44 44" aria-hidden="true"><polygon points="8,12 34,7 37,32 11,37" fill="rgba(217,164,65,.18)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8" cy="12" r="3.6" fill="#D9A441"/><circle cx="34" cy="7" r="3.6" fill="#D9A441"/><circle cx="37" cy="32" r="3.6" fill="#D9A441"/><circle cx="11" cy="37" r="3.6" fill="#D9A441"/></svg>
+    <span>SABAGeo</span>
+  </a>
+  <nav aria-label="Pages"><a href="/registry" >Registry</a><a href="/register-plot" >Register plot</a><a href="/report" >Report</a><a href="/about" >About us</a><a href="/how-it-works" >How it works</a><a href="/architecture" >Architecture</a></nav>
+  <a class="map-btn" href="/">Open map</a>
+</header>
+<script src="/static/site.js"></script>
+<main class="wide">
+<nav class="tabs" aria-label="Admin sections"><a href="/admin">Overview</a><a href="/admin/payments" class="on" aria-current="page">Payments</a></nav>
+<p class="eyebrow">Admin · Payments</p>
+<h1>Record payments and issue login codes.</h1>
+<p class="lead">For cash, transfer and POS payments taken by SABAGeo staff. Online (Paystack) payments appear here by themselves.</p>
+<div class="staff">
+<section class="card" id="lock" style="--k:1">
+  <h2>Record a payment</h2>
+  <p>Enter the admin key to record a payment and issue a login code. The key stays in this browser tab only.</p>
+  <form id="lockForm"><div class="form"><div class="fld full"><label for="ak">Admin key</label><input id="ak" type="password" autocomplete="off" required></div></div><p class="msg" id="lockMsg"></p><button class="btnp" style="margin-top:12px" type="submit">Unlock</button></form>
+</section>
+
+<div id="tools" class="hidden">
+  <section class="card" style="--k:1">
+    <h2>New payment</h2>
+    <form id="payForm">
+      <div class="form">
+        <div class="fld"><label for="f_name">Client name</label><input id="f_name" required minlength="2" maxlength="120" autocomplete="off"></div>
+        <div class="fld"><label for="f_type">Client type</label><select id="f_type"><option value="individual">Individual</option><option value="corporate">Corporate (real estate company)</option></select></div>
+        <div class="fld"><label for="f_email">Email <small>(optional)</small></label><input id="f_email" type="email" maxlength="120" autocomplete="off"></div>
+        <div class="fld"><label for="f_phone">Phone <small>(optional)</small></label><input id="f_phone" maxlength="40" autocomplete="off"></div>
+        <div class="fld"><label for="f_amount">Amount paid (₦)</label><input id="f_amount" type="number" min="1" step="0.01" required></div>
+        <div class="fld"><label for="f_method">Payment method</label><select id="f_method"><option>Bank transfer</option><option>Card or POS</option><option>Cash</option><option>Other</option></select></div>
+        <div class="fld full"><label for="f_ref">Payment reference <small>(from the bank alert or receipt. It can only be used once.)</small></label><input id="f_ref" required minlength="3" maxlength="80" autocomplete="off"></div>
+        <div class="fld"><label for="f_days">Code valid for (days)</label><input id="f_days" type="number" min="1" max="365" value="30" required></div>
+        <div class="fld"><label for="f_plots">Plots allowed <small>(leave empty for no limit)</small></label><input id="f_plots" type="number" min="1" max="1000"></div>
+      </div>
+      <p class="msg" id="payMsg"></p>
+      <button class="btnp" style="margin-top:12px" type="submit" id="payBtn">Record payment and issue code</button>
+    </form>
+    <div id="issued"></div>
+  </section>
+
+  <section class="card" style="--k:2">
+    <h2>Check a login code</h2>
+    <p>Test that a code works, before you give it to a client.</p>
+    <div class="form"><div class="fld full"><input id="t_code" placeholder="SABA-XXXX-XXXX-XXXX" autocomplete="off"></div></div>
+    <button class="btnp" style="margin-top:12px" id="t_btn" type="button">Check code</button>
+    <div id="t_out"></div>
+  </section>
+
+  <section class="card" style="--k:3">
+    <h2>Payments</h2>
+    <label class="srch"><input id="s" type="search" placeholder="Search by receipt, client or reference" autocomplete="off"></label>
+    <div class="tbl" style="margin-top:12px"><table><thead><tr><th>Receipt</th><th>Date</th><th>Client</th><th>Amount</th><th>Status</th><th>Login code</th><th>Actions</th></tr></thead><tbody id="rows"><tr><td colspan="7">Loading…</td></tr></tbody></table></div>
+  </section>
+</div>
+</div>
+</main>
+<footer>SABAGeo Land Registry. A research prototype from the Nigerian Army University Biu.</footer>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const naira = (n) => new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(n);
+  const day = (iso) => new Date(iso).toLocaleDateString("en-GB", { dateStyle: "medium" });
+  const TICK = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const CROSS = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  let rows = [];
+
+  async function api(url, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ "X-Admin-Key": sessionStorage.getItem("adminKey") || "" }, opts.headers || {});
+    const r = await fetch(url, opts);
+    let d = null; try { d = await r.json(); } catch (e) {}
+    if (!r.ok) { const err = new Error(d && typeof d.detail === "string" ? d.detail : "Please check the form and try again."); err.status = r.status; throw err; }
+    return d;
+  }
+  function unlocked(on) { $("lock").classList.toggle("hidden", on); $("tools").classList.toggle("hidden", !on); }
+  async function start() {
+    if (!sessionStorage.getItem("adminKey")) return unlocked(false);
+    try { await load(); unlocked(true); }
+    catch (e) { if (e.status === 401) { sessionStorage.removeItem("adminKey"); $("lockMsg").textContent = "That admin key is not right."; } unlocked(false); }
+  }
+  let PLANS = { individual: { amount: 15000, days: 30, plots: 1 }, corporate: { amount: 200000, days: 30, plots: null } };
+  const nairaWhole = (n) => "₦" + Number(n).toLocaleString("en-NG", { maximumFractionDigits: 0 });
+  function planFill() {
+    const pl = PLANS[$("f_type").value]; if (!pl) return;
+    $("f_amount").value = pl.amount; $("f_days").value = pl.days || 30; $("f_plots").value = pl.plots || "";
+  }
+  fetch("/api/prices").then((r) => r.json()).then((d) => {
+    PLANS = d.plans;
+    if ($("pr_ind")) $("pr_ind").textContent = nairaWhole(PLANS.individual.amount);
+    if ($("pr_corp")) $("pr_corp").textContent = nairaWhole(PLANS.corporate.amount);
+    planFill();
+  }).catch(() => {});
+  $("f_type").addEventListener("change", planFill);
+  planFill();
+
+  $("lockForm").addEventListener("submit", (e) => { e.preventDefault(); sessionStorage.setItem("adminKey", $("ak").value.trim()); $("lockMsg").textContent = ""; start(); });
+
+  function codeBox(d, receiptNo, verify) {
+    const link = location.origin + "/receipt/" + encodeURIComponent(receiptNo) + "?v=" + encodeURIComponent(verify);
+    const withCode = "/receipt/" + encodeURIComponent(receiptNo) + "?v=" + encodeURIComponent(verify) + "#code=" + encodeURIComponent(d.code);
+    $("issued").innerHTML = '<div class="codebox"><b>Login code issued</b><span class="the" id="theCode">' + esc(d.code) + '</span><p>Valid until ' + day(d.expires_at) + '. <b>Print the receipt now: the login code is printed on it this one time only.</b> If a client loses it, use "New code" in the list below.</p><div class="row2"><a class="act" href="' + withCode + '" target="_blank" rel="noopener">Print receipt with code</a><button class="act" id="cpCode">Copy code</button><button class="act" id="cpLink">Copy receipt link</button></div></div>';
+    const copy = (btn, text, label) => btn.addEventListener("click", () => {
+      const say = (m) => { btn.textContent = m; setTimeout(() => (btn.textContent = label), 1500); };
+      navigator.clipboard ? navigator.clipboard.writeText(text).then(() => say("Copied"), () => say("Could not copy")) : say("Could not copy");
+    });
+    copy($("cpCode"), d.code, "Copy code"); copy($("cpLink"), link, "Copy receipt link");
+    $("issued").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  $("payForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("payMsg").textContent = ""; $("payBtn").disabled = true; $("payBtn").textContent = "Recording…";
+    try {
+      const body = { name: $("f_name").value, client_type: $("f_type").value, email: $("f_email").value, phone: $("f_phone").value,
+        amount_ngn: parseFloat($("f_amount").value), method: $("f_method").value, reference: $("f_ref").value,
+        valid_days: parseInt($("f_days").value, 10), plots_allowed: $("f_plots").value ? parseInt($("f_plots").value, 10) : null };
+      const d = await api("/api/admin/payments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      codeBox(d, d.receipt_no, d.verify_code);
+      $("payForm").reset(); planFill();
+      await load();
+    } catch (err) { $("payMsg").textContent = err.message; }
+    finally { $("payBtn").disabled = false; $("payBtn").textContent = "Record payment and issue code"; }
+  });
+
+  const STATE = { active: ["built", "Active"], expired: ["bad", "Expired"], revoked: ["bad", "Revoked"], none: ["plan", "None"] };
+  function draw() {
+    const q = $("s").value.trim().toLowerCase();
+    const hits = rows.filter((r) => !q || [r.receipt_no, r.name, r.reference, r.email, r.phone].join(" ").toLowerCase().includes(q));
+    $("rows").innerHTML = hits.length ? hits.map((r) => {
+      const st = STATE[r.code_state];
+      return "<tr><td class=\"mono\">" + esc(r.receipt_no) + "</td><td>" + day(r.created_at) + "</td><td><b>" + esc(r.name) + "</b><small>" + (r.client_type === "corporate" ? "Corporate" : "Individual") + (r.phone ? " | " + esc(r.phone) : "") + "</small></td><td>" + naira(r.amount_ngn) + "<small>" + esc(r.method) + "</small></td>" +
+        '<td><span class="b ' + (r.status === "confirmed" ? "built" : "bad") + '">' + (r.status === "confirmed" ? "Confirmed" : "Void") + "</span></td>" +
+        '<td><span class="b ' + st[0] + '">' + st[1] + "</span><small>" + (r.expires_at ? "until " + day(r.expires_at) : "") + (r.plots_allowed ? " | plots " + r.plots_used + "/" + r.plots_allowed : "") + "</small></td>" +
+        '<td class="ra"><a class="act" target="_blank" rel="noopener" href="/receipt/' + encodeURIComponent(r.receipt_no) + "?v=" + encodeURIComponent(r.verify_code) + '">Receipt</a>' +
+        (r.status === "confirmed" ? '<button class="act" data-act="reissue" data-no="' + esc(r.receipt_no) + '">New code</button><button class="act" data-act="void" data-no="' + esc(r.receipt_no) + '">Void</button>' : "") + "</td></tr>";
+    }).join("") : '<tr><td colspan="7">No payments yet.</td></tr>';
+  }
+  async function load() { rows = await api("/api/admin/payments"); draw(); }
+  $("s").addEventListener("input", draw);
+  $("rows").addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    const no = b.dataset.no, r = rows.find((x) => x.receipt_no === no);
+    try {
+      if (b.dataset.act === "void") {
+        if (!confirm("Void receipt " + no + "? Its login code will stop working.")) return;
+        await api("/api/admin/payments/" + encodeURIComponent(no) + "/void", { method: "POST" });
+      } else {
+        if (!confirm("Issue a new login code for " + no + "? The old code will stop working.")) return;
+        const d = await api("/api/admin/payments/" + encodeURIComponent(no) + "/reissue", { method: "POST" });
+        codeBox(d, no, r.verify_code);
+      }
+      await load();
+    } catch (err) { alert(err.message); }
+  });
+
+  $("t_btn").addEventListener("click", async () => {
+    const code = $("t_code").value.trim(); if (!code) return;
+    const out = $("t_out");
+    try {
+      const r = await fetch("/api/client/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(typeof d.detail === "string" ? d.detail : "That code could not be checked.");
+      out.innerHTML = '<div class="verdict"><span class="seal ok">' + TICK + '</span><div><b>Valid</b><br>' + esc(d.name) + ", code valid until " + day(d.code_expires) + (d.plots_allowed ? ", plots used " + d.plots_used + " of " + d.plots_allowed : ", no plot limit") + ".</div></div>";
+    } catch (err) {
+      out.innerHTML = '<div class="verdict"><span class="seal no">' + CROSS + "</span><div><b>Not valid</b><br>" + esc(err.message) + "</div></div>";
+    }
+  });
+  start();
+})();
+</script>
+
+</body>
+</html>

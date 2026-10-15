@@ -51,6 +51,14 @@ def payments_page():
     return page("payments.html")
 
 
+# Exact addresses, NOT "/pay/{plan}": a catch-all would also swallow /pay/callback,
+# where Paystack sends customers back after paying.
+@router.get("/pay/individual")
+@router.get("/pay/corporate")
+def checkout_page():
+    return page("pay.html")
+
+
 @router.get("/receipt")
 @router.get("/receipt/{receipt_no}")
 def receipt_page(receipt_no: str = ""):

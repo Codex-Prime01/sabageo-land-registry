@@ -149,13 +149,13 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
 <p class="lead">For individuals and corporate real estate companies. Log in with the code on your token payment receipt, enter the owner's details and the plot's corners, check for overlap, then register it.</p>
 
 <section class="card" id="login" style="--k:1">
-  <h2>Log in</h2>
+  <h2>Enter your login code</h2>
   <form id="loginForm">
     <div class="form"><div class="fld full"><label for="code">Login code</label><input id="code" placeholder="SABA-XXXX-XXXX-XXXX" autocomplete="off" required></div></div>
     <p class="msg" id="loginMsg"></p>
     <button class="btnp" style="margin-top:12px" type="submit">Log in</button>
   </form>
-  <p>Don't have a code? Contact SABAGeo and pay the token fee first. Your login code comes on your receipt. <a href="/payments" style="color:var(--brass)">See prices</a></p>
+  <p>It is on your SABAGeo receipt and looks like <b>SABA-XXXX-XXXX-XXXX</b>. No code yet? <a href="/payments" style="color:var(--brass);font-weight:600">Pick a plan →</a></p>
 </section>
 
 <div id="work" class="hidden">
@@ -416,7 +416,23 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
     msg.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
 
+  // a code handed over by the receipt ("Start registering my plot"): log in with it, then wipe it from the address bar
+  async function loginWith(code) {
+    const r = await fetch("/api/client/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(typeof d.detail === "string" ? d.detail : "That code could not be checked.");
+    sessionStorage.setItem("clientToken", d.token);
+    me = d;
+    enter();
+  }
+  const handed = new URLSearchParams(location.hash.slice(1)).get("code");
+  if (handed) history.replaceState(null, "", location.pathname + location.search);
+
   (async () => {
+    if (handed) {
+      try { return await loginWith(handed); }
+      catch (err) { $("code").value = handed; return logout(err.message); }
+    }
     if (!token()) return show(false);
     try { me = await api("/api/client/me"); enter(); } catch (err) { logout(err.status === 401 ? "Please log in again." : ""); }
   })();

@@ -72,9 +72,9 @@ const CT_SHORT = { DISJOINT_NODE: "DISJOINT", ADJOINING_CLUSTER: "ADJOINING" };
 // menu groups; the ledger tool buttons from index.html go under "Ledger tools"
 const MENU = [
   ["Registry", [["Registered plots", "/registry"], ["Register New Plot", "/register-plot"], ["Parcel report", "/report"], ["Verify a title", "/verify"], ["Field kit", "/field-kit"]]],
-  ["Payments", [["Token payment", "/payments"], ["Payment receipt", "/receipt"]]],
+  ["Payments", [["Plans", "/payments"], ["Payment receipt", "/receipt"]]],
   ["About", [["About us", "/about"], ["How it works", "/how-it-works"], ["Architecture", "/architecture"]]],
-  ["Admin", [["Dashboard", "/admin"]]],
+  ["Admin", [["Dashboard", "/admin"], ["Payments", "/admin/payments"]]],
 ];
 
 /* ---------- State ---------- */
