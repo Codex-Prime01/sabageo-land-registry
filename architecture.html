@@ -103,7 +103,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
   <h2>1. Introduction and overview</h2>
   <p>Real-time field validation improves how survey data is checked. Technical users query an open-source PostgreSQL/PostGIS database through a custom API, and the database makes the key decision itself: does this new parcel overlap land that is already registered?</p>
   <p>Once a plot is verified, the system creates a unique SHA-256 fingerprint of the record. In the full design, a smart contract writes that fingerprint onto the Polygon network, so citizens, corporate developers and land lenders can verify boundaries through a public mobile app.</p>
-  <p>In the prototype, the overlap check, the fingerprint and the posting to Polygon's test network work. The smart contract and the mobile app are planned.</p>
+  <p>In the prototype, the overlap check, the fingerprint, the posting to Polygon's test network and the smart contract (TitleRegistry, which holds each title's latest fingerprint) all work. Anyone can check a title on the public verification page by scanning the QR code on its parcel report. The mobile app is planned.</p>
 </section>
 
 <section class="card" style="--k:3">
@@ -132,7 +132,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
     <tr><td>Centralized database file</td><td>Decentralized distributed ledger</td><td>Ledger in the database, with its fingerprint posted on Polygon <span class="b test">Test network</span></td></tr>
     <tr><td>Vulnerable to manipulation</td><td>Cryptographically sealed and tamper-proof</td><td>Changes are caught by the ledger check and the Polygon anchor <span class="b built">Built</span></td></tr>
     <tr><td>Manual boundary checks</td><td>Real-time PostGIS spatial audit</td><td>Every plot is checked automatically <span class="b built">Built</span></td></tr>
-    <tr><td>Slow paper-based backups</td><td>Instant top-down app verification</td><td>Public verification page and app <span class="b plan">Planned</span></td></tr>
+    <tr><td>Slow paper-based backups</td><td>Instant top-down app verification</td><td>Public verification page with QR codes <span class="b built">Built</span>; mobile app <span class="b plan">Planned</span></td></tr>
   </table></div>
 </section>
 
