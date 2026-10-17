@@ -55,7 +55,8 @@ _Add screenshots here: the map with a red flag, the green "0 OVERLAP" result, th
 2. Only the SHA-256 hash of the login code is stored. The code itself is shown once.
 3. The client logs in on the Register New Plot page, checks their plot, and registers it.
 4. Wrong login codes are rate-limited (8 tries per 10 minutes). Sessions last at most 12 hours.
-5. The client can add up to 5 beacon photos to each of their own plots.
+5. An **Individual** code is for **one plot** and is valid for **3 days**: the first plot it checks is the one it is for. Corporate codes cover many plots for 30 days.
+6. The client can add up to 5 beacon photos to each of their own plots.
 
 > Online payment runs in Paystack **test mode** (no real money). The prices are provisional until the review committee approves them. A live key is refused unless `PAYSTACK_LIVE=1` is set on purpose.
 
@@ -106,7 +107,7 @@ venv\Scripts\activate          # on Windows
 pip install -r requirements.txt
 ```
 
-1. Create a database called `sabageo`, then run `schema_full.sql` on it. (An older database: run `add_payments.sql`, `phase_g.sql` and `phase_h.sql`, in that order.)
+1. Create a database called `sabageo`, then run `schema_full.sql` on it. (An older database: run `add_payments.sql`, `phase_g.sql`, `phase_h.sql` and `phase_i.sql`, in that order.)
 2. Copy `.env.example` to `.env` and fill in your values.
 3. Load the sample cities (optional): `python ingest_cities.py` (it should say `55 added`).
 4. Start the server:

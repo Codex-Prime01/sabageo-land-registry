@@ -48,9 +48,10 @@ def test_database():
         conn.execute("DROP SCHEMA IF EXISTS public CASCADE")
         conn.execute("CREATE SCHEMA public")
         conn.execute((ROOT / "schema_full.sql").read_text(encoding="utf-8"))
-        extra = ROOT / "phase_h.sql"
-        if extra.exists():
-            conn.execute(extra.read_text(encoding="utf-8"))
+        for name in ("phase_h.sql", "phase_i.sql"):  # upgrades are safe to re-run on top
+            extra = ROOT / name
+            if extra.exists():
+                conn.execute(extra.read_text(encoding="utf-8"))
     _point_app_at(TEST_DB)
     os.environ["ADMIN_KEY"] = ADMIN_KEY
     os.environ.pop("SITE_PASSWORD", None)

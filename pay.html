@@ -63,8 +63,8 @@
   const naira = (n) => "₦" + Number(n).toLocaleString("en", { maximumFractionDigits: 0 });
   const plan = decodeURIComponent(location.pathname.replace(/^\/pay\/?/, "").replace(/\/$/, ""));
   const COPY = {
-    individual: { name: "Individual", tag: "For one person", label: "Full name",
-      list: ["Check and register 1 plot", "Printable parcel report with a QR check", "Login code works for 30 days"] },
+    individual: { name: "Individual", tag: "One code, one plot", label: "Full name",
+      list: ["Check and register 1 plot", "Printable parcel report with a QR check", "Code valid for 3 days, for that plot only"] },
     corporate: { name: "Corporate", tag: "For companies", label: "Company name",
       list: ["Unlimited plots for 30 days", "Register plots for your buyers", "A parcel report for every plot"] },
   };

@@ -1,18 +1,61 @@
 """Clients: log in with a code, then register plots (Register New Plot)."""
+import logging
 import secrets
+
+import psycopg
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 
 from sabageo.codes import code_hash
 from sabageo.db import connect
-from sabageo.geo import find_overlaps, next_code, prepare
+from sabageo.geo import find_overlaps, next_code, prepare, same_parcel
 from sabageo.helpers import clean_contact, sha
 from sabageo.ledger import add_ledger_record
-from sabageo.models import ClientPlot, LoginIn
+from sabageo.models import ClientPlot, LoginIn, NewPlot
 from sabageo.photos import read_upload, save_photo
 from sabageo.security import check_limit, record_fail, require_client
 
 router = APIRouter()
+log = logging.getLogger("sabageo")
+
+ONE_PLOT_REFUSAL = ("This login code is for one plot only, and it is already used for the plot you first "
+                    "checked. Get a new code to check another plot.")
+
+
+def enforce_one_plot(conn, client, info):
+    """
+    Single-plot codes (every Individual code): lock the code to the first plot it checks or
+    registers, and refuse any other plot. Call inside the request's transaction, before
+    answering: the code row stays locked until the transaction ends, so two tabs at once
+    cannot each claim a different plot.
+    """
+    if client["plots_allowed"] != 1:
+        return  # Corporate and multi-plot codes are not locked
+    try:
+        with conn.transaction():
+            row = conn.execute(
+                "SELECT bound_wkt FROM login_codes WHERE id = %s FOR UPDATE", (client["code_id"],)
+            ).fetchone()
+    except psycopg.errors.UndefinedColumn:
+        log.warning("login_codes.bound_wkt is missing: run phase_i.sql to lock Individual codes to one plot")
+        return
+    if row[0] is None:
+        conn.execute(
+            "UPDATE login_codes SET bound_wkt = %s, bound_at = NOW() WHERE id = %s",
+            (info["wkt"], client["code_id"]),
+        )
+    elif not same_parcel(conn, row[0], info["wkt"], info["utm"]):
+        raise HTTPException(status_code=403, detail=ONE_PLOT_REFUSAL)
+
+
+def plot_locked(conn, code_id):
+    """Has this code already been locked to a plot? (False on a database without phase_i.sql.)"""
+    try:
+        with conn.transaction():
+            row = conn.execute("SELECT bound_wkt IS NOT NULL FROM login_codes WHERE id = %s", (code_id,)).fetchone()
+    except psycopg.errors.UndefinedColumn:
+        return False
+    return bool(row and row[0])
 
 MAX_CLIENT_PHOTOS = 5  # per plot, to keep the free database small
 
@@ -44,13 +87,31 @@ def client_login(body: LoginIn, request: Request):
     return {
         "token": token, "session_ends": ends.isoformat(), "name": row[4], "client_type": row[5],
         "plots_allowed": row[2], "plots_used": row[3], "code_expires": row[1].isoformat(),
-        "phone": row[6], "email": row[7],
+        "phone": row[6], "email": row[7], "one_plot": row[2] == 1,
     }
 
 
 @router.get("/api/client/me")
 def client_me(client=Depends(require_client)):
-    return client
+    with connect() as conn:
+        locked = plot_locked(conn, client["code_id"])
+    return {**client, "one_plot": client["plots_allowed"] == 1, "locked_plot": locked}
+
+
+@router.post("/client/check")
+def client_check(plot: NewPlot, client=Depends(require_client)):
+    """The overlap check for logged-in clients. An Individual code is locked to the first plot it checks."""
+    from sabageo.routes.plots import log_check  # the same check counter as the public /check
+    with connect() as conn:
+        info = prepare(conn, plot)
+        enforce_one_plot(conn, client, info)
+        hits = find_overlaps(conn, info["wkt"], info["utm"])
+        log_check(conn, plot.region, hits)
+    base = {"shape": info["shape"], "area_m2": round(info["area"], 2)}
+    if hits:
+        return {"status": "RED FLAG", **base, "overlaps": hits,
+                "total_overlap_m2": round(sum(h["overlap_m2"] for h in hits), 2)}
+    return {"status": "0 OVERLAP", **base}
 
 
 @router.post("/client/register")
@@ -77,6 +138,7 @@ def client_register(plot: ClientPlot, client=Depends(require_client)):
             )
 
         info = prepare(conn, plot)
+        enforce_one_plot(conn, client, info)  # registering cannot sidestep the one-plot rule
         if find_overlaps(conn, info["wkt"], info["utm"]):
             raise HTTPException(status_code=409, detail="This plot overlaps a registered plot. Not saved.")
 

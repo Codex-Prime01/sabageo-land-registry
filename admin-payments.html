@@ -271,7 +271,7 @@ td small{display:block;color:var(--mute)}
         '<td><span class="b ' + (r.status === "confirmed" ? "built" : "bad") + '">' + (r.status === "confirmed" ? "Confirmed" : "Void") + "</span></td>" +
         '<td><span class="b ' + st[0] + '">' + st[1] + "</span><small>" + (r.expires_at ? "until " + day(r.expires_at) : "") + (r.plots_allowed ? " | plots " + r.plots_used + "/" + r.plots_allowed : "") + "</small></td>" +
         '<td class="ra"><a class="act" target="_blank" rel="noopener" href="/receipt/' + encodeURIComponent(r.receipt_no) + "?v=" + encodeURIComponent(r.verify_code) + '">Receipt</a>' +
-        (r.status === "confirmed" ? '<button class="act" data-act="reissue" data-no="' + esc(r.receipt_no) + '">New code</button><button class="act" data-act="void" data-no="' + esc(r.receipt_no) + '">Void</button>' : "") + "</td></tr>";
+        (r.status === "confirmed" ? '<button class="act" data-act="reissue" data-no="' + esc(r.receipt_no) + '">New code</button>' + (r.plots_allowed === 1 ? '<button class="act" data-act="unlock" data-no="' + esc(r.receipt_no) + '" title="Let this code check a different plot (for a genuine mistake)">Unlock plot</button>' : "") + '<button class="act" data-act="void" data-no="' + esc(r.receipt_no) + '">Void</button>' : "") + "</td></tr>";
     }).join("") : '<tr><td colspan="7">No payments yet.</td></tr>';
   }
   async function load() { rows = await api("/api/admin/payments"); draw(); }
@@ -280,7 +280,11 @@ td small{display:block;color:var(--mute)}
     const b = e.target.closest("[data-act]"); if (!b) return;
     const no = b.dataset.no, r = rows.find((x) => x.receipt_no === no);
     try {
-      if (b.dataset.act === "void") {
+      if (b.dataset.act === "unlock") {
+        if (!confirm("Unlock the plot for " + no + "? Its code can then check a different plot. Only do this for a genuine mistake.")) return;
+        await api("/api/admin/payments/" + encodeURIComponent(no) + "/unlock-plot", { method: "POST" });
+        alert("Unlocked. The code can now check a plot again.");
+      } else if (b.dataset.act === "void") {
         if (!confirm("Void receipt " + no + "? Its login code will stop working.")) return;
         await api("/api/admin/payments/" + encodeURIComponent(no) + "/void", { method: "POST" });
       } else {

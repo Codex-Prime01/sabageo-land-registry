@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS pay_intents (
 DO $$
 BEGIN
   INSERT INTO spatial_ref_sys (srid, auth_name, auth_srid, srtext, proj4text)
-  VALUES (926333, 'SABAGEO', 926333, '',
+  VALUES (926333, 'SABAGeo', 926333, '',
           '+proj=utm +zone=33 +ellps=clrk80 +towgs84=-92,-93,122,0,0,0,0 +units=m +no_defs')
   ON CONFLICT (srid) DO NOTHING;
 EXCEPTION WHEN insufficient_privilege THEN

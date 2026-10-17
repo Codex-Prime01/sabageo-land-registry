@@ -11,7 +11,7 @@ import secrets
 
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.staticfiles import StaticFiles 
 
 from sabageo.config import DB  # noqa: F401
 from sabageo.geo import find_overlaps, next_code  # noqa: F401

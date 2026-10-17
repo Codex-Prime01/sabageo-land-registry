@@ -23,7 +23,7 @@ PostgreSQL + PostGIS (psycopg 3) · FastAPI (docs endpoints off) · plain HTML/C
 - **Payment flow (Spotify-style, one job per screen):** `/payments` = plans only (`payments.html`) → `/pay/individual` or `/pay/corporate` = checkout (`pay.html`) → Paystack → `/receipt/...#code=` → **"Start registering my plot"** → `/register-plot#code=` logs in by itself and wipes the code from the address bar. Both flow pages use `static/flow.css`. Staff tools (record payment, payments list, check a code) live at **`/admin/payments`** (`admin-payments.html`), never on the public page (a test enforces this).
 - **Look:** flat. Solid surfaces (`--card` is solid in site.css), no glass blur, no card borders/shadows/corner marks, pill buttons, brass used sparingly. The map page keeps its own floating-panel style.
 - **Page links live in `PAGES` in `static/site.js`** (top bar, ☰ drawer, footer) **and `MENU` in `static/app.js`** (map drawer). New page → add to both.
-- DB: **fresh DB → `schema_full.sql` only** (includes everything through Phase H). Existing DB → `add_payments.sql`, `phase_g.sql`, `phase_h.sql` in order; all additive and safe to re-run.
+- DB: **fresh DB → `schema_full.sql` only** (includes everything through Phase I). Existing DB → `add_payments.sql`, `phase_g.sql`, `phase_h.sql`, `phase_i.sql` in order; all additive and safe to re-run.
 - Data scripts: `ingest_cities.py` (55 synthetic 18 × 30 m plots), `reset_dataset.py` (dry run unless `--go`).
 
 ## Tests
@@ -52,7 +52,9 @@ PostgreSQL + PostGIS (psycopg 3) · FastAPI (docs endpoints off) · plain HTML/C
 - **Minna supported** (lat/long 4263, UTM 31/32N 26331/26332, UTM 33N custom 926333 with towgs84 -92,-93,122, belts 26391–3). Same recipe matches official EPSG:26332 to 0.00 m. UI says it is good to a few metres. Still ask Oga which datum the NAUB data uses.
 - **Touching is not overlap**: > 0.01 m² AND survives a negative buffer of half `OVERLAP_TOLERANCE_CM` (10 cm).
 - **Overlap location is shown, not a badge**. Perey asked to remove the big tick/X map badge; don't add it back.
-- Token prices (provisional): ₦15,000 individual (1 plot, 30 days), ₦200,000 corporate per month (no limit). `PRICE_INDIVIDUAL` / `PRICE_CORPORATE`.
+- Token prices (provisional): ₦15,000 individual, ₦200,000 corporate per month (no limit, 30 days). `PRICE_INDIVIDUAL` / `PRICE_CORPORATE`.
+- **Individual code = ONE plot, valid 3 days** (Oga, 16 Oct). A code with `plots_allowed = 1` is locked to the first plot it checks or registers (`login_codes.bound_wkt`, `phase_i.sql`); re-checks must be the same plot (Hausdorff ≤ `SAME_PLOT_TOLERANCE_M`, 3 m), anything else is 403. Register New Plot checks via `POST /client/check` (needs a client token), not the public `/check`. Staff can clear a lock for a genuine mistake: "Unlock plot" on `/admin/payments` (`POST /api/admin/payments/{receipt}/unlock-plot`). The map's public `/check` stays free (Perey's decision).
+- **The name is "SABAGeo"**, never SABAGEO. Don't put it in all-caps styled text (th, .eyebrow, .kicker, .sx-label) without `class="keep-case"`; `tests/test_branding.py` enforces it.
 - Server re-checks overlap at registration. Nigeria bounding box after conversion. Synthetic data labelled; NAUB pilot slots first.
 - Cluster type and lat/long only in lists, not on the map. No other "six zones" dataset exists.
 - Anchoring and title records use a **test-only wallet** on Amoy. Mainnet is a later decision.

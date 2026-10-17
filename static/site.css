@@ -189,12 +189,19 @@ body {
   background: transparent;
   box-shadow: none;
 }
+/* table headers keep the case they are written in: forcing capitals turned
+   "SABAGeo" into "SABAGEO" (Oga Alabi spotted it). Small and muted instead. */
 th {
-  font-size: 11.5px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--mute);
   background: transparent !important;
+}
+/* use inside any all-caps label (eyebrow, kicker...) that contains the name SABAGeo */
+.keep-case {
+  text-transform: none !important;
 }
 tbody tr {
   transition: background 0.2s;

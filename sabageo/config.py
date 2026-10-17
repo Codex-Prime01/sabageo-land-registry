@@ -36,15 +36,19 @@ NIGERIA = (2.6, 4.2, 14.8, 13.95)
 # Real overlaps wider than this are always flagged, whatever their area.
 OVERLAP_TOLERANCE_M = float(os.getenv("OVERLAP_TOLERANCE_CM", "10")) / 100
 
+# A single-plot code may re-check "its" plot with small coordinate fixes: every corner within this
+# many metres of the plot it was first used on. Anything further is treated as a different plot.
+SAME_PLOT_TOLERANCE_M = float(os.getenv("SAME_PLOT_TOLERANCE_M", "3"))
+
 # Token prices. These are the senior's working figures until the review committee approves real ones.
 # Change them in .env (PRICE_INDIVIDUAL, PRICE_CORPORATE) without touching the code.
 PLANS = {
     "individual": {
         "label": "Individual",
         "amount": float(os.getenv("PRICE_INDIVIDUAL", "15000")),
-        "per": "per verification",
-        "days": 30,      # the login code works for 30 days
-        "plots": 1,      # one plot per payment
+        "per": "one plot, valid 3 days",
+        "days": 3,       # Oga Alabi, 16 Oct: one code verifies one plot and is valid for 3 days
+        "plots": 1,      # one plot per code; the code is locked to the first plot it checks
     },
     "corporate": {
         "label": "Corporate real estate retainer",

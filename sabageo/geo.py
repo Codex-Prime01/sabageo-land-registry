@@ -94,6 +94,19 @@ def find_overlaps(conn, wkt, utm):
     ]
 
 
+def same_parcel(conn, wkt_a, wkt_b, utm):
+    """True when two WGS84 shapes are the same plot: no point of one is more than
+    SAME_PLOT_TOLERANCE_M metres from the other (Hausdorff distance, measured in local UTM)."""
+    d = conn.execute(
+        """
+        SELECT ST_HausdorffDistance(ST_Transform(ST_GeomFromText(%s, 4326), %s::int),
+                                    ST_Transform(ST_GeomFromText(%s, 4326), %s::int))
+        """,
+        (wkt_a, utm, wkt_b, utm),
+    ).fetchone()[0]
+    return d is not None and d <= config.SAME_PLOT_TOLERANCE_M
+
+
 def next_code(conn, region, kind):
     n = conn.execute(
         r"""

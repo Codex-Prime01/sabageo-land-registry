@@ -213,9 +213,19 @@ CREATE TABLE IF NOT EXISTS pay_intents (
 DO $$
 BEGIN
   INSERT INTO spatial_ref_sys (srid, auth_name, auth_srid, srtext, proj4text)
-  VALUES (926333, 'SABAGEO', 926333, '',
+  VALUES (926333, 'SABAGeo', 926333, '',
           '+proj=utm +zone=33 +ellps=clrk80 +towgs84=-92,-93,122,0,0,0,0 +units=m +no_defs')
   ON CONFLICT (srid) DO NOTHING;
 EXCEPTION WHEN insufficient_privilege THEN
   RAISE NOTICE 'Could not add Minna / UTM 33N (no permission). Everything else is fine.';
 END $$;
+
+-- SABAGeo Land Registry: Phase I (one Individual code = one plot)
+-- Safe to run on your existing database, and safe to run more than once. Nothing is deleted.
+-- Run it on Neon too, before deploying the code. Without it the site still works, but
+-- Individual codes are not locked to one plot.
+
+-- The plot a single-plot login code is locked to: set the first time the code checks a plot.
+-- Stored as WGS84 text (the same form as the ledger), so it can be compared with later checks.
+ALTER TABLE login_codes ADD COLUMN IF NOT EXISTS bound_wkt TEXT;
+ALTER TABLE login_codes ADD COLUMN IF NOT EXISTS bound_at  TIMESTAMPTZ;

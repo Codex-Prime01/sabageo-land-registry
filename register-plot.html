@@ -125,6 +125,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
 .zone-tip::before{display:none}
 #rmap{height:340px;margin-top:12px;border-radius:14px;overflow:hidden;background:#0d1b2e}
 .mine{list-style:none;margin:10px 0 0;padding:0}
+.oneplot{display:block;margin-top:6px;color:var(--brass)!important}
 .mine li{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
 .mine li:last-child{border-bottom:0}
 .mine small{display:block;color:var(--mute)}
@@ -254,7 +255,12 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
 
   function who() {
     $("who").innerHTML = "<b>Welcome, " + esc(me.name) + "</b><small>" + (me.client_type === "corporate" ? "Corporate client" : "Individual client") + " | " +
-      (me.plots_allowed ? "Plots used " + me.plots_used + " of " + me.plots_allowed : "No plot limit") + " | Code valid until " + day(me.code_expires) + "</small>";
+      (me.plots_allowed ? "Plots used " + me.plots_used + " of " + me.plots_allowed : "No plot limit") + " | Code valid until " + day(me.code_expires) + "</small>" +
+      (me.plots_allowed === 1
+        ? '<small class="oneplot">' + (me.locked_plot
+            ? "This code is for the plot you first checked. It cannot check a different plot."
+            : "This code checks one plot. The first plot you check is the one it is for.") + "</small>"
+        : "");
   }
   function ownerLabel() { $("o_nameLbl").textContent = $("o_type").value === "corporate" ? "Company name" : "Full name"; }
   function prefillOwner() {
@@ -275,6 +281,10 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
   }
   async function enter() {
     who(); show(true); hint(); prefillOwner();
+    // the login answer cannot say whether the code is already locked to a plot: ask once
+    if (me.plots_allowed === 1 && me.locked_plot === undefined) {
+      api("/api/client/me").then((d) => { me = Object.assign(me, d); who(); }).catch(() => {});
+    }
     try {
       const regions = await (await fetch("/regions")).json();
       $("region").innerHTML = regions.filter((r) => !r.is_pilot && r.code !== "TST").map((r) => '<option value="' + r.code + '">' + esc(r.name) + "</option>").join("");
@@ -354,7 +364,8 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
     const p = parse(); if (p.error) { $("formMsg").textContent = p.error; return; }
     invalidate(); busy(true); $("checkBtn").textContent = "Checking…";
     try {
-      const d = await api("/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: body(p.pts) });
+      const d = await api("/client/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: body(p.pts) });
+      if (me.plots_allowed === 1 && !me.locked_plot) { me.locked_plot = true; who(); } // now locked to this plot
       const red = d.status === "RED FLAG"; ok = !red;
       $("verdict").innerHTML = red
         ? verdict("no", "RED FLAG", "This plot overlaps <b>" + d.overlaps.length + "</b> registered plot" + (d.overlaps.length === 1 ? "" : "s") + ", " + fmt(d.total_overlap_m2, 2) + " m² in total. The exact overlap is shaded on the map below." +
@@ -365,7 +376,9 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
       draw(d.shape, red ? d.overlaps : []);
     } catch (err) {
       if (err.status === 401) return fail(err);
-      $("verdict").innerHTML = verdict("no", "Cannot check this plot", esc(err.message));
+      $("verdict").innerHTML = err.status === 403
+        ? verdict("no", "One plot per code", esc(err.message) + '</p><div class="row2"><a class="act" href="/payments">Get a new code</a></div><p style="display:none">')
+        : verdict("no", "Cannot check this plot", esc(err.message));
     } finally { busy(false); $("checkBtn").textContent = "Check for overlap"; $("regBtn").disabled = !ok; }
   });
 
@@ -380,7 +393,9 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
       me = Object.assign(me, await api("/api/client/me")); who(); mine();
     } catch (err) {
       if (err.status === 401) return fail(err);
-      $("verdict").innerHTML = verdict("no", "Not registered", esc(err.message));
+      $("verdict").innerHTML = err.status === 403 && /one plot/.test(err.message)
+        ? verdict("no", "One plot per code", esc(err.message) + '</p><div class="row2"><a class="act" href="/payments">Get a new code</a></div><p style="display:none">')
+        : verdict("no", "Not registered", esc(err.message));
     } finally { busy(false); $("regBtn").textContent = "Register this plot"; $("regBtn").disabled = !ok; }
   });
 

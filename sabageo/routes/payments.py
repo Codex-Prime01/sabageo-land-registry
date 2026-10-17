@@ -107,6 +107,30 @@ def reissue_code(receipt_no: str, body: ReissueIn | None = None):
     return {"code": code, "expires_at": expires.isoformat()}
 
 
+@router.post("/api/admin/payments/{receipt_no}/unlock-plot", dependencies=[Depends(require_admin)])
+def unlock_plot(receipt_no: str):
+    """For a genuine mistake (e.g. a big typo in the corners): free the code to check a plot again.
+    Its plot limit and expiry stay the same."""
+    with connect() as conn:
+        pay = conn.execute("SELECT id FROM payments WHERE receipt_no = %s", (receipt_no,)).fetchone()
+        if not pay:
+            raise HTTPException(status_code=404, detail="Receipt not found.")
+        try:
+            row = conn.execute(
+                """
+                UPDATE login_codes SET bound_wkt = NULL, bound_at = NULL
+                WHERE id = (SELECT id FROM login_codes WHERE payment_id = %s ORDER BY id DESC LIMIT 1)
+                RETURNING id
+                """,
+                (pay[0],),
+            ).fetchone()
+        except psycopg.errors.UndefinedColumn:
+            raise HTTPException(status_code=503, detail="Run phase_i.sql on this database first.")
+    if not row:
+        raise HTTPException(status_code=404, detail="This payment has no login code.")
+    return {"ok": True}
+
+
 @router.get("/api/receipts/{receipt_no}")
 def get_receipt(receipt_no: str, request: Request, v: str = "", x_admin_key: str | None = Header(default=None)):
     """Public, but you need the verification code printed on the receipt."""
