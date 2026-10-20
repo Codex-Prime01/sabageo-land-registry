@@ -39,6 +39,16 @@
       <h2>Your details</h2>
       <p>Your login code and receipt are made out to these details.</p>
 
+      <div class="have hidden" id="needAccount" style="margin-top:18px">
+        <b>First, log in or create an account</b>
+        <span>Your receipt is saved to your account, so you can always find it, register plots and get a new code yourself.</span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+          <a class="btn" id="toSignup" href="/account?mode=signup">Create account</a>
+          <a class="btn ghost" id="toLogin" href="/account">Log in</a>
+        </div>
+      </div>
+      <p class="banner hidden" id="payingAs" style="margin-top:14px"></p>
+
       <form id="f" class="hidden" novalidate>
         <label class="field"><span id="l_name">Full name</span><input id="name" autocomplete="name" maxlength="120" required></label>
         <label class="field"><span>Email <small>(Paystack sends your payment receipt here)</small></span><input id="email" type="email" autocomplete="email" maxlength="120" required></label>
@@ -57,6 +67,7 @@
   </div>
 </main>
 <footer>SABAGeo Land Registry. A research prototype from the Nigerian Army University Biu.</footer>
+<script src="/static/account.js"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -82,7 +93,22 @@
       $("s_price").textContent = naira(p.amount);
       $("s_per").textContent = p.per;
       $("go").textContent = "Pay " + naira(p.amount);
-      if (cfg.enabled) {
+      if (cfg.enabled && !Account.token()) {
+        // online payment needs an account, so the receipt is never lost
+        $("toSignup").href = Account.loginUrl("signup");
+        $("toLogin").href = Account.loginUrl();
+        $("needAccount").classList.remove("hidden");
+      } else if (cfg.enabled) {
+        const who = Account.who() || {};
+        if (who.name && plan === "individual") $("name").value = who.name;
+        if (who.email) $("email").value = who.email;
+        const as = $("payingAs");
+        as.textContent = "Paying as " + (who.email || "you") + ". The receipt goes into your account. ";
+        const out = document.createElement("a");
+        out.href = "#"; out.textContent = "Not you? Log out";
+        out.onclick = (ev) => { ev.preventDefault(); Account.logout().then(() => location.reload()); };
+        as.append(out);
+        as.classList.remove("hidden");
         $("f").classList.remove("hidden");
         $("testmode").classList.toggle("hidden", !cfg.test_mode);
         $("name").focus();
@@ -106,7 +132,7 @@
     btn.textContent = "Opening secure checkout…";
     try {
       const r = await fetch("/api/pay/start", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: Object.assign({ "Content-Type": "application/json" }, Account.headers()),
         body: JSON.stringify({ plan, name, email, phone: phone || null }),
       });
       const d = await r.json().catch(() => ({}));

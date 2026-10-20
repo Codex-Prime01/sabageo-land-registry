@@ -84,22 +84,23 @@ footer{max-width:1120px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-i
 </header>
 <script src="/static/site.js"></script>
 <main>
-  <nav class="tabs" aria-label="Admin sections"><a href="/admin" class="on" aria-current="page">Overview</a><a href="/admin/payments">Payments</a></nav>
+  <nav class="tabs" aria-label="Admin sections"><a href="/admin" class="on" aria-current="page">Overview</a><a href="/admin/clients">Clients</a><a href="/admin/payments">Payments</a><a href="/staff">Admins</a></nav>
   <div class="head">
     <div><p class="eyebrow">Admin dashboard</p><h1>Who registered what, and how the system is doing.</h1></div>
-    <div class="acts hidden" id="acts"><button class="act" id="refresh">Refresh</button><button class="act" id="lock">Lock</button></div>
+    <div class="acts hidden" id="acts"><button class="act" id="refresh">Refresh</button><button class="act" id="lock">Log out</button></div>
   </div>
 
   <section class="card" id="unlock">
-    <h2>Unlock the dashboard</h2>
-    <p>This page shows client phone numbers and emails. Enter the admin key. It stays in this browser tab only.</p>
-    <form class="form" id="f"><input id="k" type="password" autocomplete="off" placeholder="Admin key" aria-label="Admin key" required><button class="btn">Unlock</button></form>
+    <h2>Admins only</h2>
+    <p>This page shows client phone numbers and emails, so only admins can open it.</p>
+    <p style="margin-top:16px"><a class="btn" id="loginLink" href="/staff" style="display:inline-flex;align-items:center;text-decoration:none">Log in as admin</a></p>
     <p class="msg" id="msg"></p>
   </section>
 
   <div id="dash"></div>
 </main>
 <footer>SABAGeo Land Registry. Admin view: keep client details private.</footer>
+<script src="/static/staff.js"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -109,24 +110,23 @@ footer{max-width:1120px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-i
   const date = (s) => s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
   let last = null;
 
-  const key = () => { try { return sessionStorage.getItem("adminKey") || ""; } catch (e) { return ""; } };
-  const setKey = (k) => { try { k ? sessionStorage.setItem("adminKey", k) : sessionStorage.removeItem("adminKey"); } catch (e) {} };
+  $("loginLink").href = Staff.loginUrl();
 
   async function load() {
     $("msg").textContent = "";
     let r;
     try {
-      r = await fetch("/api/admin/overview", { headers: { "X-Admin-Key": key() } });
+      r = await fetch("/api/admin/overview", { headers: Staff.headers() });
     } catch (e) {
       $("msg").textContent = "Could not reach the server.";
       return;
     }
-    if (r.status === 401) {
-      setKey("");
+    if (r.status === 401 || r.status === 403) {
+      if (r.status === 401) Staff.clear();
       $("unlock").classList.remove("hidden");
       $("acts").classList.add("hidden");
       $("dash").innerHTML = "";
-      $("msg").textContent = key() ? "" : "That admin key is not right.";
+      $("msg").textContent = "Your login has ended. Please log in again.";
       return;
     }
     if (!r.ok) { $("msg").textContent = "The server had a problem (" + r.status + ")."; return; }
@@ -222,10 +222,9 @@ footer{max-width:1120px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-i
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
-  $("f").onsubmit = (e) => { e.preventDefault(); setKey($("k").value.trim()); $("k").value = ""; load(); };
   $("refresh").onclick = load;
-  $("lock").onclick = () => { setKey(""); location.reload(); };
-  if (key()) load();
+  $("lock").onclick = () => Staff.logout().then(() => location.reload());
+  if (Staff.token()) load();
 })();
 </script>
 </body>

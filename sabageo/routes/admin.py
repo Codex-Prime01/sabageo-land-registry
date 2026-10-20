@@ -1,4 +1,4 @@
-"""Admin dashboard: who registered what, payments, and the system's health. Admin key only."""
+"""Admin dashboard: who registered what, payments, and the system's health. Admins only."""
 import logging
 
 import psycopg
@@ -21,7 +21,7 @@ def admin_page():
 
 @router.get("/admin/payments")
 def admin_payments_page():
-    # the page itself is plain HTML; everything it shows comes from admin-key APIs
+    # the page itself is plain HTML; everything it shows comes from staff-only APIs
     return FileResponse("admin-payments.html")
 
 

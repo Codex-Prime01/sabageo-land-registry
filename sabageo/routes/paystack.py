@@ -22,7 +22,7 @@ from urllib.parse import quote
 
 import psycopg
 import requests
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Header, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
@@ -31,7 +31,7 @@ from sabageo.codes import create_payment, issue_login_code
 from sabageo.db import connect
 from sabageo.helpers import clean_contact
 from sabageo.routes.verify import site_url
-from sabageo.security import check_limit, record_fail, throttle
+from sabageo.security import account_from_token, check_limit, record_fail, throttle
 
 router = APIRouter()
 log = logging.getLogger("sabageo")
@@ -66,8 +66,9 @@ def pay_config():
 
 
 @router.post("/api/pay/start")
-def pay_start(body: PayStart, request: Request):
+def pay_start(body: PayStart, request: Request, x_account_token: str | None = Header(default=None)):
     throttle(request, "pay_start", limit=10, window=600)
+    account = account_from_token(x_account_token) if x_account_token else None
     key = config.paystack_key()
     if not key:
         raise HTTPException(status_code=503, detail="Online payment is not set up yet. Please pay SABAGeo directly.")
@@ -88,6 +89,8 @@ def pay_start(body: PayStart, request: Request):
                     """,
                     (reference, body.plan, body.name.strip(), email, phone, amount_kobo),
                 )
+            if account:  # paid while logged in: the receipt goes into that account
+                conn.execute("UPDATE pay_intents SET account_id = %s WHERE reference = %s", (account["id"], reference))
         except psycopg.errors.UndefinedTable:
             raise HTTPException(status_code=503, detail="Online payment is not set up on this server yet (run phase_h.sql).")
 
@@ -124,10 +127,17 @@ def confirm(conn, reference, key):
             log.error("Paystack amount/reference mismatch for %s", reference)
             raise HTTPException(status_code=400, detail="This payment does not match what was asked for. Please contact SABAGeo.")
         plan = config.PLANS[plan_code]
+        account_id = None
+        try:
+            with conn.transaction():
+                account_id = conn.execute("SELECT account_id FROM pay_intents WHERE reference = %s",
+                                          (reference,)).fetchone()[0]
+        except psycopg.errors.UndefinedColumn:
+            pass  # phase_j.sql not run yet: no accounts
         try:
             with conn.transaction():
                 made = create_payment(conn, name, plan_code, email, phone, amount_kobo / 100, "Paystack",
-                                      reference, plan["days"], plan["plots"])
+                                      reference, plan["days"], plan["plots"], account_id)
         except psycopg.errors.UniqueViolation:
             log.error("Paystack reference %s was already recorded by hand", reference)
             raise HTTPException(status_code=409, detail="This payment was already recorded. Please contact SABAGeo for your code.")

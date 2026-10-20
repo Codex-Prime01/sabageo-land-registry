@@ -1,7 +1,8 @@
 import pytest
 
 PAGES = ["/", "/about", "/how-it-works", "/architecture", "/registry", "/report",
-         "/payments", "/receipt", "/register-plot"]
+         "/payments", "/receipt", "/register-plot", "/staff", "/admin", "/admin/payments",
+         "/account", "/admin/clients"]
 
 
 @pytest.mark.parametrize("path", PAGES)
@@ -16,7 +17,8 @@ def test_health(client):
 
 
 def test_static_files(client):
-    for path in ("/static/app.js", "/static/site.js", "/static/site.css", "/static/style.css"):
+    for path in ("/static/app.js", "/static/site.js", "/static/site.css", "/static/style.css", "/static/staff.js",
+                 "/static/account.js", "/static/ios.css"):
         assert client.get(path).status_code == 200, path
 
 
@@ -62,5 +64,20 @@ def test_public_plans_page_has_no_staff_tools(client):
 
 def test_staff_payments_page_keeps_its_tools(client):
     html = client.get("/admin/payments").text
-    for needed in ('id="payForm"', 'id="lockForm"', 'id="rows"', 'id="t_btn"', 'id="issued"'):
+    for needed in ('id="payForm"', 'id="loginLink"', 'id="rows"', 'id="t_btn"', 'id="issued"'):
         assert needed in html, needed
+
+
+def test_map_has_the_tour_and_simple_checker(client):
+    html = client.get("/").text
+    for needed in ("/static/tour.js", "/static/tour.css", "/static/gradient.js", 'id="moreOpts"', "Tour.start(true)"):
+        assert needed in html, needed
+    # staff-only tools are marked so the public never sees them
+    assert html.count('class="row admin-only"') == 2
+    for path in ("/static/tour.js", "/static/gradient.js", "/static/tour.css"):
+        assert client.get(path).status_code == 200, path
+
+
+def test_how_it_works_no_longer_mentions_the_removed_badge(client):
+    html = client.get("/how-it-works").text
+    assert "green tick" not in html and "red X" not in html and "with an X" not in html

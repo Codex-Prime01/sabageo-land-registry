@@ -1,0 +1,405 @@
+/* SABAGeo "iPhone-style" kit. Additive: every class starts with ios-, so a page only changes
+   where it uses them. Rules (from Apple's iOS design guidance):
+   - glass only on the control layer (tab bar, sheets, floating buttons); content stays solid
+   - never glass on glass
+   - grouped, rounded lists instead of boxes with borders
+   - big friendly titles, one clear main action per screen
+   Brand stays the same: navy, brass accent, Fraunces / Public Sans / IBM Plex Mono. */
+
+:root {
+  --ios-r: 14px;               /* row-group corner radius */
+  --ios-r-lg: 22px;            /* sheets and big cards */
+  --ios-group: #12233b;        /* grouped list surface (solid) */
+  --ios-group-2: #182c48;      /* pressed / nested */
+  --ios-sep: rgba(255, 255, 255, 0.08);
+  --ios-label-2: #9fb0c8;
+  --ios-tint: #d9a441;         /* brass, the one accent */
+  --ios-tint-ink: #1a1204;
+  --ios-tint-soft: rgba(217, 164, 65, 0.16);
+  --ios-ok: #34d07f;
+  --ios-bad: #ff5c77;
+  --ios-warn: #f5b84a;
+  --ios-glass: rgba(16, 30, 52, 0.62);
+  --ios-glass-edge: rgba(255, 255, 255, 0.14);
+  --ios-shadow: 0 10px 40px -12px rgba(0, 0, 0, 0.55);
+  --ios-spring: cubic-bezier(0.32, 0.72, 0, 1); /* iOS sheet curve */
+  --ios-ease: cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+[data-theme="light"] {
+  --ios-group: #ffffff;
+  --ios-group-2: #f0f3f8;
+  --ios-sep: rgba(10, 22, 40, 0.1);
+  --ios-label-2: #5a6880;
+  --ios-tint-soft: rgba(217, 164, 65, 0.2);
+  --ios-ok: #0b8f4a;
+  --ios-bad: #c8102e;
+  --ios-warn: #a86b00;
+  --ios-glass: rgba(255, 255, 255, 0.66);
+  --ios-glass-edge: rgba(255, 255, 255, 0.9);
+  --ios-shadow: 0 10px 40px -14px rgba(10, 22, 40, 0.28);
+}
+
+/* ---------- page and titles ---------- */
+.ios-page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 28px 16px calc(96px + env(safe-area-inset-bottom));
+}
+.ios-page.wide { max-width: 1100px; }
+.ios-title {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: clamp(30px, 7vw, 40px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.ios-sub {
+  margin: 8px 0 0;
+  color: var(--ios-label-2);
+  font-size: 16px;
+}
+.ios-section {
+  margin: 28px 4px 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.ios-foot {
+  margin: 8px 16px 0;
+  color: var(--ios-label-2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ---------- grouped list (the Settings-app look) ---------- */
+.ios-group {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--ios-group);
+  border-radius: var(--ios-r);
+  overflow: hidden;
+}
+.ios-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 12px 16px;
+  color: inherit;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+}
+.ios-row + .ios-row::before {   /* inset hairline between rows */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 0;
+  height: 1px;
+  background: var(--ios-sep);
+}
+a.ios-row, button.ios-row { cursor: pointer; transition: background 0.15s; }
+a.ios-row:active, button.ios-row:active { background: var(--ios-group-2); }
+@media (hover: hover) { a.ios-row:hover, button.ios-row:hover { background: var(--ios-group-2); } }
+.ios-row .grow { flex: 1; min-width: 0; }
+.ios-row .val { color: var(--ios-label-2); font-size: 15px; text-align: right; }
+.ios-row small { display: block; color: var(--ios-label-2); font-size: 13px; line-height: 1.4; }
+.ios-row .chev { flex: none; color: var(--ios-label-2); opacity: 0.7; }
+.ios-icon {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--ios-tint-soft);
+  color: var(--ios-tint);
+}
+
+/* ---------- form fields inside a group ---------- */
+.ios-field {
+  display: block;
+  position: relative;
+  padding: 8px 16px 10px;
+}
+.ios-field + .ios-field::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 0;
+  height: 1px;
+  background: var(--ios-sep);
+}
+.ios-field span {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ios-label-2);
+}
+.ios-field input,
+.ios-field select,
+.ios-field textarea {
+  width: 100%;
+  min-height: 34px;
+  padding: 2px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;   /* 16px+ stops iPhone zooming in on focus */
+}
+.ios-field input::placeholder { color: var(--ios-label-2); opacity: 0.6; }
+.ios-field:focus-within span { color: var(--ios-tint); }
+.ios-field.mono input { font-family: "IBM Plex Mono", monospace; letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* ---------- buttons ---------- */
+.ios-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ios-tint);
+  color: var(--ios-tint-ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.18s var(--ios-ease), opacity 0.2s, background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.ios-btn:active { transform: scale(0.97); }
+.ios-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+.ios-btn.block { display: flex; width: 100%; }
+.ios-btn.tinted { background: var(--ios-tint-soft); color: var(--ios-tint); }
+.ios-btn.plain { background: transparent; color: var(--ios-tint); padding: 0 10px; }
+.ios-btn.danger { background: transparent; color: var(--ios-bad); }
+.ios-btn.small { min-height: 38px; padding: 0 16px; font-size: 14.5px; }
+.ios-btn:focus-visible, .ios-seg button:focus-visible, .ios-row:focus-visible {
+  outline: 2px solid var(--ios-tint);
+  outline-offset: 2px;
+}
+.ios-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+/* ---------- segmented control ---------- */
+.ios-seg {
+  position: relative;
+  display: flex;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--ios-group);
+}
+.ios-seg button {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ios-label-2);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.ios-seg button[aria-pressed="true"],
+.ios-seg button[aria-selected="true"] {
+  color: var(--text);
+  background: var(--ios-group-2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- status badges ---------- */
+.ios-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 650;
+  white-space: nowrap;
+  background: var(--ios-group-2);
+  color: var(--ios-label-2);
+}
+.ios-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.ios-badge.ok { color: var(--ios-ok); background: color-mix(in srgb, var(--ios-ok) 14%, transparent); }
+.ios-badge.bad { color: var(--ios-bad); background: color-mix(in srgb, var(--ios-bad) 14%, transparent); }
+.ios-badge.warn { color: var(--ios-warn); background: color-mix(in srgb, var(--ios-warn) 14%, transparent); }
+
+/* ---------- card (a group with padding) ---------- */
+.ios-card {
+  padding: 18px;
+  border-radius: var(--ios-r-lg);
+  background: var(--ios-group);
+}
+.ios-card + .ios-card { margin-top: 12px; }
+.ios-card h3 { margin: 0; font-size: 17px; }
+.ios-mono { font-family: "IBM Plex Mono", monospace; font-size: 13px; letter-spacing: 0.02em; }
+.ios-msg { margin: 10px 4px 0; font-size: 14px; color: var(--ios-bad); min-height: 1em; }
+.ios-msg.ok { color: var(--ios-ok); }
+
+/* ---------- glass: control layer only ---------- */
+.ios-glass {
+  background: var(--ios-glass);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(22px) saturate(180%);
+  box-shadow: inset 0 1px 0 var(--ios-glass-edge), inset 0 0 0 1px rgba(255, 255, 255, 0.06), var(--ios-shadow);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ios-glass { background: var(--ios-group); }  /* older browsers: solid, still readable */
+}
+
+/* ---------- bottom sheet ---------- */
+.ios-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(3, 8, 16, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.ios-scrim.open { opacity: 1; pointer-events: auto; }
+.ios-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 1201;
+  width: min(560px, 100%);
+  max-height: 88vh;
+  overflow: auto;
+  padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
+  border-radius: var(--ios-r-lg) var(--ios-r-lg) 0 0;
+  background: var(--ios-group);
+  box-shadow: var(--ios-shadow);
+  transform: translate(-50%, 105%);
+  transition: transform 0.45s var(--ios-spring);
+}
+.ios-sheet.open { transform: translate(-50%, 0); }
+.ios-sheet::before {   /* grabber */
+  content: "";
+  display: block;
+  width: 38px;
+  height: 5px;
+  margin: 0 auto 14px;
+  border-radius: 3px;
+  background: var(--ios-sep);
+}
+@media (min-width: 700px) {
+  .ios-sheet { bottom: auto; top: 50%; border-radius: var(--ios-r-lg); transform: translate(-50%, -46%) scale(0.96); opacity: 0; pointer-events: none;
+               transition: transform 0.35s var(--ios-spring), opacity 0.25s; }
+  .ios-sheet.open { transform: translate(-50%, -50%); opacity: 1; pointer-events: auto; }
+  .ios-sheet::before { display: none; }
+}
+
+/* ---------- big code display (login codes) ---------- */
+.ios-code {
+  display: block;
+  margin: 14px 0;
+  padding: 16px;
+  border-radius: var(--ios-r);
+  background: var(--ios-tint-soft);
+  color: var(--ios-tint);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: clamp(20px, 6vw, 28px);
+  letter-spacing: 0.06em;
+  text-align: center;
+  word-break: break-all;
+  user-select: all;
+}
+
+/* ---------- floating tab bar (phones) ---------- */
+.ios-tabbar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  z-index: 900;
+  display: flex;
+  gap: 2px;
+  padding: 6px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  transition: transform 0.35s var(--ios-spring), opacity 0.25s;
+}
+.ios-tabbar.tuck { transform: translate(-50%, 140%); opacity: 0; }
+.ios-tabbar a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 68px;
+  padding: 6px 12px 5px;
+  border-radius: 999px;
+  color: var(--ios-label-2);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 650;
+  -webkit-tap-highlight-color: transparent;
+}
+.ios-tabbar a.on { color: var(--ios-tint); background: var(--ios-tint-soft); }
+.ios-tabbar svg { width: 22px; height: 22px; }
+@media (min-width: 900px) { .ios-tabbar { display: none; } }
+
+/* ---------- loading skeleton and empty state ---------- */
+.ios-skel {
+  height: 64px;
+  border-radius: var(--ios-r);
+  background: linear-gradient(90deg, var(--ios-group) 25%, var(--ios-group-2) 50%, var(--ios-group) 75%);
+  background-size: 300% 100%;
+  animation: iosShimmer 1.4s ease-in-out infinite;
+}
+.ios-skel + .ios-skel { margin-top: 10px; }
+@keyframes iosShimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+.ios-empty {
+  padding: 34px 20px;
+  border-radius: var(--ios-r-lg);
+  background: var(--ios-group);
+  text-align: center;
+  color: var(--ios-label-2);
+}
+.ios-empty b { display: block; margin-bottom: 4px; color: var(--text); font-size: 17px; }
+
+/* ---------- entrance motion ---------- */
+.ios-in { animation: iosIn 0.5s var(--ios-ease) backwards; animation-delay: calc(var(--i, 0) * 50ms); }
+@keyframes iosIn { from { opacity: 0; transform: translateY(10px); } }
+
+/* ---------- toast ---------- */
+.ios-toast {
+  position: fixed;
+  left: 50%;
+  top: calc(14px + env(safe-area-inset-top));
+  z-index: 1300;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14.5px;
+  font-weight: 600;
+  transform: translate(-50%, -160%);
+  transition: transform 0.4s var(--ios-spring);
+}
+.ios-toast.show { transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ios-in, .ios-skel { animation: none !important; }
+  .ios-sheet, .ios-scrim, .ios-tabbar, .ios-toast, .ios-btn { transition: none !important; }
+}
+
+/* room for the floating tab bar, so it never covers the last lines of a page */
+@media (max-width: 899px) {
+  body:has(.ios-tabbar) { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+}

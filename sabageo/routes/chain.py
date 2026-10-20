@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sabageo import chain, config
 from sabageo.db import connect
 from sabageo.routes.ledger import chain_error, wallet_key
-from sabageo.security import require_admin, throttle
+from sabageo.security import log_action, require_admin, throttle
 
 router = APIRouter()
 log = logging.getLogger("sabageo")
@@ -28,8 +28,8 @@ def chain_status():
             "url": EXPLORER_ADDRESS + address if address else None}
 
 
-@router.post("/ledger/sync-titles", dependencies=[Depends(require_admin)])
-def sync_titles():
+@router.post("/ledger/sync-titles")
+def sync_titles(staff=Depends(require_admin)):
     """Write every title whose latest ledger record is not on-chain yet. Safe to press again."""
     address = need_contract()
     key = wallet_key()
@@ -75,6 +75,8 @@ def sync_titles():
             else:
                 raise chain_error(e, "write the titles")
         remaining = chain.count_pending(conn)
+        if sent:
+            log_action(conn, staff, "wrote titles to contract", f"{sum(b['count'] for b in sent)} titles")
     return {"sent": sum(b["count"] for b in sent), "batches": sent, "remaining": remaining,
             "contract": EXPLORER_ADDRESS + address, "out_of_funds": out_of_funds and remaining > 0,
             "wallet": wallet}

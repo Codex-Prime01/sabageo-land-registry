@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin | SABAGeo Land Registry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1628">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='8,12 34,7 37,32 11,37' fill='%23D9A441' fill-opacity='.4' stroke='%230A1628' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark"}catch(e){}</script>
+<style>
+:root{--bg:#0a1628;--text:#f4f6fa;--mute:#9fb0c8;--line:rgba(255,255,255,.12);--card:rgba(255,255,255,.05);--brass:#d9a441;--clear:#2bff88;--flag:#ff2d4d;--ease:cubic-bezier(.22,.8,.2,1)}
+[data-theme=light]{--bg:#f1f4f9;--text:#0a1628;--mute:#52627a;--line:rgba(10,22,40,.14);--card:rgba(10,22,40,.04);--clear:#0b8f4a;--flag:#d0112b}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.top{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:var(--bg);background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:"Fraunces",Georgia,serif;font-size:19px;font-weight:700}
+nav{margin-left:auto;display:flex;gap:4px;overflow-x:auto}
+nav a{padding:9px 12px;border-radius:10px;color:var(--mute);text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap}
+.map-btn{flex:none;padding:9px 14px;border-radius:999px;background:var(--brass);color:#1a1204;text-decoration:none;font-size:14px;font-weight:600}
+main{max-width:1120px;margin:0 auto;padding:40px 20px 72px}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+h1{margin:0;font-family:"Fraunces",Georgia,serif;font-size:clamp(26px,5vw,40px);line-height:1.12}
+.lead{margin:12px 0 0;font-size:16px;color:var(--mute)}
+.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .6s var(--ease) backwards;animation-delay:calc(var(--k,0)*60ms)}
+.card h2{margin:0 0 6px;font-family:"Fraunces",Georgia,serif;font-size:20px}
+.card p{margin:6px 0 0;color:var(--mute)}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:22px}
+.tile{padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:var(--card);animation:rise .6s var(--ease) backwards;animation-delay:calc(var(--k,0)*50ms)}
+.tile b{display:block;font-family:"Fraunces",Georgia,serif;font-size:28px;line-height:1.15}
+.tile small{color:var(--mute);font-size:13px}
+.tile.good b{color:var(--clear)}.tile.bad b{color:var(--flag)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.two .card{margin-top:16px}
+.tbl{margin-top:12px;overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);color:var(--mute);white-space:nowrap}
+th{color:var(--text);font-weight:600;background:var(--card)}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+td b{color:var(--text);font-weight:600}
+.mono{font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+.bars{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:16px;padding-bottom:22px;position:relative}
+.bar{flex:1;position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.bar i{display:block;border-radius:5px 5px 0 0;background:var(--brass);min-height:2px}
+.bar i.r{background:var(--flag);border-radius:0}
+.bar span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10.5px;color:var(--mute)}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--mute);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.form{display:flex;gap:10px;margin-top:16px;max-width:520px}
+.form input{flex:1;min-width:0;height:48px;padding:0 14px;font:inherit;font-size:16px;color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px}
+.form input:focus{outline:none;border-color:var(--brass)}
+.btn{height:48px;padding:0 20px;border:0;border-radius:12px;background:var(--brass);color:#1a1204;font:inherit;font-weight:600;cursor:pointer}
+.act{padding:9px 14px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--text);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:none}
+.act:hover{border-color:var(--brass)}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.msg{margin-top:12px;color:var(--flag)}
+.ok-t{color:var(--clear)}.no-t{color:var(--flag)}
+.empty{padding:18px;color:var(--mute);text-align:center}
+.hidden{display:none!important}
+.tabs{display:flex;gap:4px;margin:0 0 26px;border-bottom:1px solid var(--line)}
+.tabs a{padding:10px 14px;margin-bottom:-1px;border-bottom:2px solid transparent;color:var(--mute);text-decoration:none;font-weight:600;font-size:14.5px}
+.tabs a.on{color:var(--text);border-bottom-color:var(--brass)}
+footer{max-width:1120px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-inset-bottom));color:var(--mute);font-size:13px}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+@media (max-width:560px){.brand span{display:none}main{padding-top:28px}.card{padding:18px}.tile b{font-size:24px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}}
+.stack{display:grid;gap:6px;max-width:420px;margin-top:14px}.stack label{font-size:13.5px;font-weight:600;margin-top:6px}.stack input,.stack select{height:48px;padding:0 14px;font:inherit;font-size:16px;color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px}.stack input:focus,.stack select:focus{outline:none;border-color:var(--brass)}.stack .btn{margin-top:12px;justify-self:start}.small{font-size:13px}
+</style>
+<link rel="stylesheet" href="/static/site.css" />
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/" aria-label="Back to the map">
+    <svg width="30" height="30" viewBox="0 0 44 44" aria-hidden="true"><polygon points="8,12 34,7 37,32 11,37" fill="rgba(217,164,65,.18)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8" cy="12" r="3.6" fill="#D9A441"/><circle cx="34" cy="7" r="3.6" fill="#D9A441"/><circle cx="37" cy="32" r="3.6" fill="#D9A441"/><circle cx="11" cy="37" r="3.6" fill="#D9A441"/></svg>
+    <span>SABAGeo</span>
+  </a>
+  <nav aria-label="Pages"><a href="/registry">Registry</a><a href="/admin">Dashboard</a></nav>
+  <a class="map-btn" href="/">Open map</a>
+</header>
+<script src="/static/site.js"></script>
+<main>
+  <nav class="tabs" aria-label="Admin sections"><a href="/admin">Overview</a><a href="/admin/clients">Clients</a><a href="/admin/payments">Payments</a><a href="/staff" class="on" aria-current="page">Admins</a></nav>
+  <div class="head">
+    <div><p class="eyebrow">Admin</p><h1 id="title">Admin login</h1><p class="lead" id="lead">Every admin has their own username and password, so we know who did what.</p></div>
+    <div class="acts hidden" id="acts"><button class="act" id="logout">Log out</button></div>
+  </div>
+
+  <section class="card" id="loginCard">
+    <h2>Log in</h2>
+    <p>You stay logged in on this browser tab only, for up to 12 hours.</p>
+    <form id="loginForm" class="stack">
+      <label for="lu">Username</label><input id="lu" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+      <label for="lp">Password</label><input id="lp" type="password" autocomplete="current-password" required>
+      <button class="btn" type="submit">Log in</button>
+    </form>
+    <p class="msg" id="loginMsg"></p>
+    <p class="small">Forgot your password? Ask another admin to reset it, or run tools/create_staff.py.</p>
+  </section>
+
+  <div id="inside" class="hidden">
+    <section class="card" style="--k:1">
+      <h2>What you can do</h2>
+      <div class="acts" id="tools" style="margin-top:12px"></div>
+    </section>
+
+    <section class="card" style="--k:2">
+      <h2>Change my password</h2>
+      <form id="pwForm" class="stack">
+        <label for="pc">Current password</label><input id="pc" type="password" autocomplete="current-password" required>
+        <label for="pn">New password (10 or more characters)</label><input id="pn" type="password" autocomplete="new-password" minlength="10" required>
+        <button class="btn" type="submit">Save new password</button>
+      </form>
+      <p class="msg" id="pwMsg"></p>
+    </section>
+
+    <div id="ownerArea" class="hidden">
+      <section class="card" style="--k:3">
+        <h2>Add an admin</h2>
+        <p>Every admin can do everything: see all clients, payments and statistics, register plots, and write to the blockchain. Only add people you trust.</p>
+        <form id="addForm" class="stack">
+          <label for="au">Username</label><input id="au" autocapitalize="none" spellcheck="false" pattern="[A-Za-z0-9._\-]{3,40}" title="3 to 40 letters, numbers, dots, dashes or underscores" required>
+          <label for="an">Full name</label><input id="an" minlength="2" required>
+          <label for="ap">First password (10 or more characters; tell them to change it)</label><input id="ap" type="password" autocomplete="new-password" minlength="10" required>
+          <button class="btn" type="submit">Add admin</button>
+        </form>
+        <p class="msg" id="addMsg"></p>
+      </section>
+
+      <section class="card" style="--k:4">
+        <h2>Admins</h2>
+        <div class="tbl"><table><thead><tr><th>Username</th><th>Name</th><th>Status</th><th>Last login</th><th></th></tr></thead><tbody id="team"></tbody></table></div>
+      </section>
+
+      <section class="card" style="--k:5">
+        <h2>Recent admin activity</h2>
+        <p>The last 100 things admins did. Logins are not listed.</p>
+        <div class="tbl"><table><thead><tr><th>When</th><th>Who</th><th>What</th><th>On</th></tr></thead><tbody id="activity"></tbody></table></div>
+      </section>
+    </div>
+  </div>
+</main>
+<footer>SABAGeo Land Registry. Admin accounts.</footer>
+<script src="/static/staff.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const when = (s) => s ? new Date(s).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Never";
+
+  // only go back to a page on this site (never "//elsewhere.com")
+  const nextUrl = () => {
+    const n = new URLSearchParams(location.search).get("next") || "";
+    return /^\/(?![\/\\])/.test(n) && n !== "/staff" ? n : "";
+  };
+
+  async function api(url, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ "Content-Type": "application/json" }, Staff.headers(), opts.headers || {});
+    const r = await fetch(url, opts);
+    let d = null; try { d = await r.json(); } catch (e) {}
+    if (!r.ok) {
+      const detail = d && d.detail;
+      const err = new Error(typeof detail === "string" ? detail : Array.isArray(detail) ? "Please check the form: " + (detail[0].msg || "") : "Something went wrong (" + r.status + ").");
+      err.status = r.status; throw err;
+    }
+    return d;
+  }
+
+  function showLogin(msg) {
+    $("loginCard").classList.remove("hidden");
+    $("inside").classList.add("hidden");
+    $("acts").classList.add("hidden");
+    $("title").textContent = "Admin login";
+    $("loginMsg").textContent = msg || "";
+  }
+
+  async function start() {
+    if (!Staff.token()) return showLogin();
+    let me;
+    try { me = await api("/api/staff/me"); }
+    catch (e) { if (e.status === 401) { Staff.clear(); return showLogin("Your login has ended. Please log in again."); } return showLogin(e.message); }
+
+    $("loginCard").classList.add("hidden");
+    $("inside").classList.remove("hidden");
+    $("acts").classList.remove("hidden");
+    $("title").textContent = "Hello, " + me.name;
+    $("lead").textContent = "You are logged in as " + me.username + ".";
+
+    const links = [["Dashboard", "/admin"], ["Clients", "/admin/clients"], ["Payments and login codes", "/admin/payments"], ["Register and photograph plots (map)", "/"]];
+    $("tools").innerHTML = links.map((l) => '<a class="act" href="' + l[1] + '">' + esc(l[0]) + "</a>").join("");
+
+    $("ownerArea").classList.remove("hidden");
+    loadTeam();
+  }
+
+  async function loadTeam() {
+    let d;
+    try { d = await api("/api/staff"); } catch (e) { $("addMsg").textContent = e.message; return; }
+    $("team").innerHTML = d.staff.map((s) => {
+      const btns = s.username === d.you ? "<small>This is you</small>" :
+        (s.active ? '<button class="act" data-act="disable" data-u="' + esc(s.username) + '">Disable</button>'
+                  : '<button class="act" data-act="enable" data-u="' + esc(s.username) + '">Turn back on</button>') +
+        ' <button class="act" data-act="reset" data-u="' + esc(s.username) + '">Reset password</button>';
+      return "<tr><td><b>" + esc(s.username) + "</b></td><td>" + esc(s.name) +
+        '</td><td class="' + (s.active ? "ok-t" : "no-t") + '">' + (s.active ? "Active" : "Disabled") + "</td><td>" + esc(when(s.last_login_at)) + "</td><td>" + btns + "</td></tr>";
+    }).join("") || '<tr><td colspan="5" class="empty">No admins yet.</td></tr>';
+    $("activity").innerHTML = d.recent.map((r) =>
+      "<tr><td>" + esc(when(r.time)) + "</td><td>" + esc(r.username) + "</td><td>" + esc(r.action) + '</td><td class="mono">' + esc(r.target || "") + "</td></tr>"
+    ).join("") || '<tr><td colspan="4" class="empty">Nothing yet.</td></tr>';
+  }
+
+  $("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("loginMsg").textContent = "";
+    try {
+      const d = await api("/api/staff/login", { method: "POST", body: JSON.stringify({ username: $("lu").value.trim(), password: $("lp").value }) });
+      Staff.save(d);
+      $("lp").value = "";
+      const n = nextUrl();
+      if (n) { location.href = n; return; }
+      start();
+    } catch (err) { $("loginMsg").textContent = err.message; }
+  });
+
+  $("pwForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("pwMsg").className = "msg"; $("pwMsg").textContent = "";
+    try {
+      await api("/api/staff/me/password", { method: "POST", body: JSON.stringify({ current: $("pc").value, password: $("pn").value }) });
+      $("pc").value = ""; $("pn").value = "";
+      $("pwMsg").className = "msg ok-t"; $("pwMsg").textContent = "Saved. You are logged out on your other devices.";
+    } catch (err) { $("pwMsg").textContent = err.message; }
+  });
+
+  $("addForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("addMsg").className = "msg"; $("addMsg").textContent = "";
+    try {
+      const d = await api("/api/staff", { method: "POST", body: JSON.stringify({ username: $("au").value.trim(), name: $("an").value.trim(), password: $("ap").value }) });
+      $("addForm").reset();
+      $("addMsg").className = "msg ok-t"; $("addMsg").textContent = "Added " + d.username + ". Give them the password in person, not by text message.";
+      loadTeam();
+    } catch (err) { $("addMsg").textContent = err.message; }
+  });
+
+  $("team").addEventListener("click", async (e) => {
+    const b = e.target.closest("button[data-act]"); if (!b) return;
+    const u = b.dataset.u, act = b.dataset.act;
+    try {
+      if (act === "disable") {
+        if (!confirm("Disable " + u + "? They are logged out at once and can't log in until turned back on.")) return;
+        await api("/api/staff/" + encodeURIComponent(u) + "/disable", { method: "POST" });
+      } else if (act === "enable") {
+        await api("/api/staff/" + encodeURIComponent(u) + "/enable", { method: "POST" });
+      } else if (act === "reset") {
+        const p = prompt("New password for " + u + " (10 or more characters). They will be logged out everywhere.");
+        if (!p) return;
+        await api("/api/staff/" + encodeURIComponent(u) + "/password", { method: "POST", body: JSON.stringify({ password: p }) });
+        alert("Password reset. Tell " + u + " in person.");
+      }
+      loadTeam();
+    } catch (err) { alert(err.message); }
+  });
+
+  $("logout").addEventListener("click", () => Staff.logout().then(() => showLogin("You are logged out.")));
+  start();
+})();
+</script>
+</body>
+</html>

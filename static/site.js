@@ -17,6 +17,7 @@
     {
       group: "Payments",
       links: [
+        ["My account", "/account"],
         ["Plans", "/payments"],
         ["Receipt", "/receipt"],
       ],
@@ -33,7 +34,9 @@
       group: "Admin",
       links: [
         ["Dashboard", "/admin"],
+        ["Clients", "/admin/clients"],
         ["Payments", "/admin/payments"],
+        ["Admin login", "/staff"],
       ],
     },
   ];
@@ -50,21 +53,46 @@
   const arrow =
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
 
+  // the few pages most people need: the top bar shows only these; the menu keeps everything
+  const MAIN = [
+    ["Registry", "/registry"],
+    ["Verify a title", "/verify"],
+    ["Plans", "/payments"],
+    ["My account", "/account"],
+    ["How it works", "/how-it-works"],
+  ];
+  // phone tab bar (Apple-style): the four places people go most
+  const TABS = [
+    ["Map", "/", '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>'],
+    ["Registry", "/registry", '<path d="M4 6h16M4 12h16M4 18h10"/>'],
+    ["Verify", "/verify", '<path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/>'],
+    ["Account", "/account", '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>'],
+  ];
+
+  // the iPhone-style kit, for pages that do not link it themselves
+  if (!document.querySelector('link[href="/static/ios.css"]')) {
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "/static/ios.css";
+    document.head.append(css);
+  }
+
   const header = document.querySelector("header.top");
   if (!header) return;
 
   /* ---- top bar: every page, grouped, current one highlighted ---- */
   const nav = header.querySelector("nav");
   if (nav) {
-    nav.innerHTML = PAGES.map((g) =>
-      g.links
-        .map(([name, href]) =>
-          isOn(href)
-            ? `<a href="${href}" class="on" aria-current="page">${esc(name)}</a>`
-            : `<a href="${href}">${esc(name)}</a>`,
-        )
-        .join(""),
-    ).join('<span class="sx-sep" aria-hidden="true"></span>');
+    // admin pages keep their own section links; everyone else gets the short main list
+    const admin = path.startsWith("/admin") || path === "/staff";
+    const list = admin ? PAGES.find((g) => g.group === "Admin").links : MAIN;
+    nav.innerHTML = list
+      .map(([name, href]) =>
+        href === path || isOn(href)
+          ? `<a href="${href}" class="on" aria-current="page">${esc(name)}</a>`
+          : `<a href="${href}">${esc(name)}</a>`,
+      )
+      .join("");
 
     // fade the edges when there are more links off to the side
     const fade = () => {
@@ -174,6 +202,25 @@
     showTheme();
   });
   showTheme();
+
+  /* ---- phone tab bar: floats at the bottom, tucks away while scrolling down ---- */
+  if (!path.startsWith("/admin") && path !== "/staff") {
+    const bar = document.createElement("nav");
+    bar.className = "ios-tabbar ios-glass";
+    bar.setAttribute("aria-label", "Main");
+    bar.innerHTML = TABS.map(([name, href, icon]) => {
+      const on = href === "/" ? false : path === href || path.startsWith(href + "/");
+      return `<a href="${href}"${on ? ' class="on" aria-current="page"' : ""}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>${name}</a>`;
+    }).join("");
+    document.addEventListener("DOMContentLoaded", () => document.body.append(bar));
+    let lastY = scrollY;
+    addEventListener("scroll", () => {
+      const y = scrollY;
+      if (Math.abs(y - lastY) < 8) return;
+      bar.classList.toggle("tuck", y > lastY && y > 120);
+      lastY = y;
+    }, { passive: true });
+  }
 
   /* ---- footer links (the footer is further down, so wait for it) ---- */
   document.addEventListener("DOMContentLoaded", () => {

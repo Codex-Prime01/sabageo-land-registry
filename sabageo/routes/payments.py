@@ -10,7 +10,7 @@ from sabageo.codes import create_payment, issue_login_code
 from sabageo.db import connect
 from sabageo.helpers import clean_contact
 from sabageo.models import PaymentIn, ReissueIn
-from sabageo.security import check_limit, is_admin, record_fail, require_admin
+from sabageo.security import check_limit, log_action, record_fail, require_admin, staff_from_token
 
 router = APIRouter()
 
@@ -21,13 +21,15 @@ def prices():
     return {"plans": config.PLANS, "provisional": True, "currency": "NGN"}
 
 
-@router.post("/api/admin/payments", dependencies=[Depends(require_admin)])
-def record_payment(p: PaymentIn):
+@router.post("/api/admin/payments")
+def record_payment(p: PaymentIn, staff=Depends(require_admin)):
     phone, email = clean_contact(p.phone, p.email)
     try:
         with connect() as conn:
-            return create_payment(conn, p.name, p.client_type, email, phone, p.amount_ngn, p.method,
-                                  p.reference, p.valid_days, p.plots_allowed)
+            out = create_payment(conn, p.name, p.client_type, email, phone, p.amount_ngn, p.method,
+                                 p.reference, p.valid_days, p.plots_allowed)
+            log_action(conn, staff, "recorded payment", out.get("receipt_no"))
+            return out
     except psycopg.errors.UniqueViolation:
         raise HTTPException(status_code=409, detail="That payment reference has already been recorded.")
 
@@ -69,8 +71,8 @@ def list_payments():
     return out
 
 
-@router.post("/api/admin/payments/{receipt_no}/void", dependencies=[Depends(require_admin)])
-def void_payment(receipt_no: str):
+@router.post("/api/admin/payments/{receipt_no}/void")
+def void_payment(receipt_no: str, staff=Depends(require_admin)):
     with connect() as conn:
         row = conn.execute("UPDATE payments SET status = 'void' WHERE receipt_no = %s RETURNING id", (receipt_no,)).fetchone()
         if not row:
@@ -80,11 +82,12 @@ def void_payment(receipt_no: str):
             "DELETE FROM client_sessions WHERE code_id IN (SELECT id FROM login_codes WHERE payment_id = %s)",
             (row[0],),
         )
+        log_action(conn, staff, "voided payment", receipt_no)
     return {"ok": True}
 
 
-@router.post("/api/admin/payments/{receipt_no}/reissue", dependencies=[Depends(require_admin)])
-def reissue_code(receipt_no: str, body: ReissueIn | None = None):
+@router.post("/api/admin/payments/{receipt_no}/reissue")
+def reissue_code(receipt_no: str, body: ReissueIn | None = None, staff=Depends(require_admin)):
     days = body.valid_days if body else 30
     with connect() as conn:
         pay = conn.execute(
@@ -104,11 +107,12 @@ def reissue_code(receipt_no: str, body: ReissueIn | None = None):
             (pay[0],),
         )
         code, expires = issue_login_code(conn, pay[0], pay[1], days, last[0] if last else None, last[1] if last else 0)
+        log_action(conn, staff, "issued new code", receipt_no)
     return {"code": code, "expires_at": expires.isoformat()}
 
 
-@router.post("/api/admin/payments/{receipt_no}/unlock-plot", dependencies=[Depends(require_admin)])
-def unlock_plot(receipt_no: str):
+@router.post("/api/admin/payments/{receipt_no}/unlock-plot")
+def unlock_plot(receipt_no: str, staff=Depends(require_admin)):
     """For a genuine mistake (e.g. a big typo in the corners): free the code to check a plot again.
     Its plot limit and expiry stay the same."""
     with connect() as conn:
@@ -126,15 +130,17 @@ def unlock_plot(receipt_no: str):
             ).fetchone()
         except psycopg.errors.UndefinedColumn:
             raise HTTPException(status_code=503, detail="Run phase_i.sql on this database first.")
-    if not row:
-        raise HTTPException(status_code=404, detail="This payment has no login code.")
+        if not row:
+            raise HTTPException(status_code=404, detail="This payment has no login code.")
+        log_action(conn, staff, "unlocked plot", receipt_no)
     return {"ok": True}
 
 
 @router.get("/api/receipts/{receipt_no}")
-def get_receipt(receipt_no: str, request: Request, v: str = "", x_admin_key: str | None = Header(default=None)):
+def get_receipt(receipt_no: str, request: Request, v: str = "", x_staff_token: str | None = Header(default=None)):
     """Public, but you need the verification code printed on the receipt."""
-    admin = is_admin(x_admin_key)
+    # admins can open any receipt without its verification code
+    admin = bool(staff_from_token(x_staff_token))
     if not admin:
         check_limit(request)
     with connect() as conn:

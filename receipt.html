@@ -177,8 +177,8 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
 
   async function load(no, v) {
     app.innerHTML = '<div class="sk" style="margin-top:30px"></div>';
-    const headers = {}, k = sessionStorage.getItem("adminKey");
-    if (k) headers["X-Admin-Key"] = k;
+    let headers = {};
+    try { const t = sessionStorage.getItem("staffToken"); if (t) headers = { "X-Staff-Token": t }; } catch (e) {}
     try {
       const r = await fetch("/api/receipts/" + encodeURIComponent(no) + "?v=" + encodeURIComponent(v), { headers });
       const d = await r.json();

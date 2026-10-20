@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark"}catch(e){}</script>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark"}catch(e){}document.documentElement.classList.add("js")</script>
 <style>
 :root{--bg:#0a1628;--text:#f4f6fa;--mute:#9fb0c8;--line:rgba(255,255,255,.12);--card:rgba(255,255,255,.05);--brass:#d9a441;--clear:#2bff88;--flag:#ff2d4d;--ease:cubic-bezier(.22,.8,.2,1)}
 [data-theme=light]{--bg:#f1f4f9;--text:#0a1628;--mute:#52627a;--line:rgba(10,22,40,.14);--card:rgba(10,22,40,.04)}
@@ -74,6 +74,35 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
 @keyframes rise{from{opacity:0;transform:translateY(16px)}}
 @media (max-width:560px){.brand span{display:none}main{padding-top:32px}.steps li{padding:18px 16px 18px 62px}.steps li::before{left:16px;top:18px}.card{padding:18px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important}}
+
+.story{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:20px}
+.story .steps{margin-top:0}
+.fig{position:sticky;top:72px;z-index:2;margin:0;height:210px;border-radius:20px;background:var(--card);overflow:hidden}
+.fig svg{width:100%;height:100%;display:block}
+.fig .cap{position:absolute;left:14px;bottom:10px;font-size:12.5px;font-weight:600;color:var(--mute)}
+.fig .g{stroke:var(--line);stroke-width:1}
+.fig .t{font:600 11px "Public Sans",sans-serif;fill:var(--mute)}
+.fig .st{transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.js .fig .st{opacity:0}
+.js .fig.on1 .s1,.js .fig.on2 .s2,.js .fig.on3 .s3,.js .fig.on4 .s4,.js .fig.on5 .s5,.js .fig.on6 .s6{opacity:1}
+.fig .draw{stroke-dasharray:520;stroke-dashoffset:0;transition:stroke-dashoffset 1.2s var(--ease),fill .6s,stroke .6s}
+.js .fig:not(.on2) .draw{stroke-dashoffset:520}
+.fig .newp{fill:rgba(217,164,65,.14);stroke:#d9a441;stroke-width:2.5}
+.fig.on4 .newp{fill:rgba(43,212,125,.18);stroke:#2bd47d}
+.js .fig.on4 .s3{opacity:0}
+.fig .zone{fill:rgba(255,45,77,.55);animation:zp 1.6s ease-in-out infinite}
+@keyframes zp{50%{fill-opacity:.35}}
+.fig .dot{fill:#d9a441}
+.fig .tag{fill:#2bd47d}.fig .tagt{font:700 11px "IBM Plex Mono",monospace;fill:#06210f}
+.fig .blk{fill:var(--surface-2,#142741);stroke:#d9a441;stroke-width:1.5}
+.steps li{transition:opacity .4s}
+.js .steps li:not(.here){opacity:.55}
+@media (min-width:900px){
+  main{max-width:1040px}
+  .story{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+  .fig{top:96px;height:380px}
+}
+@media (prefers-reduced-motion:reduce){.fig .st,.fig .draw,.steps li{transition:none}.fig .zone{animation:none}}
 </style>
 
 <link rel="stylesheet" href="/static/site.css" />
@@ -93,22 +122,43 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
 <h1>From corner coordinates to a registered plot.</h1>
 <p class="lead">Six steps, from typing the corners to sealing the record.</p>
 
+<div class="story">
+<figure class="fig on1" id="fig" aria-hidden="true">
+  <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet">
+    <g class="g"><path d="M40 40V260M100 40V260M160 40V260M220 40V260M280 40V260M340 40V260M40 40H360M40 100H360M40 160H360M40 220H360"/></g>
+    <g class="st s1"><text class="t" x="44" y="34">E 850,000 m</text><text class="t" x="300" y="34">N 1,172,000</text></g>
+    <g class="st s3"><rect x="190" y="90" width="110" height="100" rx="3" fill="rgba(0,209,255,.14)" stroke="#00d1ff" stroke-width="2"/>
+      <text class="t" x="232" y="84">registered</text>
+      <polygon class="zone" points="190,103.3 230,100 238.2,190 190,190"/></g>
+    <polygon class="newp draw" points="110,110 230,100 240,210 120,220"/>
+    <g class="st s2"><circle class="dot" cx="110" cy="110" r="6"/><circle class="dot" cx="230" cy="100" r="6"/><circle class="dot" cx="240" cy="210" r="6"/><circle class="dot" cx="120" cy="220" r="6"/></g>
+    <g class="st s4"><rect class="tag" x="96" y="150" width="138" height="22" rx="11"/><text class="tagt" x="108" y="165">SABA-NAUB-RES-001</text></g>
+    <g class="st s5"><path d="M240 210 L300 240" stroke="#d9a441" stroke-width="1.6" stroke-dasharray="4 4"/>
+      <circle cx="306" cy="243" r="14" fill="#d9a441"/><path d="M299 240h14v9h-14z M303 240l2-3h4l2 3" fill="none" stroke="#1a1204" stroke-width="1.6"/>
+      <text class="t" x="262" y="270">photo 12 m away</text></g>
+    <g class="st s6"><rect class="blk" x="46" y="236" width="44" height="30" rx="6"/><rect class="blk" x="106" y="236" width="44" height="30" rx="6"/><rect class="blk" x="166" y="236" width="44" height="30" rx="6"/>
+      <path d="M90 251h16M150 251h16" stroke="#d9a441" stroke-width="2"/>
+      <text class="t" x="52" y="255">#1</text><text class="t" x="112" y="255">#2</text><text class="t" x="172" y="255">#3</text>
+      <text class="t" x="46" y="282">ledger, anchored on Polygon (test)</text></g>
+  </svg>
+</figure>
 <ol class="steps">
-  <li style="--k:1"><h2>Choose the coordinate type</h2><p>Pick latitude and longitude (from a GPS), or UTM metres (from a survey). Choose the same type your instrument exported. A wrong UTM zone is the easiest mistake to make, so the system warns you when a plot lands outside Nigeria.</p></li>
+  <li style="--k:1"><h2>Choose the coordinate type</h2><p>Latitude and longitude (from a GPS) is the default. For UTM metres or the older Minna datum (from a survey), open <b>More options</b>. Choose the same type your instrument exported. A wrong UTM zone is the easiest mistake to make, so the system warns you when a plot lands outside Nigeria.</p></li>
   <li style="--k:2"><h2>Enter or upload the corners</h2><p>Type one corner per line, with at least three corners. Or upload a CSV file with the corners in the same order. Latitude comes first for lat/long, and easting comes first for UTM.</p></li>
-  <li style="--k:3"><h2>Check for overlap</h2><p>A <b>green tick</b> means 0 overlap, so the plot can be registered. A <b>red X</b> means it shares area with a registered plot. The result names that plot and the overlap in square metres. Plots that only touch along a shared boundary are not counted as overlapping.</p></li>
-  <li style="--k:4"><h2>Register the plot</h2><p>With the admin key, a clear plot gets a unique title code such as <b>SABA-NAUB-RES-001</b>. The first five real NAUB plots fill the reserved pilot slots in order, and the button asks you to tap twice so a slot is never used by accident.</p></li>
+  <li style="--k:3"><h2>Check for overlap</h2><p>Checking is free, with no account. <b>0 OVERLAP</b> means the plot can be registered. <b>RED FLAG</b> means it shares area with a registered plot: the exact overlap is shaded red on the map, with the plot's name and the overlap in square metres. Plots that only touch along a shared boundary are not counted as overlapping.</p></li>
+  <li style="--k:4"><h2>Register the plot</h2><p>Buy a login code under <b>Plans</b>, then register from <b>My account</b>. A clear plot gets a unique title code. The SABAGeo admin registers the five real NAUB pilot plots (<b>SABA-NAUB-RES-001</b> to 005) in order.</p></li>
   <li style="--k:5"><h2>Add a beacon photo</h2><p>Upload a photo taken at the beacon. The system reads its GPS tag and tells you how many metres from the plot it was taken. If it is far, check it was taken at the right place.</p></li>
   <li style="--k:6"><h2>Seal it in the ledger</h2><p>Every registration joins a ledger in which each record carries the fingerprint of the one before it. <b>Check ledger</b> recalculates the chain and tells you if anything was changed or deleted. <b>Anchor to Polygon</b> posts the latest fingerprint on a public test network, so history cannot be quietly rewritten.</p></li>
 </ol>
+</div>
 
 <section class="card" style="--k:7">
   <h2>Reading the map</h2>
   <ul>
     <li><span class="dot" style="background:#00d1ff"></span>Bright cyan: a registered plot from field data.</li>
     <li><span class="dot" style="background:#8fa8ff"></span>Soft blue: synthetic test data.</li>
-    <li><span class="dot" style="background:#2bff88"></span>Green with a tick: the plot you checked, with no overlap.</li>
-    <li><span class="dot" style="background:#ff2d4d"></span>Red with an X: the plot overlaps registered land.</li>
+    <li><span class="dot" style="background:#2bff88"></span>Green: the plot you checked, with no overlap.</li>
+    <li><span class="dot" style="background:#ff2d4d"></span>Red: the plot overlaps registered land. The shared area pulses red, with its size in m².</li>
   </ul>
 </section>
 
@@ -121,6 +171,23 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
 
 <a class="cta" href="/">Open the map</a>
 </main>
+<script>
+// light up the step in view, and let the picture catch up with it
+(() => {
+  const fig = document.getElementById("fig");
+  const items = [...document.querySelectorAll(".story .steps li")];
+  if (!fig || !("IntersectionObserver" in window)) { document.documentElement.classList.remove("js"); return; }
+  const show = (n) => {
+    for (let k = 1; k <= 6; k++) fig.classList.toggle("on" + k, k <= n);
+    items.forEach((li, k) => li.classList.toggle("here", k === n - 1));
+  };
+  const io = new IntersectionObserver((es) => {
+    es.forEach((e) => { if (e.isIntersecting) show(items.indexOf(e.target) + 1); });
+  }, { rootMargin: "-45% 0px -45% 0px" });  // a thin band across the middle of the screen
+  items.forEach((li) => io.observe(li));
+  show(1);
+})();
+</script>
 <footer>SABAGeo Land Registry. A research prototype from the Nigerian Army University Biu.</footer>
 
 </body>

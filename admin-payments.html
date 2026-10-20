@@ -144,15 +144,16 @@ td small{display:block;color:var(--mute)}
 </header>
 <script src="/static/site.js"></script>
 <main class="wide">
-<nav class="tabs" aria-label="Admin sections"><a href="/admin">Overview</a><a href="/admin/payments" class="on" aria-current="page">Payments</a></nav>
+<nav class="tabs" aria-label="Admin sections"><a href="/admin">Overview</a><a href="/admin/clients">Clients</a><a href="/admin/payments" class="on" aria-current="page">Payments</a><a href="/staff">Admins</a></nav>
 <p class="eyebrow">Admin · Payments</p>
 <h1>Record payments and issue login codes.</h1>
 <p class="lead">For cash, transfer and POS payments taken by SABAGeo staff. Online (Paystack) payments appear here by themselves.</p>
 <div class="staff">
 <section class="card" id="lock" style="--k:1">
   <h2>Record a payment</h2>
-  <p>Enter the admin key to record a payment and issue a login code. The key stays in this browser tab only.</p>
-  <form id="lockForm"><div class="form"><div class="fld full"><label for="ak">Admin key</label><input id="ak" type="password" autocomplete="off" required></div></div><p class="msg" id="lockMsg"></p><button class="btnp" style="margin-top:12px" type="submit">Unlock</button></form>
+  <p>Log in as admin to record a payment and issue a login code.</p>
+  <p class="msg" id="lockMsg"></p>
+  <a class="btnp" id="loginLink" href="/staff" style="display:inline-flex;align-items:center;margin-top:12px;text-decoration:none">Log in as admin</a>
 </section>
 
 <div id="tools" class="hidden">
@@ -193,6 +194,7 @@ td small{display:block;color:var(--mute)}
 </div>
 </main>
 <footer>SABAGeo Land Registry. A research prototype from the Nigerian Army University Biu.</footer>
+<script src="/static/staff.js"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -205,7 +207,7 @@ td small{display:block;color:var(--mute)}
 
   async function api(url, opts) {
     opts = opts || {};
-    opts.headers = Object.assign({ "X-Admin-Key": sessionStorage.getItem("adminKey") || "" }, opts.headers || {});
+    opts.headers = Object.assign(Staff.headers(), opts.headers || {});
     const r = await fetch(url, opts);
     let d = null; try { d = await r.json(); } catch (e) {}
     if (!r.ok) { const err = new Error(d && typeof d.detail === "string" ? d.detail : "Please check the form and try again."); err.status = r.status; throw err; }
@@ -213,9 +215,12 @@ td small{display:block;color:var(--mute)}
   }
   function unlocked(on) { $("lock").classList.toggle("hidden", on); $("tools").classList.toggle("hidden", !on); }
   async function start() {
-    if (!sessionStorage.getItem("adminKey")) return unlocked(false);
+    if (!Staff.token()) return unlocked(false);
     try { await load(); unlocked(true); }
-    catch (e) { if (e.status === 401) { sessionStorage.removeItem("adminKey"); $("lockMsg").textContent = "That admin key is not right."; } unlocked(false); }
+    catch (e) {
+      if (e.status === 401) { Staff.clear(); $("lockMsg").textContent = "Your login has ended. Please log in again."; }
+      unlocked(false);
+    }
   }
   let PLANS = { individual: { amount: 15000, days: 30, plots: 1 }, corporate: { amount: 200000, days: 30, plots: null } };
   const nairaWhole = (n) => "₦" + Number(n).toLocaleString("en-NG", { maximumFractionDigits: 0 });
@@ -232,7 +237,7 @@ td small{display:block;color:var(--mute)}
   $("f_type").addEventListener("change", planFill);
   planFill();
 
-  $("lockForm").addEventListener("submit", (e) => { e.preventDefault(); sessionStorage.setItem("adminKey", $("ak").value.trim()); $("lockMsg").textContent = ""; start(); });
+  $("loginLink").href = Staff.loginUrl();
 
   function codeBox(d, receiptNo, verify) {
     const link = location.origin + "/receipt/" + encodeURIComponent(receiptNo) + "?v=" + encodeURIComponent(verify);

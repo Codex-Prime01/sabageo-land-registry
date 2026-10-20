@@ -13,7 +13,7 @@ from sabageo.geo import find_overlaps, next_code, prepare, utm_zone
 from sabageo.ledger import add_ledger_record
 from sabageo.models import NewPlot
 from sabageo.photos import read_upload, save_photo
-from sabageo.security import require_admin
+from sabageo.security import log_action, require_admin
 
 router = APIRouter()
 log = logging.getLogger("sabageo")
@@ -238,8 +238,8 @@ def check_overlap(plot: NewPlot):
     return {"status": "0 OVERLAP", **base}
 
 
-@router.post("/register", dependencies=[Depends(require_admin)])
-def register_plot(plot: NewPlot):
+@router.post("/register")
+def register_plot(plot: NewPlot, staff=Depends(require_admin)):
     with connect() as conn:
         # lock so two people can't register overlapping plots at the same moment
         conn.execute("LOCK TABLE plots IN SHARE ROW EXCLUSIVE MODE")
@@ -280,16 +280,19 @@ def register_plot(plot: NewPlot):
             ).fetchone()
 
         add_ledger_record(conn, code, wkt, area)
+        log_action(conn, staff, "registered plot", code)
 
     return {"status": "REGISTERED", "title_code": code, "area_m2": round(area, 2), "region": plot.region}
 
 
 # ---------- Beacon photos (kept inside the database) ----------
-@router.post("/plots/{title_code}/photo", dependencies=[Depends(require_admin)])
-async def upload_photo(title_code: str, file: UploadFile = File(...)):
+@router.post("/plots/{title_code}/photo")
+async def upload_photo(title_code: str, file: UploadFile = File(...), staff=Depends(require_admin)):
     data = await read_upload(file)
     with connect() as conn:
-        return save_photo(conn, title_code, data)
+        saved = save_photo(conn, title_code, data)
+        log_action(conn, staff, "added photo", title_code.upper())
+        return saved
 
 
 @router.get("/photos/{photo_id}")

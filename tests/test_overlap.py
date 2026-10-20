@@ -67,7 +67,7 @@ def test_register_refuses_overlap(client, admin):
 
 def test_register_needs_admin_key(client):
     assert client.post("/register", json=body(rect())).status_code == 401
-    assert client.post("/register", json=body(rect()), headers={"X-Admin-Key": "wrong"}).status_code == 401
+    assert client.post("/register", json=body(rect()), headers={"X-Staff-Token": "wrong"}).status_code == 401
 
 
 def test_pilot_slots_fill_in_order(client, admin):

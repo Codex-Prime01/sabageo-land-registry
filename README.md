@@ -30,7 +30,9 @@ _Add screenshots here: the map with a red flag, the green "0 OVERLAP" result, th
 - **Admin dashboard** with client plots and contacts, payments, login codes, overlap checks per day and ledger health.
 - **Online token payment** through Paystack, in test mode.
 - **Field data kit**: a CSV template and a printable field sheet for survey teams.
-- **Admin key** protecting admin actions, and an optional **site password** to keep the whole site private.
+- **Admin accounts** (one level, each admin has their own login) with a log of who did what, and an optional **site password** to keep the whole site private.
+- **Client accounts** (My account): receipts, plots, "Register a plot" without typing a code, and a fresh login code any time.
+- **Guided tour** on the map for first-time visitors (asks first, moves only when you tap Next), and an iPhone-style look: grouped lists, a phone tab bar, glass only on controls.
 
 ### Pages
 
@@ -44,7 +46,7 @@ _Add screenshots here: the map with a red flag, the green "0 OVERLAP" result, th
 | Payment receipt   | `/receipt`       | Look up and verify a receipt                                     |
 | Verify a title    | `/verify`        | Public check of a title code (the QR code on reports opens this) |
 | Field kit         | `/field-kit`     | Datum guide, CSV template and printable field sheet              |
-| Admin dashboard   | `/admin`         | Client plots, payments, checks, ledger (needs the admin key)     |
+| Admin dashboard   | `/admin`         | Client plots, payments, checks, ledger (admins only)             |
 | About us          | `/about`         | Who we are                                                       |
 | How it works      | `/how-it-works`  | Plain-English walkthrough                                        |
 | Architecture      | `/architecture`  | The layers, with Built / Test / Planned labels                   |
@@ -89,7 +91,7 @@ contracts/           TitleRegistry.sol and its compiled ABI + bytecode
 tools/               compile_contract.py, deploy_contract.py
 tests/               automatic tests (they use their own sabageo_test database)
 schema_full.sql      the whole database in one file (use this for a new database)
-add_payments.sql, phase_g.sql, phase_h.sql   upgrades for an older database (safe to re-run)
+add_payments.sql, phase_g.sql … phase_j.sql   upgrades for an older database (safe to re-run)
 ingest_cities.py     loads the synthetic city data (55 plots)
 reset_dataset.py     replaces the synthetic data safely (dry run unless --go)
 *.html               the pages; static/ holds app.js, site.js, csv.js and the CSS
@@ -107,10 +109,11 @@ venv\Scripts\activate          # on Windows
 pip install -r requirements.txt
 ```
 
-1. Create a database called `sabageo`, then run `schema_full.sql` on it. (An older database: run `add_payments.sql`, `phase_g.sql`, `phase_h.sql` and `phase_i.sql`, in that order.)
+1. Create a database called `sabageo`, then run `schema_full.sql` on it. (An older database: run `add_payments.sql`, `phase_g.sql`, `phase_h.sql`, `phase_i.sql` and `phase_j.sql`, in that order.)
 2. Copy `.env.example` to `.env` and fill in your values.
-3. Load the sample cities (optional): `python ingest_cities.py` (it should say `55 added`).
-4. Start the server:
+3. Make the first admin account: `python tools/create_staff.py`. The same tool resets a forgotten password. Other admins are added on the `/staff` page.
+4. Load the sample cities (optional): `python ingest_cities.py` (it should say `55 added`).
+5. Start the server:
 
 ```bash
 uvicorn main:app --reload
@@ -131,7 +134,7 @@ The tests build their own `sabageo_test` database on your local PostgreSQL and n
 
 1. The anchor wallet needs some free test POL from the Amoy faucet.
 2. `python tools/deploy_contract.py` deploys `TitleRegistry` and prints its address.
-3. Put that address in `.env` as `TITLE_CONTRACT=0x...`, restart the server, then use **Write titles to contract** in the map menu (admin key needed). It is safe to press again.
+3. Put that address in `.env` as `TITLE_CONTRACT=0x...`, restart the server, then use **Write titles to contract** in the map menu (admin login needed). It is safe to press again.
 
 Only re-compile (`python tools/compile_contract.py`) if you change `TitleRegistry.sol`.
 
@@ -141,7 +144,6 @@ Only re-compile (`python tools/compile_contract.py`) if you change `TitleRegistr
 | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Your PostgreSQL login                                                                          |
 | `DATABASE_URL`                                            | Optional. A full database address, used instead of the five above when hosting online          |
-| `ADMIN_KEY`                                               | Password for admin actions: registering pilot plots, uploading photos, anchoring               |
 | `SITE_PASSWORD`                                           | Optional. If set, the whole site asks for this password first (`/health` stays open)           |
 | `ANCHOR_PRIVATE_KEY`                                      | Key of a**test-only** wallet holding free Amoy test coins. Never use a wallet with real money. |
 | `POLYGON_RPC`                                             | Polygon Amoy network address, for example `https://polygon-amoy.drpc.org`                      |
@@ -155,7 +157,7 @@ Never commit your `.env` file. Keep the repository private while the project is 
 ## Hosting notes
 
 - Render (free) runs the server. Point UptimeRobot at `/health` so it stays awake.
-- Neon holds the PostGIS database. Run `schema_full.sql` on a new one, or the upgrade files on an existing one (`phase_h.sql` for this version). The site keeps working before an upgrade is run; the new features just stay off.
+- Neon holds the PostGIS database. Run `schema_full.sql` on a new one, or the upgrade files on an existing one (`phase_j.sql` for this version, before deploying it: without it no admin or client can log in). The site keeps working before an upgrade is run; the new features just stay off.
 - Add the new settings on Render (`TITLE_CONTRACT`, `PUBLIC_URL`, and `PAYSTACK_SECRET_KEY` when you have one). Set Paystack's webhook URL to `https://<your site>/api/pay/webhook`.
 - `requirements.txt` now lists only what the server needs. Do not regenerate it with `pip freeze` (that adds `pywin32`, which breaks the Linux build).
 
@@ -164,10 +166,10 @@ Never commit your `.env` file. Keep the repository private while the project is 
 - The ledger and anchoring prove a record has not changed since it was written. They do not prove the survey measurements were correct.
 - Anchoring uses a **test network**. Records there are for demonstration only.
 - Synthetic city plots are sample points, not surveyed land.
-- The admin key is a single shared password. A real deployment needs proper user accounts.
+- There is no two-step login (2FA) and no password-reset email yet: an admin resets a client's password.
 - Online payment is in Paystack test mode, and prices are provisional.
 - Minna coordinates are converted with the standard Nigeria shift, good to a few metres, not centimetres.
-- Rate limiting is kept in memory, so it resets when the server restarts.
+- Rate limits live in the database (`rate_hits`); without `phase_j.sql` they fall back to server memory.
 
 ## Roadmap
 
@@ -183,9 +185,10 @@ Never commit your `.env` file. Keep the repository private while the project is 
 - [x] QR title verification and admin dashboard
 - [x] Minna datum support and field data kit
 - [x] Automatic tests
+- [x] Admin and client accounts, rate limits kept in the database
+- [x] Guided tour, simpler map and iPhone-style pages
 - [ ] Payment gateway goes live (Paystack test mode is built; live after committee approval)
 - [ ] Test with real survey data from the NAUB staff quarters
-- [ ] Proper user accounts and roles
 
 ## Author
 

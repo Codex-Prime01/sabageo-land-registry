@@ -1442,3 +1442,62 @@
       [data-theme="light"] .ct.dj {
         color: #3a54c7;
       }
+
+      /* ---------- simpler checker: extra choices fold away ---------- */
+      [hidden],
+      .row[hidden] {
+        display: none !important;
+      }
+      details.more {
+        margin: 6px 0 12px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      details.more > summary {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-height: 44px;
+        padding: 0 14px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      details.more > summary::-webkit-details-marker {
+        display: none;
+      }
+      details.more > summary::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        transform: rotate(45deg);
+        transition: transform 0.25s var(--ease);
+        opacity: 0.7;
+      }
+      details.more[open] > summary::after {
+        transform: rotate(-135deg);
+      }
+      details.more > summary span {
+        margin-left: auto;
+        color: var(--mute);
+        font-weight: 500;
+        font-size: 13px;
+        max-width: 60%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      details.more .pickers,
+      details.more .region-note {
+        padding: 0 14px;
+      }
+      details.more[open] {
+        padding-bottom: 12px;
+      }
+      [data-theme="light"] details.more {
+        background: rgba(10, 22, 40, 0.05);
+      }

@@ -21,7 +21,7 @@ os.chdir(ROOT)  # the app serves pages and static files from the project folder
 import main  # noqa: E402  (loads .env, builds the app)
 
 TEST_DB_NAME = "sabageo_test"
-ADMIN_KEY = "test-admin-key"
+STAFF_PASSWORD = "test-password-123"
 
 _real = conninfo_to_dict(main.DB)
 if _real.get("host", "localhost") not in ("localhost", "127.0.0.1", "::1"):
@@ -48,12 +48,14 @@ def test_database():
         conn.execute("DROP SCHEMA IF EXISTS public CASCADE")
         conn.execute("CREATE SCHEMA public")
         conn.execute((ROOT / "schema_full.sql").read_text(encoding="utf-8"))
-        for name in ("phase_h.sql", "phase_i.sql"):  # upgrades are safe to re-run on top
+        for name in ("phase_h.sql", "phase_i.sql", "phase_j.sql"):  # upgrades are safe to re-run on top
             extra = ROOT / name
             if extra.exists():
                 conn.execute(extra.read_text(encoding="utf-8"))
     _point_app_at(TEST_DB)
-    os.environ["ADMIN_KEY"] = ADMIN_KEY
+    # a light scrypt setting for tests only (each hash stores its own settings, so checks still work)
+    import sabageo.security as security
+    security._N = 2 ** 10
     os.environ.pop("SITE_PASSWORD", None)
     # never let a test reach a real payment provider or blockchain, whatever .env says
     for name in ("PAYSTACK_SECRET_KEY", "PAYSTACK_LIVE", "TITLE_CONTRACT", "ANCHOR_PRIVATE_KEY", "PUBLIC_URL"):
@@ -69,9 +71,14 @@ def clean_db(test_database):
             "SELECT tablename FROM pg_tables WHERE schemaname = 'public' "
             "AND tablename NOT IN ('regions', 'spatial_ref_sys')"
         ).fetchall()]
-        conn.execute(sql.SQL("TRUNCATE {} RESTART IDENTITY CASCADE").format(
-            sql.SQL(", ").join(sql.Identifier(t) for t in tables)))
-        conn.execute("ALTER SEQUENCE receipt_seq RESTART WITH 1")
+        # DELETE, not TRUNCATE: on Windows TRUNCATE remakes every table's files (about 4 s per test).
+        # replica mode skips the foreign-key checks, so the order of the deletes does not matter.
+        with conn.transaction():
+            conn.execute("SET LOCAL session_replication_role = replica")
+            for t in tables:
+                conn.execute(sql.SQL("DELETE FROM {}").format(sql.Identifier(t)))
+        for (seq,) in conn.execute("SELECT sequencename FROM pg_sequences WHERE schemaname = 'public'").fetchall():
+            conn.execute("SELECT setval(%s, 1, false)", (seq,))  # next value is 1 again
         conn.execute(
             "INSERT INTO plots (title_code, region_code, source, status, label) "
             "SELECT 'SABA-NAUB-RES-' || LPAD(g::text, 3, '0'), 'NAUB', 'field', 'reserved', 'Pilot plot ' || g "
@@ -97,7 +104,33 @@ def client():
 
 @pytest.fixture
 def admin():
-    return {"X-Admin-Key": ADMIN_KEY}
+    """Headers of a logged-in admin. Made straight in the database (no HTTP login), to keep tests quick."""
+    import secrets
+    from sabageo.helpers import sha
+    token = secrets.token_urlsafe(16)
+    with psycopg.connect(TEST_DB, autocommit=True) as conn:
+        sid = conn.execute("INSERT INTO staff (username, name, password_hash) VALUES ('boss', 'Boss', %s) RETURNING id",
+                           (_hash(STAFF_PASSWORD),)).fetchone()[0]
+        conn.execute("INSERT INTO staff_sessions (token_hash, staff_id, expires_at) VALUES (%s, %s, NOW() + interval '1 hour')",
+                     (sha(token), sid))
+    return {"X-Staff-Token": token}
+
+
+def _hash(password):
+    from sabageo.security import hash_password
+    return hash_password(password)
+
+
+def make_staff(username, password=STAFF_PASSWORD, active=True):
+    with psycopg.connect(TEST_DB, autocommit=True) as conn:
+        conn.execute("INSERT INTO staff (username, name, password_hash, active) VALUES (%s, %s, %s, %s)",
+                     (username, username.title(), _hash(password), active))
+
+
+def staff_login(client, username, password=STAFF_PASSWORD):
+    r = client.post("/api/staff/login", json={"username": username, "password": password})
+    assert r.status_code == 200, r.text
+    return {"X-Staff-Token": r.json()["token"]}
 
 
 @pytest.fixture

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clients | SABAGeo Land Registry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1628">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='8,12 34,7 37,32 11,37' fill='%23D9A441' fill-opacity='.4' stroke='%230A1628' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark"}catch(e){}</script>
+<style>
+:root{--bg:#0a1628;--text:#f4f6fa;--mute:#9fb0c8;--line:rgba(255,255,255,.12);--card:rgba(255,255,255,.05);--brass:#d9a441;--clear:#2bff88;--flag:#ff2d4d;--ease:cubic-bezier(.22,.8,.2,1)}
+[data-theme=light]{--bg:#f1f4f9;--text:#0a1628;--mute:#52627a;--line:rgba(10,22,40,.14);--card:rgba(10,22,40,.04);--clear:#0b8f4a;--flag:#d0112b}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.top{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:var(--bg);background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:"Fraunces",Georgia,serif;font-size:19px;font-weight:700}
+nav{margin-left:auto;display:flex;gap:4px;overflow-x:auto}
+nav a{padding:9px 12px;border-radius:10px;color:var(--mute);text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap}
+.map-btn{flex:none;padding:9px 14px;border-radius:999px;background:var(--brass);color:#1a1204;text-decoration:none;font-size:14px;font-weight:600}
+main{max-width:1120px;margin:0 auto;padding:40px 20px 72px}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+h1{margin:0;font-family:"Fraunces",Georgia,serif;font-size:clamp(26px,5vw,40px);line-height:1.12}
+.lead{margin:12px 0 0;font-size:16px;color:var(--mute)}
+.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .6s var(--ease) backwards;animation-delay:calc(var(--k,0)*60ms)}
+.card h2{margin:0 0 6px;font-family:"Fraunces",Georgia,serif;font-size:20px}
+.card p{margin:6px 0 0;color:var(--mute)}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:22px}
+.tile{padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:var(--card);animation:rise .6s var(--ease) backwards;animation-delay:calc(var(--k,0)*50ms)}
+.tile b{display:block;font-family:"Fraunces",Georgia,serif;font-size:28px;line-height:1.15}
+.tile small{color:var(--mute);font-size:13px}
+.tile.good b{color:var(--clear)}.tile.bad b{color:var(--flag)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.two .card{margin-top:16px}
+.tbl{margin-top:12px;overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);color:var(--mute);white-space:nowrap}
+th{color:var(--text);font-weight:600;background:var(--card)}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+td b{color:var(--text);font-weight:600}
+.mono{font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+.bars{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:16px;padding-bottom:22px;position:relative}
+.bar{flex:1;position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.bar i{display:block;border-radius:5px 5px 0 0;background:var(--brass);min-height:2px}
+.bar i.r{background:var(--flag);border-radius:0}
+.bar span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10.5px;color:var(--mute)}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--mute);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.form{display:flex;gap:10px;margin-top:16px;max-width:520px}
+.form input{flex:1;min-width:0;height:48px;padding:0 14px;font:inherit;font-size:16px;color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px}
+.form input:focus{outline:none;border-color:var(--brass)}
+.btn{height:48px;padding:0 20px;border:0;border-radius:12px;background:var(--brass);color:#1a1204;font:inherit;font-weight:600;cursor:pointer}
+.act{padding:9px 14px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--text);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:none}
+.act:hover{border-color:var(--brass)}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.msg{margin-top:12px;color:var(--flag)}
+.ok-t{color:var(--clear)}.no-t{color:var(--flag)}
+.empty{padding:18px;color:var(--mute);text-align:center}
+.hidden{display:none!important}
+.tabs{display:flex;gap:4px;margin:0 0 26px;border-bottom:1px solid var(--line)}
+.tabs a{padding:10px 14px;margin-bottom:-1px;border-bottom:2px solid transparent;color:var(--mute);text-decoration:none;font-weight:600;font-size:14.5px}
+.tabs a.on{color:var(--text);border-bottom-color:var(--brass)}
+footer{max-width:1120px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-inset-bottom));color:var(--mute);font-size:13px}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+@media (max-width:560px){.brand span{display:none}main{padding-top:28px}.card{padding:18px}.tile b{font-size:24px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}}
+</style>
+<link rel="stylesheet" href="/static/site.css" />
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/" aria-label="Back to the map">
+    <svg width="30" height="30" viewBox="0 0 44 44" aria-hidden="true"><polygon points="8,12 34,7 37,32 11,37" fill="rgba(217,164,65,.18)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8" cy="12" r="3.6" fill="#D9A441"/><circle cx="34" cy="7" r="3.6" fill="#D9A441"/><circle cx="37" cy="32" r="3.6" fill="#D9A441"/><circle cx="11" cy="37" r="3.6" fill="#D9A441"/></svg>
+    <span>SABAGeo</span>
+  </a>
+  <nav aria-label="Pages"><a href="/registry">Registry</a><a href="/admin">Dashboard</a></nav>
+  <a class="map-btn" href="/">Open map</a>
+</header>
+<script src="/static/site.js"></script>
+<main>
+  <nav class="tabs" aria-label="Admin sections"><a href="/admin">Overview</a><a href="/admin/clients" class="on" aria-current="page">Clients</a><a href="/admin/payments">Payments</a><a href="/staff">Admins</a></nav>
+  <div class="head">
+    <div><p class="eyebrow">Admin · Clients</p><h1>Everyone with an account.</h1><p class="lead">What each client has paid and registered. Clients manage their own codes from My account.</p></div>
+    <div class="acts hidden" id="acts"><button class="act" id="refresh">Refresh</button></div>
+  </div>
+
+  <section class="card" id="unlock">
+    <h2>Admins only</h2>
+    <p>This page shows client emails and phone numbers, so only admins can open it.</p>
+    <p style="margin-top:16px"><a class="btn" id="loginLink" href="/staff" style="display:inline-flex;align-items:center;text-decoration:none">Log in as admin</a></p>
+    <p class="msg" id="msg"></p>
+  </section>
+
+  <div id="dash" class="hidden">
+    <div class="tiles" id="tiles"></div>
+    <section class="card" style="--k:2">
+      <div class="head"><div><h2>Client accounts</h2><p>Newest first. Search by name, email or phone.</p></div></div>
+      <input id="q" type="search" placeholder="Search clients" aria-label="Search clients" style="margin-top:12px;width:100%;max-width:420px;height:44px;padding:0 14px;font:inherit;font-size:16px;color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px">
+      <div class="tbl"><table><thead><tr><th>Name</th><th>Contact</th><th class="n">Paid</th><th class="n">Receipts</th><th class="n">Plots</th><th>Joined</th><th>Last login</th><th>Status</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+    </section>
+  </div>
+</main>
+<footer>SABAGeo Land Registry. Admin view: keep client details private.</footer>
+<script src="/static/staff.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const naira = (n) => "₦" + Number(n || 0).toLocaleString("en", { maximumFractionDigits: 0 });
+  const date = (s) => s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Never";
+  let all = [];
+  $("loginLink").href = Staff.loginUrl();
+
+  async function api(url, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ "Content-Type": "application/json" }, Staff.headers(), opts.headers || {});
+    const r = await fetch(url, opts);
+    let d = null; try { d = await r.json(); } catch (e) {}
+    if (!r.ok) { const err = new Error(d && typeof d.detail === "string" ? d.detail : "Something went wrong (" + r.status + ")."); err.status = r.status; throw err; }
+    return d;
+  }
+
+  async function load() {
+    $("msg").textContent = "";
+    let d;
+    try { d = await api("/api/admin/accounts"); }
+    catch (e) {
+      if (e.status === 401) Staff.clear();
+      $("unlock").classList.remove("hidden"); $("dash").classList.add("hidden"); $("acts").classList.add("hidden");
+      $("msg").textContent = e.status === 401 ? (Staff.token() ? "" : "Your login has ended. Please log in again.") : e.message;
+      return;
+    }
+    $("unlock").classList.add("hidden"); $("dash").classList.remove("hidden"); $("acts").classList.remove("hidden");
+    all = d.accounts;
+    const month = Date.now() - 30 * 864e5;
+    const active = all.filter((a) => a.last_login_at && new Date(a.last_login_at) > month).length;
+    const paid = all.reduce((s, a) => s + a.paid_ngn, 0);
+    $("tiles").innerHTML = [
+      [all.length, "Client accounts"], [active, "Logged in, last 30 days"],
+      [naira(paid), "Paid through accounts"], [d.unclaimed_payments, "Receipts not in any account yet"],
+    ].map((t, i) => '<div class="tile" style="--k:' + i + '"><b>' + t[0] + "</b><small>" + t[1] + "</small></div>").join("");
+    draw();
+  }
+
+  function draw() {
+    const q = $("q").value.trim().toLowerCase();
+    const list = q ? all.filter((a) => [a.name, a.email, a.phone].some((v) => (v || "").toLowerCase().includes(q))) : all;
+    $("rows").innerHTML = list.map((a) =>
+      "<tr><td><b>" + esc(a.name) + "</b></td><td>" + esc(a.email) + (a.phone ? "<br>" + esc(a.phone) : "") +
+      '</td><td class="n">' + naira(a.paid_ngn) + '</td><td class="n">' + a.payments + '</td><td class="n">' + a.plots +
+      "</td><td>" + date(a.created_at) + "</td><td>" + date(a.last_login_at) +
+      '</td><td class="' + (a.active ? "ok-t" : "no-t") + '">' + (a.active ? "Active" : "Disabled") + "</td><td>" +
+      (a.active ? '<button class="act" data-act="disable" data-id="' + a.id + '">Disable</button>' : '<button class="act" data-act="enable" data-id="' + a.id + '">Turn back on</button>') +
+      ' <button class="act" data-act="reset" data-id="' + a.id + '" data-email="' + esc(a.email) + '">Reset password</button></td></tr>'
+    ).join("") || '<tr><td colspan="9" class="empty">' + (q ? "No client matches that search." : "No client accounts yet.") + "</td></tr>";
+  }
+
+  $("rows").addEventListener("click", async (e) => {
+    const b = e.target.closest("button[data-act]"); if (!b) return;
+    const id = b.dataset.id;
+    try {
+      if (b.dataset.act === "disable") {
+        if (!confirm("Disable this account? The client is logged out and can't log in until you turn it back on.")) return;
+        await api("/api/admin/accounts/" + id + "/disable", { method: "POST" });
+      } else if (b.dataset.act === "enable") {
+        await api("/api/admin/accounts/" + id + "/enable", { method: "POST" });
+      } else {
+        const p = prompt("New password for " + b.dataset.email + " (10 or more characters). First check it is really them, for example by phone.");
+        if (!p) return;
+        await api("/api/admin/accounts/" + id + "/password", { method: "POST", body: JSON.stringify({ password: p }) });
+        alert("Password reset. Tell the client in person or by phone, not by text message.");
+      }
+      load();
+    } catch (err) { alert(err.message); }
+  });
+
+  $("q").addEventListener("input", draw);
+  $("refresh").onclick = load;
+  if (Staff.token()) load();
+})();
+</script>
+</body>
+</html>

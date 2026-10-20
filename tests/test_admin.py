@@ -4,7 +4,7 @@ from conftest import E0, body, login, new_payment, owner, rect, register
 
 def test_overview_needs_admin_key(client):
     assert client.get("/api/admin/overview").status_code == 401
-    assert client.get("/api/admin/overview", headers={"X-Admin-Key": "nope"}).status_code == 401
+    assert client.get("/api/admin/overview", headers={"X-Staff-Token": "nope"}).status_code == 401
 
 
 def test_admin_page_loads(client):

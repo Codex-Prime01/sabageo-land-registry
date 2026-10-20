@@ -60,35 +60,45 @@ def plot_locked(conn, code_id):
 MAX_CLIENT_PHOTOS = 5  # per plot, to keep the free database small
 
 
-@router.post("/api/client/login")
-def client_login(body: LoginIn, request: Request):
-    check_limit(request)
-    with connect() as conn:
-        row = conn.execute(
-            """
-            SELECT lc.id, lc.expires_at, lc.plots_allowed, lc.plots_used, c.name, c.client_type, c.phone, c.email
-            FROM login_codes lc
-            JOIN clients c ON c.id = lc.client_id
-            JOIN payments p ON p.id = lc.payment_id
-            WHERE lc.code_hash = %s AND NOT lc.revoked AND lc.expires_at > NOW() AND p.status = 'confirmed'
-            """,
-            (code_hash(body.code),),
-        ).fetchone()
-        if not row:
-            record_fail(request)
-            raise HTTPException(status_code=401, detail="That login code is not valid or has expired.")
-        token = secrets.token_urlsafe(32)
-        ends = conn.execute("SELECT LEAST(%s::timestamptz, NOW() + interval '12 hours')", (row[1],)).fetchone()[0]
-        conn.execute(
-            "INSERT INTO client_sessions (token_hash, code_id, expires_at) VALUES (%s, %s, %s)",
-            (sha(token), row[0], ends),
-        )
-        conn.execute("DELETE FROM client_sessions WHERE expires_at < NOW()")
+def open_code_session(conn, where, value):
+    """Start a Register New Plot session for one live login code (found by its hash or its id).
+    Returns the answer for the browser, or None if the code is not live."""
+    assert where in ("code_hash", "id")  # a column name goes into the SQL, so only these two
+    row = conn.execute(
+        f"""
+        SELECT lc.id, lc.expires_at, lc.plots_allowed, lc.plots_used, c.name, c.client_type, c.phone, c.email
+        FROM login_codes lc
+        JOIN clients c ON c.id = lc.client_id
+        JOIN payments p ON p.id = lc.payment_id
+        WHERE lc.{where} = %s AND NOT lc.revoked AND lc.expires_at > NOW() AND p.status = 'confirmed'
+        """,
+        (value,),
+    ).fetchone()
+    if not row:
+        return None
+    token = secrets.token_urlsafe(32)
+    ends = conn.execute("SELECT LEAST(%s::timestamptz, NOW() + interval '12 hours')", (row[1],)).fetchone()[0]
+    conn.execute(
+        "INSERT INTO client_sessions (token_hash, code_id, expires_at) VALUES (%s, %s, %s)",
+        (sha(token), row[0], ends),
+    )
+    conn.execute("DELETE FROM client_sessions WHERE expires_at < NOW()")
     return {
         "token": token, "session_ends": ends.isoformat(), "name": row[4], "client_type": row[5],
         "plots_allowed": row[2], "plots_used": row[3], "code_expires": row[1].isoformat(),
         "phone": row[6], "email": row[7], "one_plot": row[2] == 1,
     }
+
+
+@router.post("/api/client/login")
+def client_login(body: LoginIn, request: Request):
+    check_limit(request)
+    with connect() as conn:
+        out = open_code_session(conn, "code_hash", code_hash(body.code))
+    if not out:
+        record_fail(request)
+        raise HTTPException(status_code=401, detail="That login code is not valid or has expired.")
+    return out
 
 
 @router.get("/api/client/me")

@@ -72,9 +72,9 @@ const CT_SHORT = { DISJOINT_NODE: "DISJOINT", ADJOINING_CLUSTER: "ADJOINING" };
 // menu groups; the ledger tool buttons from index.html go under "Ledger tools"
 const MENU = [
   ["Registry", [["Registered plots", "/registry"], ["Register New Plot", "/register-plot"], ["Parcel report", "/report"], ["Verify a title", "/verify"], ["Field kit", "/field-kit"]]],
-  ["Payments", [["Plans", "/payments"], ["Payment receipt", "/receipt"]]],
+  ["Payments", [["My account", "/account"], ["Plans", "/payments"], ["Payment receipt", "/receipt"]]],
   ["About", [["About us", "/about"], ["How it works", "/how-it-works"], ["Architecture", "/architecture"]]],
-  ["Admin", [["Dashboard", "/admin"], ["Payments", "/admin/payments"]]],
+  ["Admin", [["Dashboard", "/admin"], ["Clients", "/admin/clients"], ["Payments", "/admin/payments"], ["Admin login", "/staff"]]],
 ];
 
 /* ---------- State ---------- */
@@ -355,6 +355,9 @@ function isPilotSelected() {
 }
 function updateTypeUI() {
   const t = TYPES[$("crsSel").value];
+  const sel = $("crsSel"), reg = $("regionSel");
+  $("moreSum").textContent = sel.options[sel.selectedIndex].text.replace(/ \(WGS84\)/, "") +
+    (reg.value && reg.value !== "TST" && reg.selectedIndex >= 0 ? " · " + reg.options[reg.selectedIndex].text : "");
   document.querySelector(".hint").textContent = t.hint;
   document.querySelector(".foot").innerHTML = "Coordinates: <b>" + t.foot + "</b>";
 }
@@ -424,6 +427,7 @@ function showRegister(on) {
   const b = $("registerBtn");
   armed = false;
   clearTimeout(armTimer);
+  if (!Staff.token()) on = false; // only the admin registers from the map; clients use My account
   if (on) b.textContent = isPilotSelected() ? "Register as pilot plot" + (nextSlot ? " " + nextSlot.slice(-3) : "") : "Register this plot";
   b.classList.toggle("show", on);
 }
@@ -440,14 +444,19 @@ function showResult(kind, title, detail) {
 }
 function clearZones() { if (zoneLayer) { map.removeLayer(zoneLayer); zoneLayer = null; } lastOverlaps = []; }
 
-/* ---------- Admin key ---------- */
-const adminHeaders = () => { const k = sessionStorage.getItem("adminKey"); return k ? { "X-Admin-Key": k } : {}; };
-function refreshAdminState() { $("adminState").textContent = sessionStorage.getItem("adminKey") ? "Unlocked" : "Locked"; }
+/* ---------- Admin login (static/staff.js keeps the token for this tab) ---------- */
+const adminHeaders = () => Staff.headers();
+function refreshAdminState() {
+  const w = Staff.who();
+  $("adminState").textContent = w ? w.username : "Log in";
+  // staff tools stay out of the way for the public
+  document.querySelectorAll(".admin-only").forEach((el) => (el.hidden = !w));
+  document.body.classList.toggle("is-admin", !!w);
+}
 function unlockAdmin() {
-  if (sessionStorage.getItem("adminKey")) { sessionStorage.removeItem("adminKey"); refreshAdminState(); return; }
-  const k = prompt("Enter the admin key");
-  if (k) sessionStorage.setItem("adminKey", k.trim());
-  refreshAdminState();
+  const w = Staff.who();
+  if (!w) { location.href = Staff.loginUrl(); return; }
+  if (confirm("Log out " + w.username + " on this tab?")) Staff.logout().then(refreshAdminState);
 }
 
 /* ---------- Check and register ---------- */
@@ -521,7 +530,8 @@ function checkPlot() {
         drawZones(data.overlaps);
         showResult("flag", "RED FLAG", overlapHtml(data));
       } else {
-        showResult("clear", "0 OVERLAP", "No registered plot shares area with this one. It can be registered.");
+        showResult("clear", "0 OVERLAP", "No registered plot shares area with this one. It can be registered." +
+          (Staff.token() ? "" : '<div class="ex-links" style="margin-top:10px"><a href="/account" style="color:inherit;font-weight:600">Register this plot →</a> <span style="opacity:.8">(you need a login code, from My account)</span></div>'));
         showRegister(true);
       }
       setTimeout(() => flyTo(newLayer.getBounds(), 19), 500);

@@ -7,7 +7,7 @@ from web3 import Web3
 from sabageo import config
 from sabageo.db import connect
 from sabageo.ledger import verify_chain
-from sabageo.security import require_admin
+from sabageo.security import log_action, require_admin
 
 router = APIRouter()
 
@@ -42,8 +42,8 @@ def wallet_key():
     return key if key.startswith("0x") else "0x" + key
 
 
-@router.post("/ledger/anchor", dependencies=[Depends(require_admin)])
-def anchor_ledger():
+@router.post("/ledger/anchor")
+def anchor_ledger(staff=Depends(require_admin)):
     key = wallet_key()
 
     with connect() as conn:
@@ -82,6 +82,7 @@ def anchor_ledger():
             "INSERT INTO anchors (ledger_id, record_hash, tx_hash, block_number) VALUES (%s, %s, %s, %s)",
             (ledger_id, record_hash, tx_hash, receipt["blockNumber"]),
         )
+        log_action(conn, staff, "anchored ledger", f"record {ledger_id}")
 
     return {"already": False, "ledger_id": ledger_id, "tx_hash": tx_hash, "url": config.EXPLORER_TX + tx_hash}
 

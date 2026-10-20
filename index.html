@@ -28,6 +28,7 @@
     />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/tour.css" />
   </head>
   <body>
     <div id="map"></div>
@@ -158,10 +159,12 @@
             </div>
 
             <p class="intro">
-              Check a plot against all registered land before it is allocated.
-              If it is clear, you can register it.
+              Is this land free? Type the plot's corners and tap Check.
+              <b>Free, no account needed.</b>
             </p>
 
+            <details class="more" id="moreOpts">
+              <summary>More options <span id="moreSum">Lat / Long</span></summary>
             <div class="pickers">
               <div class="pick">
                 <label for="crsSel">Coordinate type</label>
@@ -181,6 +184,7 @@
               </div>
             </div>
             <p class="region-note" id="regionNote"></p>
+            </details>
 
             <div class="label-row">
               <label for="corners">Plot corners</label
@@ -206,17 +210,6 @@
 850040, 1172040</textarea
               >
             </div>
-
-            <p class="note" style="margin: 8px 0 0">
-              Try an example:
-              <button class="linkbtn" onclick="loadExample('overlap')">
-                overlap
-              </button>
-              or
-              <button class="linkbtn" onclick="loadExample('clear')">
-                clear plot
-              </button>
-            </p>
 
             <div class="actions">
               <button class="btn" id="checkBtn" onclick="checkPlot()">
@@ -495,22 +488,28 @@
         >
           <span>Check ledger</span><em id="ledgerState">Run</em>
         </button>
-        <button class="row" onclick="unlockAdmin()">
-          <span>Admin key</span><em id="adminState">Locked</em>
+        <button class="row" onclick="verifyAnchors()" title="Checks the public blockchain copy matches the ledger">
+          <span>Verify on Polygon</span><em>Run</em>
         </button>
-        <button class="row" onclick="anchorLedger()">
+        <button class="row admin-only" onclick="anchorLedger()">
           <span>Anchor to Polygon</span><em id="anchorState">Run</em>
         </button>
-        <button class="row" onclick="syncTitles()">
+        <button class="row admin-only" onclick="syncTitles()">
           <span>Write titles to contract</span><em id="titlesState">Run</em>
         </button>
-        <button class="row" onclick="verifyAnchors()">
-          <span>Verify on Polygon</span><em>Run</em>
+        <button class="row" onclick="Tour.start(true)">
+          <span>Take the tour</span><em>1 min</em>
+        </button>
+        <button class="row" onclick="unlockAdmin()">
+          <span>Admin login</span><em id="adminState">Log in</em>
         </button>
       </div>
     </aside>
 
     <script src="/static/csv.js"></script>
+    <script src="/static/staff.js"></script>
     <script src="/static/app.js"></script>
+    <script src="/static/gradient.js"></script>
+    <script src="/static/tour.js"></script>
   </body>
 </html>

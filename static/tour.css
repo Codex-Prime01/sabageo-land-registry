@@ -1,0 +1,156 @@
+/* Guided tour of the map page. Glass is used here because the card floats over the map
+   (the control layer), never over other glass. */
+.tour-root {
+  --t-glass: rgba(14, 27, 48, 0.72);
+  --t-edge: rgba(255, 255, 255, 0.16);
+  --t-text: #f4f6fa;
+  --t-mute: #b4c2d6;
+  --t-brass: #d9a441;
+  --t-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  pointer-events: none;
+  font-family: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--t-text);
+}
+[data-theme="light"] .tour-root {
+  --t-glass: rgba(255, 255, 255, 0.78);
+  --t-edge: rgba(255, 255, 255, 0.95);
+  --t-text: #0a1628;
+  --t-mute: #4d5d75;
+}
+
+/* ---------- welcome screen ---------- */
+.tour-welcome {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  pointer-events: auto;
+  background: radial-gradient(120% 90% at 20% 10%, #12345a 0%, #0a1628 55%, #06101e 100%); /* shown if WebGL is off */
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.tour-welcome.show { opacity: 1; }
+.tour-welcome canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tour-hello {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 30px 26px 24px;
+  border-radius: 28px;
+  text-align: center;
+  color: #f4f6fa;
+  background: rgba(10, 22, 40, 0.42);
+  -webkit-backdrop-filter: blur(26px) saturate(170%);
+  backdrop-filter: blur(26px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.07), 0 30px 80px -20px rgba(0, 0, 0, 0.6);
+  transform: translateY(16px) scale(0.98);
+  transition: transform 0.7s var(--t-spring);
+}
+.tour-welcome.show .tour-hello { transform: none; }
+.tour-hello .mark { width: 64px; height: 64px; margin: 0 auto 14px; display: block; }
+.tour-hello h2 { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: clamp(26px, 6vw, 32px); line-height: 1.15; }
+.tour-hello p { margin: 10px 0 0; color: #c9d4e3; font-size: 15.5px; line-height: 1.55; }
+.tour-hello .tour-row { display: grid; gap: 10px; margin-top: 22px; }
+
+/* ---------- spotlight ---------- */
+.tour-spot {
+  position: absolute;
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(3, 8, 16, 0.58);
+  transition: left 0.55s var(--t-spring), top 0.55s var(--t-spring), width 0.55s var(--t-spring),
+    height 0.55s var(--t-spring), border-radius 0.55s var(--t-spring), opacity 0.3s;
+  opacity: 0;
+}
+.tour-spot.on { opacity: 1; }
+.tour-spot::after {   /* a soft pulsing ring around the thing being explained */
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 2px solid var(--t-brass);
+  animation: tourPulse 1.8s ease-in-out infinite;
+}
+.tour-spot.none { left: 50% !important; top: 45% !important; width: 0 !important; height: 0 !important; }
+.tour-spot.none::after { display: none; }
+@keyframes tourPulse { 50% { inset: -9px; opacity: 0.25; } }
+.tour-block { position: absolute; inset: 0; pointer-events: auto; } /* clicks outside the card do nothing */
+
+/* ---------- step card ---------- */
+.tour-card {
+  position: absolute;
+  width: min(360px, calc(100vw - 32px));
+  padding: 18px 18px 14px;
+  border-radius: 22px;
+  pointer-events: auto;
+  background: var(--t-glass);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: inset 0 1px 0 var(--t-edge), inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 24px 60px -18px rgba(0, 0, 0, 0.6);
+  transition: left 0.55s var(--t-spring), top 0.55s var(--t-spring), opacity 0.25s;
+  outline: none;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tour-card { background: #0f1f35; }
+  [data-theme="light"] .tour-card { background: #fff; }
+}
+.tour-card .step { font-size: 12.5px; font-weight: 700; color: var(--t-brass); letter-spacing: 0.02em; }
+.tour-card h3 { margin: 4px 0 0; font-family: "Fraunces", Georgia, serif; font-size: 21px; line-height: 1.2; }
+.tour-card p { margin: 8px 0 0; color: var(--t-mute); font-size: 15px; line-height: 1.55; }
+.tour-card p b { color: var(--t-text); }
+.tour-card .text { animation: tourText 0.4s ease both; }
+@keyframes tourText { from { opacity: 0; transform: translateY(6px); } }
+.tour-dots { display: flex; gap: 5px; margin-top: 14px; }
+.tour-dots i { width: 6px; height: 6px; border-radius: 3px; background: var(--t-mute); opacity: 0.35; transition: width 0.3s var(--t-spring), opacity 0.3s; }
+.tour-dots i.on { width: 18px; opacity: 1; background: var(--t-brass); }
+.tour-nav { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.tour-nav .grow { flex: 1; }
+.tour-x {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--t-mute);
+  cursor: pointer;
+}
+[data-theme="light"] .tour-x { background: rgba(10, 22, 40, 0.06); }
+
+/* buttons (pill, like the rest of the site) */
+.tour-btn {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  cursor: pointer;
+  background: var(--t-brass);
+  color: #1a1204;
+  transition: transform 0.15s, opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tour-btn:active { transform: scale(0.97); }
+.tour-btn:disabled { opacity: 0.55; cursor: default; }
+.tour-btn.soft { background: rgba(217, 164, 65, 0.18); color: var(--t-brass); }
+.tour-btn.ghost { background: transparent; color: var(--t-mute); padding: 0 10px; }
+.tour-btn.big { min-height: 52px; font-size: 16.5px; }
+.tour-btn:focus-visible, .tour-x:focus-visible { outline: 2px solid var(--t-brass); outline-offset: 2px; }
+
+/* phones: the card docks to the top or bottom edge, whichever side is free */
+@media (max-width: 640px) {
+  .tour-card { left: 12px !important; right: 12px; width: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-spot, .tour-card, .tour-welcome, .tour-hello, .tour-dots i { transition: none !important; }
+  .tour-spot::after, .tour-card .text { animation: none !important; }
+}

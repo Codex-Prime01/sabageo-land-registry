@@ -74,6 +74,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
 @keyframes rise{from{opacity:0;transform:translateY(16px)}}
 @media (max-width:560px){.brand span{display:none}main{padding-top:32px}.steps li{padding:18px 16px 18px 62px}.steps li::before{left:16px;top:18px}.card{padding:18px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important}}
+.hero-g{position:relative;overflow:hidden;margin:0 0 8px;padding:36px 26px 30px;border-radius:26px;color:#f4f6fa;background:radial-gradient(120% 120% at 15% 0%,#14406a 0%,#0a1628 60%,#071120 100%)}.hero-g canvas{position:absolute;inset:0;width:100%;height:100%;display:block}.hero-g .in{position:relative}.hero-g .eyebrow{color:#e8b95a}.hero-g .lead{color:#c9d4e3}@media (max-width:560px){.hero-g{padding:28px 18px 24px;border-radius:22px}}
 </style>
 
 <link rel="stylesheet" href="/static/site.css" />
@@ -89,9 +90,13 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
 </header>
 <script src="/static/site.js"></script>
 <main class="">
+<div class="hero-g"><canvas aria-hidden="true"></canvas><div class="in">
 <p class="eyebrow">About us</p>
 <h1>Land records you can check, built from real survey data.</h1>
 <p class="lead">SABAGeo Technology Limited is a student-led innovation from the Nigerian Army University Biu (NAUB) in Borno State. We work in PropTech: we take accurate geospatial survey data and lock it into a tamper-evident record, so land boundaries can be checked instead of argued over.</p>
+</div></div>
+<script src="/static/gradient.js"></script>
+<script>SabaGradient.mount(document.querySelector(".hero-g canvas"));</script>
 
 <section class="card" style="--k:1">
   <h2>What we want to change</h2>
