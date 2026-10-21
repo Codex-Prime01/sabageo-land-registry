@@ -1,5 +1,6 @@
 """
-Loads the localized city dataset into the database as SYNTHETIC plots (55 plots: 11 cities x 5).
+Loads the localized city dataset into the database as SYNTHETIC plots (55 plots: 11 cities x 5),
+plus Oga Alabi's five adjoining Biu test plots (60 in all).
 
 The dataset gives ONE point per plot. Each point stands for a whole plot, so the
 plot shape is built around it using the standard Borno layout plot the senior gave:
@@ -15,6 +16,10 @@ plot shape is built around it using the standard Borno layout plot the senior ga
 
 The 18 m side runs east-west and the 30 m side runs north-south. Real orientation comes
 with real surveyed corners.
+
+  EXACT_SETS         plots given as exact WGS84 corners, loaded as they are (no 18 x 30 m shape).
+                     Oga Alabi's five adjoining Biu plots (20 Oct 2026) test that neighbours which
+                     only touch give ZERO overlap in the ledger.
 
 Safe to run twice: plots that are already loaded are skipped.
 Run it with:  python ingest_cities.py
@@ -49,6 +54,20 @@ DATASET = [
     ("BEN", ADJOINING, [(6.332000, 5.624500), (6.334000, 5.626500), (6.336000, 5.628500), (6.338000, 5.630500), (6.340000, 5.632500)]),
     ("OWR", ADJOINING, [(5.482600, 7.030600), (5.484600, 7.032600), (5.486600, 7.034600), (5.488600, 7.036600), (5.490600, 7.038600)]),
     ("ILR", ADJOINING, [(8.476900, 4.538800), (8.478900, 4.540800), (8.480900, 4.542800), (8.482900, 4.544800), (8.484900, 4.546800)]),
+]
+
+
+# (region code, cluster type, label, WKT polygons in WGS84, longitude first) loaded exactly as given.
+# Oga Alabi, 20 Oct 2026: five 0.0002-degree squares in a row in Biu (about 21.8 m x 22.1 m each),
+# every plot sharing its whole east edge with the next one.
+EXACT_SETS = [
+    ("BIU", ADJOINING, "Adjoining test plot", [
+        "POLYGON((12.194000 10.612000, 12.194200 10.612000, 12.194200 10.612200, 12.194000 10.612200, 12.194000 10.612000))",
+        "POLYGON((12.194200 10.612000, 12.194400 10.612000, 12.194400 10.612200, 12.194200 10.612200, 12.194200 10.612000))",
+        "POLYGON((12.194400 10.612000, 12.194600 10.612000, 12.194600 10.612200, 12.194400 10.612200, 12.194400 10.612000))",
+        "POLYGON((12.194600 10.612000, 12.194800 10.612000, 12.194800 10.612200, 12.194600 10.612200, 12.194600 10.612000))",
+        "POLYGON((12.194800 10.612000, 12.195000 10.612000, 12.195000 10.612200, 12.194800 10.612200, 12.194800 10.612000))",
+    ]),
 ]
 
 
@@ -87,6 +106,26 @@ def shapes(conn, kind, points):
     return out, utm
 
 
+def centre(conn, wkt):
+    """(latitude, longitude) of a shape's middle, for the plot's reference point."""
+    lon, lat = conn.execute(
+        "SELECT ST_X(c), ST_Y(c) FROM (SELECT ST_Centroid(ST_GeomFromText(%s, 4326)) AS c) t", (wkt,)
+    ).fetchone()
+    return round(lat, 6), round(lon, 6)
+
+
+def jobs(conn):
+    """Every plot to load: (region, cluster type, label, (lat, lon), WGS84 text, UTM zone)."""
+    for region, kind, points in DATASET:
+        wkts, utm = shapes(conn, kind, points)
+        for i, (point, wkt) in enumerate(zip(points, wkts), start=1):
+            yield region, kind, f"Plot {i}", point, wkt, utm
+    for region, kind, name, wkts in EXACT_SETS:
+        for i, wkt in enumerate(wkts, start=1):
+            point = centre(conn, wkt)
+            yield region, kind, f"{name} {i}", point, wkt, utm_of(point[1])
+
+
 def run(conn=None):
     """Load the dataset. Pass an open connection to run it inside someone else's transaction."""
     if conn is None:
@@ -94,32 +133,29 @@ def run(conn=None):
             return run(own)
     added = skipped = 0
     conn.execute("LOCK TABLE plots IN SHARE ROW EXCLUSIVE MODE")
-    for region, kind, points in DATASET:
-        wkts, utm = shapes(conn, kind, points)
-        for i, ((lat, lon), wkt) in enumerate(zip(points, wkts), start=1):
-            label = f"Plot {i}"
-            if conn.execute(
-                "SELECT 1 FROM plots WHERE region_code = %s AND label = %s", (region, label)
-            ).fetchone():
-                skipped += 1
-                continue
-            if main.find_overlaps(conn, wkt, utm):
-                print("Skipped (would overlap an existing plot):", region, label)
-                skipped += 1
-                continue
-            code, area, saved_wkt = conn.execute(
-                """
-                INSERT INTO plots (title_code, region_code, source, status, label,
-                                   cluster_type, ref_lat, ref_lon, geom, area_m2)
-                VALUES (%s, %s, 'synthetic', 'registered', %s, %s, %s, %s,
-                        ST_GeomFromText(%s, 4326), ST_Area(ST_GeomFromText(%s, 4326)::geography))
-                RETURNING title_code, area_m2, ST_AsText(geom)
-                """,
-                (main.next_code(conn, region, "SYN"), region, label, kind, lat, lon, wkt, wkt),
-            ).fetchone()
-            main.add_ledger_record(conn, code, saved_wkt, area)
-            print(f"Added {code}  {kind}  {area:.0f} m2")
-            added += 1
+    for region, kind, label, (lat, lon), wkt, utm in list(jobs(conn)):
+        if conn.execute(
+            "SELECT 1 FROM plots WHERE region_code = %s AND label = %s", (region, label)
+        ).fetchone():
+            skipped += 1
+            continue
+        if main.find_overlaps(conn, wkt, utm):
+            print("Skipped (would overlap an existing plot):", region, label)
+            skipped += 1
+            continue
+        code, area, saved_wkt = conn.execute(
+            """
+            INSERT INTO plots (title_code, region_code, source, status, label,
+                               cluster_type, ref_lat, ref_lon, geom, area_m2)
+            VALUES (%s, %s, 'synthetic', 'registered', %s, %s, %s, %s,
+                    ST_GeomFromText(%s, 4326), ST_Area(ST_GeomFromText(%s, 4326)::geography))
+            RETURNING title_code, area_m2, ST_AsText(geom)
+            """,
+            (main.next_code(conn, region, "SYN"), region, label, kind, lat, lon, wkt, wkt),
+        ).fetchone()
+        main.add_ledger_record(conn, code, saved_wkt, area)
+        print(f"Added {code}  {kind}  {area:.0f} m2")
+        added += 1
     print(f"Done. {added} added, {skipped} skipped.")
     return added, skipped
 

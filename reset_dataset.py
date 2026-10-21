@@ -8,7 +8,8 @@ What it does (only when you add --go):
      The ledger is never edited or shortened, so the chain stays valid.
   3. Tidies the ledger: plots that were deleted earlier without a record get one now.
   4. Deletes regions that are not in the official list and have no plots left.
-  5. Loads the 55 dataset plots again (11 cities x 5) at 18 m x 30 m.
+  5. Loads the 55 dataset plots again (11 cities x 5) at 18 m x 30 m, plus Oga's
+     five adjoining Biu test plots (exact corners).
 
 Real field plots (NAUB pilot, client plots, test-area plots) are NOT touched,
 unless you name them with --remove.
