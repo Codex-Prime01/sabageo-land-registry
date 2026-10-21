@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from sabageo.config import DB  # noqa: F401
 from sabageo.geo import find_overlaps, next_code  # noqa: F401
 from sabageo.ledger import add_ledger_record, add_removal_record  # noqa: F401
-from sabageo.routes import accounts, admin, chain, clients, ledger, pages, payments, paystack, plots, staff, verify
+from sabageo.routes import accounts, admin, chain, chat, clients, ledger, pages, payments, paystack, plots, staff, verify
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
@@ -46,5 +46,5 @@ async def site_gate(request: Request, call_next):
     )
 
 
-for module in (pages, plots, ledger, chain, payments, paystack, clients, verify, admin, staff, accounts):
+for module in (pages, plots, ledger, chain, payments, paystack, clients, verify, admin, staff, accounts, chat):
     app.include_router(module.router)

@@ -74,7 +74,7 @@ const MENU = [
   ["Registry", [["Registered plots", "/registry"], ["Register New Plot", "/register-plot"], ["Parcel report", "/report"], ["Verify a title", "/verify"], ["Field kit", "/field-kit"]]],
   ["Payments", [["My account", "/account"], ["Plans", "/payments"], ["Payment receipt", "/receipt"]]],
   ["About", [["About us", "/about"], ["How it works", "/how-it-works"], ["Architecture", "/architecture"]]],
-  ["Admin", [["Dashboard", "/admin"], ["Clients", "/admin/clients"], ["Payments", "/admin/payments"], ["Admin login", "/staff"]]],
+  ["Admin", [["Dashboard", "/admin"], ["Clients", "/admin/clients"], ["Payments", "/admin/payments"], ["Help chat", "/admin/help"], ["Admin login", "/staff"]]],
 ];
 
 /* ---------- State ---------- */

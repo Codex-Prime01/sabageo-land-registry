@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Help chat | SABAGeo Land Registry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1628">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='8,12 34,7 37,32 11,37' fill='%23D9A441' fill-opacity='.4' stroke='%230A1628' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark"}catch(e){}</script>
+<style>
+:root{--bg:#0a1628;--text:#f4f6fa;--mute:#9fb0c8;--line:rgba(255,255,255,.12);--card:rgba(255,255,255,.05);--brass:#d9a441;--clear:#2bff88;--flag:#ff2d4d;--ease:cubic-bezier(.22,.8,.2,1)}
+[data-theme=light]{--bg:#f1f4f9;--text:#0a1628;--mute:#52627a;--line:rgba(10,22,40,.14);--card:rgba(10,22,40,.04);--clear:#0b8f4a;--flag:#d0112b}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.top{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:var(--bg);background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:"Fraunces",Georgia,serif;font-size:19px;font-weight:700}
+nav{margin-left:auto;display:flex;gap:4px;overflow-x:auto}
+nav a{padding:9px 12px;border-radius:10px;color:var(--mute);text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap}
+.map-btn{flex:none;padding:9px 14px;border-radius:999px;background:var(--brass);color:#1a1204;text-decoration:none;font-size:14px;font-weight:600}
+main{max-width:1120px;margin:0 auto;padding:40px 20px 72px}
+.eyebrow{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
+h1{margin:0;font-family:"Fraunces",Georgia,serif;font-size:clamp(26px,5vw,40px);line-height:1.12}
+.lead{margin:12px 0 0;font-size:16px;color:var(--mute)}
+.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .32s var(--ease) backwards;animation-delay:calc(var(--k,0)*40ms)}
+.card h2{margin:0 0 6px;font-family:"Fraunces",Georgia,serif;font-size:20px}
+.card p{margin:6px 0 0;color:var(--mute)}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:22px}
+.tile{padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:var(--card);animation:rise .32s var(--ease) backwards;animation-delay:calc(var(--k,0)*40ms)}
+.tile b{display:block;font-family:"Fraunces",Georgia,serif;font-size:28px;line-height:1.15}
+.tile small{color:var(--mute);font-size:13px}
+.tile.good b{color:var(--clear)}.tile.bad b{color:var(--flag)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.two .card{margin-top:16px}
+.tbl{margin-top:12px;overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);color:var(--mute);white-space:nowrap}
+th{color:var(--text);font-weight:600;background:var(--card)}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+td b{color:var(--text);font-weight:600}
+.mono{font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+.bars{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:16px;padding-bottom:22px;position:relative}
+.bar{flex:1;position:relative;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.bar i{display:block;border-radius:5px 5px 0 0;background:var(--brass);min-height:2px}
+.bar i.r{background:var(--flag);border-radius:0}
+.bar span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10.5px;color:var(--mute)}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--mute);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.form{display:flex;gap:10px;margin-top:16px;max-width:520px}
+.form input{flex:1;min-width:0;height:48px;padding:0 14px;font:inherit;font-size:16px;color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px}
+.form input:focus{outline:none;border-color:var(--brass)}
+.btn{height:48px;padding:0 20px;border:0;border-radius:12px;background:var(--brass);color:#1a1204;font:inherit;font-weight:600;cursor:pointer}
+.act{padding:9px 14px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--text);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:none}
+@media (hover: hover) and (pointer: fine){.act:hover{border-color:var(--brass)}}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.msg{margin-top:12px;color:var(--flag)}
+.ok-t{color:var(--clear)}.no-t{color:var(--flag)}
+.empty{padding:18px;color:var(--mute);text-align:center}
+.hidden{display:none!important}
+.tabs{display:flex;gap:4px;margin:0 0 26px;border-bottom:1px solid var(--line)}
+.tabs a{padding:10px 14px;margin-bottom:-1px;border-bottom:2px solid transparent;color:var(--mute);text-decoration:none;font-weight:600;font-size:14.5px}
+.tabs a.on{color:var(--text);border-bottom-color:var(--brass)}
+footer{max-width:1120px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-inset-bottom));color:var(--mute);font-size:13px}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+@media (max-width:560px){.brand span{display:none}main{padding-top:28px}.card{padding:18px}.tile b{font-size:24px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}}
+.fields{display:grid;gap:12px;margin-top:14px;max-width:720px}
+.fields label{display:grid;gap:6px;font-size:13.5px;font-weight:600}
+.fields small{color:var(--mute);font-weight:400}
+.fields input,.fields textarea{width:100%;padding:12px 14px;font:inherit;font-size:16px;color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px}
+.fields textarea{min-height:130px;resize:vertical;line-height:1.5}
+.fields input:focus,.fields textarea:focus{outline:none;border-color:var(--brass)}
+.fields .check{display:flex;align-items:center;gap:10px;font-weight:500}
+.fields .check input{width:20px;height:20px;padding:0}
+td.wrap{white-space:normal;min-width:240px;max-width:460px;color:var(--text)}
+.ans{white-space:pre-line;color:var(--mute);font-size:13.5px;margin-top:4px}
+.ok-msg{margin-top:12px;color:var(--clear)}
+</style>
+<link rel="stylesheet" href="/static/site.css" />
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/" aria-label="Back to the map">
+    <svg width="30" height="30" viewBox="0 0 44 44" aria-hidden="true"><polygon points="8,12 34,7 37,32 11,37" fill="rgba(217,164,65,.18)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="8" cy="12" r="3.6" fill="#D9A441"/><circle cx="34" cy="7" r="3.6" fill="#D9A441"/><circle cx="37" cy="32" r="3.6" fill="#D9A441"/><circle cx="11" cy="37" r="3.6" fill="#D9A441"/></svg>
+    <span>SABAGeo</span>
+  </a>
+  <nav aria-label="Pages"><a href="/registry">Registry</a><a href="/admin">Dashboard</a></nav>
+  <a class="map-btn" href="/">Open map</a>
+</header>
+<script src="/static/site.js"></script>
+<main>
+  <nav class="tabs" aria-label="Admin sections"><a href="/admin">Overview</a><a href="/admin/clients">Clients</a><a href="/admin/payments">Payments</a><a href="/admin/help" class="on" aria-current="page">Help chat</a><a href="/staff">Admins</a></nav>
+  <div class="head">
+    <div><p class="eyebrow">Admin · Help chat</p><h1>What people ask.</h1><p class="lead">The Help chat saves every question. Answer the ones it couldn't, and it knows them from then on.</p></div>
+    <div class="acts hidden" id="acts"><button class="act" id="refresh">Refresh</button></div>
+  </div>
+
+  <section class="card" id="unlock">
+    <h2>Admins only</h2>
+    <p>Log in as admin to see the questions and teach the chat new answers.</p>
+    <p style="margin-top:16px"><a class="btn" id="loginLink" href="/staff" style="display:inline-flex;align-items:center;text-decoration:none">Log in as admin</a></p>
+    <p class="msg" id="msg"></p>
+  </section>
+
+  <div id="dash" class="hidden">
+    <div class="tiles" id="tiles"></div>
+
+    <section class="card" style="--k:2">
+      <h2>Questions it couldn't answer</h2>
+      <p>Most asked first. Press Answer this, write the answer once, and the chat uses it next time.</p>
+      <div class="tbl"><table><thead><tr><th>Question</th><th class="n">Times</th><th>Page</th><th>Last asked</th><th></th></tr></thead><tbody id="unanswered"></tbody></table></div>
+    </section>
+
+    <section class="card" style="--k:3">
+      <h2>Answers people said were not helpful</h2>
+      <p>Someone pressed 👎. Write a better answer for that question.</p>
+      <div class="tbl"><table><thead><tr><th>Question</th><th>Answer given</th><th class="n">Times</th><th></th></tr></thead><tbody id="unhelpful"></tbody></table></div>
+    </section>
+
+    <section class="card" style="--k:4" id="formCard">
+      <h2 id="formTitle">Add an answer</h2>
+      <p>Keep it short and in plain English. Write page addresses like /account and they become links.</p>
+      <form class="fields" id="form">
+        <label>Question <small>How people would ask it</small><input id="fQuestion" minlength="5" maxlength="200" required></label>
+        <label>Other words people use <small>Optional. Helps the chat find this answer, e.g. "refund money back cancel"</small><input id="fKeywords" maxlength="300"></label>
+        <label>Answer<textarea id="fAnswer" minlength="5" maxlength="2000" required></textarea></label>
+        <label class="check"><input type="checkbox" id="fActive" checked> In use</label>
+        <div class="acts"><button class="btn" type="submit" id="save">Save answer</button><button class="act hidden" type="button" id="cancel">Cancel editing</button></div>
+      </form>
+      <p class="msg" id="formMsg"></p>
+    </section>
+
+    <section class="card" style="--k:5">
+      <h2>Your answers</h2>
+      <p>Answers added by admins. The chat also has <span id="builtIn">its own</span> built-in answers.</p>
+      <div class="tbl"><table><thead><tr><th>Question and answer</th><th>Status</th><th>Updated</th><th></th></tr></thead><tbody id="answers"></tbody></table></div>
+    </section>
+
+    <section class="card" style="--k:6">
+      <h2>Most used answers, last 30 days</h2>
+      <div class="tbl"><table><thead><tr><th>Answer</th><th class="n">Times</th><th class="n">👍</th><th class="n">👎</th></tr></thead><tbody id="top"></tbody></table></div>
+    </section>
+  </div>
+</main>
+<footer>SABAGeo Land Registry. Admin view: questions may contain personal details, keep them private.</footer>
+<script src="/static/staff.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const num = (n) => Number(n || 0).toLocaleString("en");
+  const date = (s) => s ? new Date(s).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
+  let answers = [], editing = null;
+  $("loginLink").href = Staff.loginUrl();
+
+  async function api(url, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ "Content-Type": "application/json" }, Staff.headers(), opts.headers || {});
+    const r = await fetch(url, opts);
+    let d = null; try { d = await r.json(); } catch (e) {}
+    if (!r.ok) { const err = new Error(d && typeof d.detail === "string" ? d.detail : "Something went wrong (" + r.status + ")."); err.status = r.status; throw err; }
+    return d;
+  }
+  const empty = (cols, text) => '<tr><td colspan="' + cols + '" class="empty">' + text + "</td></tr>";
+
+  async function load() {
+    $("msg").textContent = "";
+    let d;
+    try { d = await api("/api/admin/help"); }
+    catch (e) {
+      if (e.status === 401) Staff.clear();
+      $("unlock").classList.remove("hidden"); $("dash").classList.add("hidden"); $("acts").classList.add("hidden");
+      $("msg").textContent = e.status === 401 ? (Staff.token() ? "" : "Your login has ended. Please log in again.") : e.message;
+      return;
+    }
+    $("unlock").classList.add("hidden"); $("dash").classList.remove("hidden"); $("acts").classList.remove("hidden");
+    answers = d.answers;
+    const pct = d.asked_30d ? Math.round((d.answered_30d / d.asked_30d) * 100) + "%" : "–";
+    $("tiles").innerHTML = [
+      [num(d.asked_30d), "Questions, last 30 days"], [pct, "Answered, last 30 days"],
+      [num(d.unanswered.length), "Different unanswered questions"], [num(d.built_in + answers.length), "Answers the chat knows"],
+    ].map((t, i) => '<div class="tile" style="--k:' + i + '"><b>' + t[0] + "</b><small>" + t[1] + "</small></div>").join("");
+    $("builtIn").textContent = num(d.built_in);
+
+    $("unanswered").innerHTML = d.unanswered.map((u) =>
+      '<tr><td class="wrap">' + esc(u.question) + '</td><td class="n">' + num(u.times) + "</td><td>" + esc(u.page || "") +
+      "</td><td>" + date(u.last_at) + '</td><td><button class="act" data-answer="' + esc(u.question) + '">Answer this</button></td></tr>'
+    ).join("") || empty(5, "Nothing yet. Every question so far had an answer.");
+
+    $("unhelpful").innerHTML = d.unhelpful.map((u) =>
+      '<tr><td class="wrap">' + esc(u.question) + '</td><td class="wrap">' + esc(u.answer || "") + '</td><td class="n">' + num(u.times) +
+      '</td><td><button class="act" data-answer="' + esc(u.question) + '">Write a better answer</button></td></tr>'
+    ).join("") || empty(4, "No 👎 so far.");
+
+    $("answers").innerHTML = answers.map((a) =>
+      '<tr><td class="wrap"><b>' + esc(a.question) + '</b><div class="ans">' + esc(a.answer) + "</div></td>" +
+      '<td class="' + (a.active ? "ok-t" : "no-t") + '">' + (a.active ? "In use" : "Off") + "</td><td>" + date(a.updated_at) +
+      '</td><td><div class="acts"><button class="act" data-edit="' + a.id + '">Edit</button>' +
+      '<button class="act" data-toggle="' + a.id + '">' + (a.active ? "Turn off" : "Turn on") + "</button></div></td></tr>"
+    ).join("") || empty(4, "No answers added yet.");
+
+    $("top").innerHTML = d.top.map((t) =>
+      '<tr><td class="wrap">' + esc(t.answer) + '</td><td class="n">' + num(t.times) + '</td><td class="n">' + num(t.up) + '</td><td class="n">' + num(t.down) + "</td></tr>"
+    ).join("") || empty(4, "No questions answered in the last 30 days.");
+  }
+
+  function fillForm(a, question) {
+    editing = a ? a.id : null;
+    $("fQuestion").value = a ? a.question : question || "";
+    $("fKeywords").value = a ? a.keywords : "";
+    $("fAnswer").value = a ? a.answer : "";
+    $("fActive").checked = a ? a.active : true;
+    $("formTitle").textContent = a ? "Edit answer" : "Add an answer";
+    $("cancel").classList.toggle("hidden", !a);
+    $("formMsg").textContent = ""; $("formMsg").className = "msg";
+    if (!a && !question) return;
+    $("formCard").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    $("fAnswer").focus({ preventScroll: true });
+  }
+
+  async function save(id, body) {
+    if (id) await api("/api/admin/help/answers/" + id, { method: "PUT", body: JSON.stringify(body) });
+    else await api("/api/admin/help/answers", { method: "POST", body: JSON.stringify(body) });
+  }
+
+  $("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = { question: $("fQuestion").value.trim(), keywords: $("fKeywords").value.trim(),
+                   answer: $("fAnswer").value.trim(), active: $("fActive").checked };
+    $("save").disabled = true;
+    try {
+      await save(editing, body);
+      fillForm(null);
+      $("formMsg").className = "ok-msg"; $("formMsg").textContent = "Saved. The chat uses it from now on.";
+      load();
+    } catch (err) {
+      $("formMsg").className = "msg"; $("formMsg").textContent = err.message;
+    } finally { $("save").disabled = false; }
+  });
+  $("cancel").onclick = () => fillForm(null);
+
+  $("dash").addEventListener("click", async (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.answer != null) fillForm(null, b.dataset.answer);
+    else if (b.dataset.edit) fillForm(answers.find((a) => a.id == b.dataset.edit));
+    else if (b.dataset.toggle) {
+      const a = answers.find((x) => x.id == b.dataset.toggle);
+      try { await save(a.id, { question: a.question, keywords: a.keywords, answer: a.answer, active: !a.active }); load(); }
+      catch (err) { alert(err.message); }
+    }
+  });
+
+  $("refresh").onclick = load;
+  if (Staff.token()) load();
+})();
+</script>
+</body>
+</html>

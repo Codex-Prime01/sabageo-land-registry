@@ -48,7 +48,7 @@ def test_database():
         conn.execute("DROP SCHEMA IF EXISTS public CASCADE")
         conn.execute("CREATE SCHEMA public")
         conn.execute((ROOT / "schema_full.sql").read_text(encoding="utf-8"))
-        for name in ("phase_h.sql", "phase_i.sql", "phase_j.sql"):  # upgrades are safe to re-run on top
+        for name in ("phase_h.sql", "phase_i.sql", "phase_j.sql", "phase_k.sql"):  # upgrades are safe to re-run on top
             extra = ROOT / name
             if extra.exists():
                 conn.execute(extra.read_text(encoding="utf-8"))

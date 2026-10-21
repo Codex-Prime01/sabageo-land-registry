@@ -36,6 +36,7 @@
         ["Dashboard", "/admin"],
         ["Clients", "/admin/clients"],
         ["Payments", "/admin/payments"],
+        ["Help chat", "/admin/help"],
         ["Admin login", "/staff"],
       ],
     },
@@ -76,6 +77,11 @@
     css.href = "/static/ios.css";
     document.head.append(css);
   }
+
+  // the Help chat button (static/help.js), on every content page
+  const helpJs = document.createElement("script");
+  helpJs.src = "/static/help.js";
+  document.head.append(helpJs);
 
   const header = document.querySelector("header.top");
   if (!header) return;

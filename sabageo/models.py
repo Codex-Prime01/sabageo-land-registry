@@ -77,3 +77,23 @@ class AccountLoginIn(BaseModel):
 class ClaimIn(BaseModel):
     receipt_no: str = Field(min_length=5, max_length=40)
     verify_code: str = Field(min_length=4, max_length=20)
+
+
+class HelpAskIn(BaseModel):
+    question: str = Field(min_length=1, max_length=300)
+    page: str = Field(default="/", max_length=200)
+    key: str | None = Field(default=None, max_length=20)      # a suggestion that was tapped
+    error: str | None = Field(default=None, max_length=300)   # the last error message the page showed
+
+
+class HelpFeedbackIn(BaseModel):
+    id: int
+    key: str = Field(min_length=10, max_length=64)
+    helpful: bool
+
+
+class HelpAnswerIn(BaseModel):
+    question: str = Field(min_length=5, max_length=200)
+    keywords: str = Field(default="", max_length=300)
+    answer: str = Field(min_length=5, max_length=2000)
+    active: bool = True

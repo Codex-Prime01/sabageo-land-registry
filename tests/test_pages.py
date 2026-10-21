@@ -1,6 +1,6 @@
 import pytest
 
-PAGES = ["/", "/about", "/how-it-works", "/architecture", "/registry", "/report",
+PAGES = ["/", "/about", "/how-it-works", "/architecture", "/registry", "/report", "/admin/help",
          "/payments", "/receipt", "/register-plot", "/staff", "/admin", "/admin/payments",
          "/account", "/admin/clients"]
 
@@ -18,7 +18,7 @@ def test_health(client):
 
 def test_static_files(client):
     for path in ("/static/app.js", "/static/site.js", "/static/site.css", "/static/style.css", "/static/staff.js",
-                 "/static/account.js", "/static/ios.css"):
+                 "/static/account.js", "/static/ios.css", "/static/help.js", "/static/help.css"):
         assert client.get(path).status_code == 200, path
 
 
