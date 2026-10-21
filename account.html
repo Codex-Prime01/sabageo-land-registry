@@ -23,6 +23,8 @@ details.ios-group>summary::-webkit-details-marker{display:none}
 details[open] .chev{transform:rotate(90deg)}
 .chev{transition:transform .25s var(--ios-ease)}
 .hello{display:flex;align-items:center;gap:14px}
+.hello>div{min-width:0}  /* a long name or email wraps instead of pushing off screen (break-ui) */
+#hello{overflow-wrap:anywhere}
 .avatar{flex:none;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--ios-tint-soft);color:var(--ios-tint);font:700 22px "Fraunces",Georgia,serif}
 </style>
 </head>
@@ -229,9 +231,13 @@ details[open] .chev{transform:rotate(90deg)}
       $("retry").onclick = show;
       return;
     }
-    $("hello").textContent = "Hello, " + me.name.split(" ")[0];
+    // first word with a letter in it (a name can start with an emoji)
+    const word = me.name.split(/\s+/).find((w) => /\p{L}/u.test(w)) || "";
+    $("hello").textContent = word ? "Hello, " + word : "Hello";
     $("email").textContent = me.email;
-    $("avatar").textContent = (me.name.trim()[0] || "A").toUpperCase();
+    // first whole character (an emoji or accented letter is more than one code unit, so not name[0])
+    const first = (s) => { try { return [...new Intl.Segmenter().segment(s)][0].segment; } catch (e) { return Array.from(s)[0]; } };
+    $("avatar").textContent = (first(me.name.trim()) || "A").toUpperCase();
 
     $("receipts").innerHTML = me.payments.length ? me.payments.map(receiptCard).join("") :
       '<div class="ios-empty ios-in"><b>No receipts yet</b>Buy a login code to register a plot, or add a receipt from the SABAGeo office below.</div>';

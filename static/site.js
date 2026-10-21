@@ -203,6 +203,11 @@
   });
   showTheme();
 
+  /* ---- the top bar's soft edge shows only once the page has scrolled under it ---- */
+  const edge = () => header.classList.toggle("scrolled", scrollY > 4);
+  addEventListener("scroll", edge, { passive: true });
+  edge();
+
   /* ---- phone tab bar: floats at the bottom, tucks away while scrolling down ---- */
   if (!path.startsWith("/admin") && path !== "/staff") {
     const bar = document.createElement("nav");

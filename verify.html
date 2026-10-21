@@ -25,7 +25,7 @@ main{max-width:620px;margin:0 auto;padding:40px 20px 72px}
 .eyebrow{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
 h1{margin:0;font-family:"Fraunces",Georgia,serif;font-size:clamp(26px,6vw,40px);line-height:1.12}
 .lead{margin:14px 0 0;font-size:16.5px;color:var(--mute)}
-.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .6s var(--ease) backwards;animation-delay:calc(var(--k,0)*70ms)}
+.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .32s var(--ease) backwards;animation-delay:calc(var(--k,0)*40ms)}
 .card h2{margin:0 0 8px;font-family:"Fraunces",Georgia,serif;font-size:20px}
 .card p{margin:8px 0 0;color:var(--mute)}
 .verdict{display:flex;align-items:center;gap:16px}
@@ -47,10 +47,10 @@ dt{color:var(--mute)}dd{margin:0;text-align:right;font-weight:500}
 .btn{height:48px;padding:0 20px;border:0;border-radius:12px;background:var(--brass);color:#1a1204;font:inherit;font-weight:600;cursor:pointer}
 .links{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 .links a{padding:10px 16px;border:1px solid var(--line);border-radius:12px;text-decoration:none;font-weight:600;font-size:14px}
-.links a:hover{border-color:var(--brass)}
+@media (hover: hover) and (pointer: fine){.links a:hover{border-color:var(--brass)}}
 .msg{margin-top:12px;color:var(--flag)}
 footer{max-width:620px;margin:0 auto;padding:0 20px calc(40px + env(safe-area-inset-bottom));color:var(--mute);font-size:13px}
-@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
 @keyframes stamp{from{opacity:0;transform:scale(1.6) rotate(-12deg)}}
 @media (max-width:560px){.brand span{display:none}main{padding-top:28px}.card{padding:18px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}}

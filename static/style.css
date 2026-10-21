@@ -136,7 +136,7 @@
         border-radius: 20px;
         overflow: hidden;
         box-shadow: 0 30px 70px -25px rgba(0, 0, 0, 0.8);
-        animation: rise 0.8s var(--ease) backwards;
+        animation: rise 0.4s var(--ease) backwards;
       }
       @keyframes rise {
         from {
@@ -171,9 +171,9 @@
           background 0.25s,
           transform 0.35s var(--ease);
       }
-      .icon-btn:hover {
+      @media (hover: hover) and (pointer: fine){.icon-btn:hover{
         background: rgba(255, 255, 255, 0.09);
-      }
+      }}
       .icon-btn:active {
         transform: scale(0.9);
       }
@@ -344,9 +344,9 @@
         background: var(--chalk);
         color: var(--ink);
       }
-      #checkBtn:hover {
+      @media (hover: hover) and (pointer: fine){#checkBtn:hover{
         box-shadow: 0 10px 26px -10px rgba(255, 255, 255, 0.55);
-      }
+      }}
       #registerBtn {
         background: linear-gradient(135deg, #1fd470, #2bff88);
         color: #05260f;
@@ -369,9 +369,9 @@
         opacity: 1;
         pointer-events: auto;
       }
-      #registerBtn:hover {
+      @media (hover: hover) and (pointer: fine){#registerBtn:hover{
         box-shadow: 0 10px 26px -10px rgba(43, 255, 136, 0.8);
-      }
+      }}
 
       .result {
         display: grid;
@@ -576,11 +576,11 @@
           transform 0.3s var(--ease),
           border-color 0.25s;
       }
-      .plot-item:hover {
+      @media (hover: hover) and (pointer: fine){.plot-item:hover{
         background: rgba(0, 209, 255, 0.12);
         border-color: #00d1ff;
         transform: translateX(4px);
-      }
+      }}
       .soon li {
         padding: 8px 0;
         border-bottom: 1px solid var(--line);
@@ -613,10 +613,10 @@
           border-color 0.25s,
           transform 0.3s var(--ease);
       }
-      button.row:hover {
+      @media (hover: hover) and (pointer: fine){button.row:hover{
         border-color: var(--brass);
         transform: translateX(3px);
-      }
+      }}
       .row em {
         font-style: normal;
         font-size: 12.5px;
@@ -673,11 +673,11 @@
       [data-theme="light"] .foot {
         background: rgba(10, 22, 40, 0.05);
       }
-      [data-theme="light"] .icon-btn:hover,
-      [data-theme="light"] .row,
-      [data-theme="light"] .plot-item {
+      [data-theme="light"] .row,[data-theme="light"] .plot-item{
         background: rgba(10, 22, 40, 0.05);
-      }
+      }@media (hover: hover) and (pointer: fine){[data-theme="light"] .icon-btn:hover{
+        background: rgba(10, 22, 40, 0.05);
+      }}
       [data-theme="light"] .drawer {
         background: #fff;
       }
@@ -808,9 +808,9 @@
           transform 0.3s var(--ease),
           border-color 0.25s;
       }
-      .chip:hover {
+      @media (hover: hover) and (pointer: fine){.chip:hover{
         border-color: var(--brass);
-      }
+      }}
       .chip:active {
         transform: scale(0.96);
       }
@@ -897,9 +897,9 @@
         color: var(--chalk);
         border: 1.5px solid var(--line);
       }
-      .btn.ghost:hover {
+      @media (hover: hover) and (pointer: fine){.btn.ghost:hover{
         border-color: var(--brass);
-      }
+      }}
       #photoBtn {
         display: none;
       }
@@ -930,9 +930,40 @@
         }
         .grip {
           display: block;
+          position: relative;
+        }
+        .grip::before { /* a bigger, invisible area to grab */
+          content: "";
+          position: absolute;
+          inset: -12px -60px -6px;
         }
         .bar {
           padding: 4px 6px 6px 6px;
+        }
+        /* the sheet: closed = slid down so only the grip and title bar show.
+           Moved with transform only, so dragging stays smooth (no height animation) */
+        .panel {
+          transform: translate3d(0, 0, 0);
+          transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .panel.collapsed {
+          transform: translate3d(0, var(--sheet-closed, 0px), 0);
+        }
+        .panel.dragging {
+          transition: none;
+          will-change: transform;
+        }
+        .panel.collapsed .wrap {
+          grid-template-rows: 1fr;
+          transition: none;
+        }
+        .panel.collapsed .inner {
+          opacity: 1;
+          transform: none;
+        }
+        .grip,
+        .bar {
+          touch-action: none; /* the page must not scroll while you drag the sheet */
         }
         .icon-btn {
           width: 40px;
@@ -1188,9 +1219,9 @@
         text-align: left;
         transition: background 0.25s;
       }
-      .grp-h:hover {
+      @media (hover: hover) and (pointer: fine){.grp-h:hover{
         background: rgba(255, 255, 255, 0.06);
-      }
+      }}
       .grp-h span {
         opacity: 0.75;
         letter-spacing: 0;
@@ -1207,11 +1238,11 @@
         cursor: default;
         border-style: dashed;
       }
-      .plot-item.reserved:hover {
+      @media (hover: hover) and (pointer: fine){.plot-item.reserved:hover{
         transform: none;
         background: rgba(255, 255, 255, 0.05);
         border-color: var(--line);
-      }
+      }}
       .acc.open #plotList {
         max-height: 46dvh;
         overflow-y: auto;
@@ -1382,10 +1413,10 @@
       .drawer-body > .row + .row {
         margin-top: 6px;
       }
-      a.row:hover {
+      @media (hover: hover) and (pointer: fine){a.row:hover{
         border-color: var(--brass);
         transform: translateX(3px);
-      }
+      }}
       @media (hover: none) {
         a.row:hover {
           transform: none;
@@ -1500,4 +1531,45 @@
       }
       [data-theme="light"] details.more {
         background: rgba(10, 22, 40, 0.05);
+      }
+
+      /* ---------- feel native on phones (emilkowalski/skills: mobile-native) ---------- */
+      html {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-text-size-adjust: 100%;
+        overscroll-behavior: none; /* dragging the sheet must not trigger pull-to-refresh */
+      }
+      button, a, summary, label, [role="button"] {
+        touch-action: manipulation;
+      }
+      button, summary, [role="button"], .chip, .row, .grip, .bar {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
+      @media (pointer: coarse) {
+        input, select, textarea { font-size: 16px !important; }
+      }
+
+      /* ---------- materials (apple-design section 12): the big panel is the "thickest" glass,
+         small chips are lighter, and nothing glass sits on other glass ---------- */
+      .panel {
+        backdrop-filter: blur(24px) saturate(160%);
+        -webkit-backdrop-filter: blur(24px) saturate(160%);
+      }
+      .chip {
+        backdrop-filter: blur(12px) saturate(160%);
+        -webkit-backdrop-filter: blur(12px) saturate(160%);
+        box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.55);
+      }
+      @media (prefers-reduced-transparency: reduce) {
+        .panel, .chip, .drawer, .pop { background: var(--ink); -webkit-backdrop-filter: none; backdrop-filter: none; }
+        [data-theme="light"] .panel, [data-theme="light"] .chip,
+        [data-theme="light"] .drawer, [data-theme="light"] .pop { background: #fff; }
+      }
+      @media (prefers-contrast: more) {
+        .panel, .chip, .drawer, .pop { background: var(--ink); -webkit-backdrop-filter: none; backdrop-filter: none;
+                                       border: 1.5px solid var(--chalk); }
+        [data-theme="light"] .panel, [data-theme="light"] .chip,
+        [data-theme="light"] .drawer, [data-theme="light"] .pop { background: #fff; border-color: #0a1628; }
       }

@@ -34,6 +34,7 @@
   transition: opacity 0.5s ease;
 }
 .tour-welcome.show { opacity: 1; }
+.tour-welcome:not(.show) { transition-duration: 0.25s; }
 .tour-welcome canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .tour-hello {
   position: relative;
@@ -60,8 +61,8 @@
   position: absolute;
   border-radius: 16px;
   box-shadow: 0 0 0 9999px rgba(3, 8, 16, 0.58);
-  transition: left 0.55s var(--t-spring), top 0.55s var(--t-spring), width 0.55s var(--t-spring),
-    height 0.55s var(--t-spring), border-radius 0.55s var(--t-spring), opacity 0.3s;
+  transition: left 0.45s var(--t-spring), top 0.45s var(--t-spring), width 0.45s var(--t-spring),
+    height 0.45s var(--t-spring), border-radius 0.45s var(--t-spring), opacity 0.3s;
   opacity: 0;
 }
 .tour-spot.on { opacity: 1; }
@@ -89,7 +90,7 @@
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   backdrop-filter: blur(24px) saturate(180%);
   box-shadow: inset 0 1px 0 var(--t-edge), inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 24px 60px -18px rgba(0, 0, 0, 0.6);
-  transition: left 0.55s var(--t-spring), top 0.55s var(--t-spring), opacity 0.25s;
+  transition: left 0.45s var(--t-spring), top 0.45s var(--t-spring), opacity 0.25s;
   outline: none;
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -153,4 +154,15 @@
 @media (prefers-reduced-motion: reduce) {
   .tour-spot, .tour-card, .tour-welcome, .tour-hello, .tour-dots i { transition: none !important; }
   .tour-spot::after, .tour-card .text { animation: none !important; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .tour-card, .tour-hello { -webkit-backdrop-filter: none; backdrop-filter: none; background: #0f1f35; }
+  [data-theme="light"] .tour-card { background: #fff; }
+}
+@media (prefers-contrast: more) {
+  .tour-card, .tour-hello { -webkit-backdrop-filter: none; backdrop-filter: none; background: #0a1628;
+                            box-shadow: 0 0 0 2px #f4f6fa; }
+  [data-theme="light"] .tour-card { background: #fff; box-shadow: 0 0 0 2px #0a1628; }
+  .tour-card p, .tour-hello p { color: inherit; }
 }

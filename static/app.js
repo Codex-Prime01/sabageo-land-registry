@@ -97,7 +97,7 @@ let panelMemory = null, photoCode = null;
     ".ov-list .ov-top{display:flex;justify-content:space-between;align-items:center;gap:8px}" +
     ".ov-list small{display:block;margin-top:4px;font-size:12.5px;opacity:.85;line-height:1.5}" +
     ".ov-list button{flex:none;padding:5px 11px;border-radius:999px;border:1px solid currentColor;background:transparent;color:inherit;font:600 12px 'Public Sans',sans-serif;cursor:pointer}" +
-    ".ov-list button:hover{background:rgba(255,255,255,.12)}" +
+    "@media (hover:hover) and (pointer:fine){.ov-list button:hover{background:rgba(255,255,255,.12)}}" +
     ".ex-links{margin-top:6px;font-size:12.5px;opacity:.85}" +
     ".ex-links button{background:none;border:0;padding:0 2px;color:#D9A441;font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}" +
     "@media (prefers-reduced-motion:reduce){.overlap-zone{animation:none}}";
@@ -117,6 +117,7 @@ function toggleTheme() {
 
 /* ---------- Panel, plots list and menu: one thing open at a time ---------- */
 function setPanel(open) {
+  if (typeof sheet !== "undefined") sheet.stop(); // a tap or code wins over a half-finished drag
   panel.classList.toggle("collapsed", !open);
   $("chevron").setAttribute("aria-expanded", open);
 }
@@ -157,16 +158,106 @@ function closePop(restore = false) {
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeMenu(); closePop(); } });
 document.addEventListener("click", (e) => { if (!e.target.closest("#pop,#plotsChip")) closePop(); });
 
-/* swipe the card down to close it and up to open it (phones) */
-let swipeY = null;
-panel.addEventListener("touchstart", (e) => { if (e.target.closest(".grip,.bar")) swipeY = e.touches[0].clientY; }, { passive: true });
-panel.addEventListener("touchend", (e) => {
-  if (swipeY === null) return;
-  const dy = e.changedTouches[0].clientY - swipeY;
-  swipeY = null;
-  if (dy > 40) setPanel(false);
-  else if (dy < -40) setPanel(true);
-}, { passive: true });
+/* ---------- Phone: the checker is a sheet you drag (emilkowalski/skills: apple-design).
+   It follows the finger 1:1, a flick decides open or closed (momentum projection), it resists
+   softly past the ends (rubber band), and it settles with a spring that starts at the finger's
+   speed. Grab it mid-move and it carries on from where it is. Only transform is animated. ---------- */
+const sheet = (() => {
+  const still = matchMedia("(prefers-reduced-motion: reduce)");
+  let closedY = 0, y = 0, raf = 0, drag = null;
+  const bar = panel.querySelector(".bar");
+
+  // closed = slid down until only the grip and title bar show
+  function measure() {
+    closedY = Math.max(0, panel.offsetHeight - (bar.offsetTop + bar.offsetHeight));
+    panel.style.setProperty("--sheet-closed", closedY + "px");
+  }
+  if ("ResizeObserver" in window) new ResizeObserver(measure).observe(panel);
+  addEventListener("resize", measure);
+  measure();
+
+  const set = (v) => { y = v; panel.style.transform = "translate3d(0," + v.toFixed(2) + "px,0)"; };
+  // where the sheet is on screen right now, even halfway through a transition
+  const live = () => new DOMMatrixReadOnly(getComputedStyle(panel).transform).m42;
+  // Apple's rubber band: the further past the end, the less it follows
+  const rubber = (over, dim) => (over * dim * 0.55) / (dim + 0.55 * Math.abs(over));
+
+  function finish(to) {
+    cancelAnimationFrame(raf);
+    const open = to === 0;
+    panel.classList.toggle("collapsed", !open);
+    $("chevron").setAttribute("aria-expanded", open);
+    panel.style.transform = "";       // the CSS class holds the same position from here
+    panel.classList.remove("dragging");
+  }
+  // a spring with Apple's sheet values: damping ratio 0.8, response 0.3 s (mass 1)
+  function spring(to, v) {
+    cancelAnimationFrame(raf);
+    if (still.matches) { finish(to); return; }
+    const response = 0.3, damping = 0.8;
+    const k = Math.pow((2 * Math.PI) / response, 2), c = (4 * Math.PI * damping) / response;
+    let x = y, last = performance.now();
+    const step = (now) => {
+      const dt = Math.min(0.032, (now - last) / 1000);
+      last = now;
+      v += (-k * (x - to) - c * v) * dt;
+      x += v * dt;
+      if (Math.abs(x - to) < 0.5 && Math.abs(v) < 8) { finish(to); return; }
+      set(x);
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  }
+
+  panel.addEventListener("pointerdown", (e) => {
+    if (!isMobile() || !e.isPrimary || !e.target.closest(".grip,.bar")) return;
+    drag = { id: e.pointerId, y0: e.clientY, moved: false, hist: [[performance.now(), e.clientY]] };
+  });
+  panel.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dy = e.clientY - drag.y0;
+    if (!drag.moved) {
+      if (Math.abs(dy) < 10) return;     // under 10 px it is still a tap
+      drag.moved = true;
+      panel.setPointerCapture(e.pointerId);
+      cancelAnimationFrame(raf);
+      measure();
+      // follow from here, minus only the 10 px tap slack (fast flicks arrive as one big move)
+      drag.start = live() - Math.sign(dy) * 10;
+      panel.classList.add("dragging");
+    }
+    let next = drag.start + dy;
+    if (next < 0) next = rubber(next, panel.offsetHeight);
+    else if (next > closedY) next = closedY + rubber(next - closedY, panel.offsetHeight);
+    set(next);
+    const now = performance.now();
+    drag.hist.push([now, e.clientY]);
+    while (drag.hist.length > 2 && now - drag.hist[0][0] > 100) drag.hist.shift();
+  });
+  const release = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const d = drag;
+    drag = null;
+    if (!d.moved) return;                // a tap: the button's own click still runs
+    // speed over the last 100 ms only: a finger that stopped before lifting is not a flick
+    const now = performance.now();
+    const h = d.hist.filter((s) => now - s[0] <= 100);
+    const a = h[0], b = h[h.length - 1];
+    const v = a && b && b[0] - a[0] > 4 ? ((b[1] - a[1]) / (b[0] - a[0])) * 1000 : 0; // px per second
+    // project where a flick would come to rest, then snap to the nearer end
+    const rest = y + (v / 1000) * 0.998 / (1 - 0.998);
+    spring(Math.abs(rest) < Math.abs(rest - closedY) ? 0 : closedY, v);
+    // the finger lifting after a drag must not also "click" the title or a button
+    // (only for a moment: if no click comes, the next real tap must still work)
+    const eat = (ev) => { ev.preventDefault(); ev.stopPropagation(); };
+    panel.addEventListener("click", eat, { capture: true, once: true });
+    setTimeout(() => panel.removeEventListener("click", eat, { capture: true }), 350);
+  };
+  panel.addEventListener("pointerup", release);
+  panel.addEventListener("pointercancel", release);
+
+  return { stop: () => { cancelAnimationFrame(raf); panel.style.transform = ""; panel.classList.remove("dragging"); }, measure };
+})();
 /* swipe the menu left to close it */
 let swipeX = null;
 $("drawer").addEventListener("touchstart", (e) => { swipeX = e.touches[0].clientX; }, { passive: true });
@@ -206,7 +297,7 @@ function buildMenu() {
 function flyTo(bounds, maxZoom) {
   const p = panel.getBoundingClientRect();
   const opts = isMobile()
-    ? { paddingTopLeft: [40, 90], paddingBottomRight: [40, p.height + 50] }
+    ? { paddingTopLeft: [40, 90], paddingBottomRight: [40, Math.max(0, innerHeight - p.top) + 30] }
     : { paddingTopLeft: [p.right + 80, 90], paddingBottomRight: [90, 90] };
   map.flyToBounds(bounds, { ...opts, maxZoom: maxZoom || 17, duration: 1.8, easeLinearity: 0.12 });
 }

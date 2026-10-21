@@ -25,6 +25,7 @@ html {
 }
 body {
   min-height: 100vh;
+  min-height: 100svh; /* phones: ignore the moving address bar */
   background-color: var(--bg);
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
@@ -38,13 +39,28 @@ body {
   background: rgba(217, 164, 65, 0.35);
 }
 
-/* ---------- top bar: solid, one hairline ---------- */
+/* ---------- top bar: a see-through layer the page scrolls under (control layer, so glass is fine).
+   No hard divider: a soft shadow edge fades in only once content is underneath ---------- */
 .top {
-  background: var(--bg) !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 74%, transparent) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 0 !important;
 }
+.top::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 14px;
+  pointer-events: none;
+  background: linear-gradient(rgba(3, 8, 16, 0.22), transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.top.scrolled::after { opacity: 1; }
+[data-theme="light"] .top::after { background: linear-gradient(rgba(10, 22, 40, 0.08), transparent); }
 .top nav {
   align-items: center;
   scrollbar-width: none;
@@ -69,9 +85,9 @@ body {
   font-size: 13.5px;
   background: transparent;
 }
-.top nav a:hover {
+@media (hover: hover) and (pointer: fine){.top nav a:hover{
   color: var(--text);
-}
+}}
 .top nav a.on {
   color: var(--text);
   background: transparent;
@@ -106,9 +122,9 @@ body {
   cursor: pointer;
   transition: background 0.2s;
 }
-.sx-menu:hover {
+@media (hover: hover) and (pointer: fine){.sx-menu:hover{
   background: var(--brass-soft);
-}
+}}
 .map-btn {
   background: var(--brass);
   box-shadow: none !important;
@@ -165,11 +181,9 @@ body {
 .form input {
   background-color: var(--bg);
 }
-.fld input:hover,
-.fld select:hover,
-.srch input:hover {
+@media (hover: hover) and (pointer: fine){.fld input:hover,.fld select:hover,.srch input:hover{
   border-color: rgba(217, 164, 65, 0.4);
-}
+}}
 .btnp {
   background: var(--brass);
   box-shadow: none !important;
@@ -206,9 +220,9 @@ th {
 tbody tr {
   transition: background 0.2s;
 }
-tbody tr:hover {
+@media (hover: hover) and (pointer: fine){tbody tr:hover{
   background: var(--brass-soft);
-}
+}}
 
 /* ---------- footer ---------- */
 footer {
@@ -237,9 +251,9 @@ footer {
   text-decoration: none;
   transition: color 0.2s;
 }
-.sx-foot a:hover {
+@media (hover: hover) and (pointer: fine){.sx-foot a:hover{
   color: var(--text);
-}
+}}
 
 /* ---------- slide-out menu ---------- */
 body.sx-lock {
@@ -311,9 +325,9 @@ body.sx-lock {
   color: var(--text);
   cursor: pointer;
 }
-.sx-x:hover {
+@media (hover: hover) and (pointer: fine){.sx-x:hover{
   background: var(--card);
-}
+}}
 .sx-body {
   flex: 1;
   overflow-y: auto;
@@ -357,10 +371,10 @@ body.sx-lock {
 .sx-link svg {
   opacity: 0.45;
 }
-.sx-link:hover {
+@media (hover: hover) and (pointer: fine){.sx-link:hover{
   background: var(--card);
   transform: translateX(3px);
-}
+}}
 .sx-link.on {
   background: var(--brass-soft);
   box-shadow: inset 3px 0 0 var(--brass);
@@ -380,9 +394,9 @@ body.sx-lock {
   font-size: 15px;
   cursor: pointer;
 }
-.sx-theme:hover {
+@media (hover: hover) and (pointer: fine){.sx-theme:hover{
   border-color: var(--brass);
-}
+}}
 .sx-theme em {
   font-style: normal;
   font-size: 12.5px;
@@ -468,9 +482,45 @@ body.sx-lock {
 }
 
 /* ---------- admin section tabs (Overview / Payments): underline only ---------- */
-nav.tabs a,
-nav.tabs a.on,
-nav.tabs a:hover {
+nav.tabs a,nav.tabs a.on{
   background: transparent !important;
   border-radius: 0;
+}@media (hover: hover) and (pointer: fine){nav.tabs a:hover{
+  background: transparent !important;
+  border-radius: 0;
+}}
+
+/* ---------- feel native on phones (emilkowalski/skills: mobile-native) ---------- */
+html {
+  -webkit-tap-highlight-color: transparent; /* no grey flash; buttons give their own :active feedback */
+  -webkit-text-size-adjust: 100%;
+}
+button, a, summary, label, [role="button"] {
+  touch-action: manipulation; /* no ~300 ms wait for a double-tap zoom */
+}
+button, summary, [role="button"], .btn, .btnp, .act, .ios-btn, .map-btn, .sx-menu, .ios-tabbar a {
+  -webkit-user-select: none; /* a long press on a button should not select its text */
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+@media (pointer: coarse) {
+  input, select, textarea { font-size: 16px !important; } /* under 16px, iPhone zooms the page in */
+}
+/* long emails, codes and receipt numbers wrap instead of running off a phone screen */
+td, .ios-row small, .ios-sub, .codebox .the { overflow-wrap: anywhere; }
+/* codes and receipt numbers: break at their dashes, never in the middle of a group */
+.ios-mono { overflow-wrap: normal; }
+/* numbers in tiles and tables line up and never get cut off */
+.tile b, td.n { font-variant-numeric: tabular-nums; }
+.tile b { overflow-wrap: anywhere; }
+
+/* ---------- people who need less see-through or more contrast (apple-design section 14) ---------- */
+@media (prefers-reduced-transparency: reduce) {
+  .top { background: var(--bg) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+}
+@media (prefers-contrast: more) {
+  .top { background: var(--bg) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+         border-bottom: 1px solid var(--text) !important; }
+  .top::after { display: none; }
+  .card, .tile, .ios-group, .ios-card, .ios-empty, .summary, .plan { outline: 1px solid color-mix(in srgb, var(--text) 45%, transparent); outline-offset: -1px; }
 }

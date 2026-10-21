@@ -25,7 +25,7 @@ main{max-width:820px;margin:0 auto;padding:44px 20px 72px}
 .eyebrow{margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brass)}
 h1{margin:0;font-family:"Fraunces",Georgia,serif;font-size:clamp(28px,6vw,42px);line-height:1.12}
 .lead{margin:16px 0 0;font-size:17px;color:var(--mute)}
-.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .6s var(--ease) backwards;animation-delay:calc(var(--k,0)*70ms)}
+.card{margin-top:16px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);animation:rise .32s var(--ease) backwards;animation-delay:calc(var(--k,0)*40ms)}
 .card h2{margin:0 0 8px;font-family:"Fraunces",Georgia,serif;font-size:21px}
 .card p,.card li{color:var(--mute)}
 .card p{margin:8px 0 0}
@@ -41,7 +41,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
 .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 .btnp{display:inline-flex;align-items:center;height:48px;padding:0 20px;border:0;border-radius:12px;background:var(--brass);color:#1a1204;font:inherit;font-weight:600;text-decoration:none;cursor:pointer}
 .act{display:inline-flex;align-items:center;height:48px;padding:0 18px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--text);font:inherit;font-weight:600;text-decoration:none;cursor:pointer}
-.act:hover{border-color:var(--brass)}
+@media (hover: hover) and (pointer: fine){.act:hover{border-color:var(--brass)}}
 .warn{margin-top:16px;padding:16px 18px;border-left:3px solid var(--brass);border-radius:0 12px 12px 0;background:var(--card);color:var(--mute)}
 .warn b{color:var(--text)}
 /* the printable field sheet */
@@ -59,7 +59,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.92em;color:var(--brass)}
 .sheet th,.sheet td{border:1px solid #999;color:#111;padding:9px 8px;background:#fff}
 .sheet th{background:#f4efe3}
 .sheet .sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:14px}
-@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
 @media (max-width:560px){.brand span{display:none}main{padding-top:32px}.card{padding:18px}.sheet{padding:16px}.sheet .grid,.sheet .sign{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}}
 @media print{

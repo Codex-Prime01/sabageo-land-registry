@@ -23,7 +23,8 @@
   --ios-glass-edge: rgba(255, 255, 255, 0.14);
   --ios-shadow: 0 10px 40px -12px rgba(0, 0, 0, 0.55);
   --ios-spring: cubic-bezier(0.32, 0.72, 0, 1); /* iOS sheet curve */
-  --ios-ease: cubic-bezier(0.22, 0.8, 0.2, 1);
+  --ios-ease: cubic-bezier(0.23, 1, 0.32, 1);        /* strong ease-out: entering, pressing */
+  --ios-ease-move: cubic-bezier(0.77, 0, 0.175, 1);  /* moving or morphing on screen */
 }
 [data-theme="light"] {
   --ios-group: #ffffff;
@@ -177,7 +178,7 @@ a.ios-row:active, button.ios-row:active { background: var(--ios-group-2); }
   font-weight: 650;
   text-decoration: none;
   cursor: pointer;
-  transition: transform 0.18s var(--ios-ease), opacity 0.2s, background 0.2s;
+  transition: transform 140ms var(--ios-ease), opacity 0.2s, background 0.2s;
   -webkit-tap-highlight-color: transparent;
 }
 .ios-btn:active { transform: scale(0.97); }
@@ -292,6 +293,7 @@ a.ios-row:active, button.ios-row:active { background: var(--ios-group-2); }
   transition: transform 0.45s var(--ios-spring);
 }
 .ios-sheet.open { transform: translate(-50%, 0); }
+.ios-sheet:not(.open), .ios-scrim:not(.open) { transition-duration: 0.25s; } /* leave faster than you arrive */
 .ios-sheet::before {   /* grabber */
   content: "";
   display: block;
@@ -402,4 +404,15 @@ a.ios-row:active, button.ios-row:active { background: var(--ios-group-2); }
 /* room for the floating tab bar, so it never covers the last lines of a page */
 @media (max-width: 899px) {
   body:has(.ios-tabbar) { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+}
+
+/* glass becomes solid for people who ask for less transparency, and gets a clear edge for more contrast */
+@media (prefers-reduced-transparency: reduce) {
+  .ios-glass { background: var(--ios-group); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .ios-glass, .ios-sheet { background: var(--ios-group); -webkit-backdrop-filter: none; backdrop-filter: none;
+                           box-shadow: 0 0 0 1.5px var(--text, #f4f6fa); }
+  .ios-btn.tinted, .ios-badge { box-shadow: inset 0 0 0 1px currentColor; }
+  .ios-label-2, .ios-sub, .ios-foot { color: var(--text); }
 }
